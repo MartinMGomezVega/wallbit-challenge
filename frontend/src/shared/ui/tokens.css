@@ -30,6 +30,9 @@
   --color-severity-green-bg: #ECFDF5;
   --color-severity-green-border: #A7F3D0;
 
+  /* Barra de progreso */
+  --color-progress-warning: #EA580C;
+
   /* Estados de cierre */
   --color-status-pending-bg: #F5F5F5;
   --color-status-pending-text: #525252;

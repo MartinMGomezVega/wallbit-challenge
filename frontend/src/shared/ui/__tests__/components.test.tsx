@@ -102,10 +102,12 @@ describe('shared/ui components', () => {
       expect(screen.getByText('75%')).toBeInTheDocument();
     });
 
-    it('renderiza porcentaje >= 80% (amarillo) y negativos', () => {
+    it('renderiza porcentaje >= 80% (naranja) y negativos', () => {
       const { rerender } = render(<ProgressBar pctBp={8500} />);
       const bar = screen.getByRole('progressbar');
       expect(bar).toHaveAttribute('aria-valuenow', '85');
+      const innerBar = bar.querySelector('.bg-progress-warning');
+      expect(innerBar).toBeInTheDocument();
 
       rerender(<ProgressBar pctBp={-500} />);
       expect(bar).toHaveAttribute('aria-valuenow', '0');

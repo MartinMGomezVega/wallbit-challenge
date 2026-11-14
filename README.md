@@ -20,7 +20,7 @@
 
 ---
 
-## En una línea
+## Descripción
 
 El día 1 de cada mes, la herramienta arma sola el cierre de cada cliente y lo marca 🔴 / 🟡 / 🟢. El contador revisa solo lo que no es verde, aprueba el resto en lote, y el cliente recibe el aviso recién cuando el contador firmó.
 
@@ -28,7 +28,7 @@ El día 1 de cada mes, la herramienta arma sola el cierre de cada cliente y lo m
 
 ## Cómo correrlo
 
-**Con Docker (recomendado).** Solo necesitás Docker con Compose v2.
+**Con Docker (recomendado).** Solo necesitás Docker.
 
 ```bash
 git clone https://github.com/MartinMGomezVega/wallbit-challenge.git
@@ -38,12 +38,12 @@ docker compose up --build
 
 | Qué | Dónde |
 |---|---|
-| App | http://localhost:5173 |
+| App completa | http://localhost:5173 |
 | API | http://localhost:8080/api/v1 |
 | Swagger local | http://localhost:8080/docs |
 | Swagger publicado | https://martinmgomezvega.github.io/wallbit-challenge/ |
 
-En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. La "fecha de hoy" del prototipo está fijada en el 5/11/2026 para que siempre se vea lo mismo. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
+En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes (mockeados)** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. La "fecha de hoy" del prototipo está fijada en el 5/11/2026 para que siempre se vea lo mismo. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
 
 <details>
 <summary><b>Sin Docker para la app, tests y variables</b></summary>
@@ -95,10 +95,10 @@ Lo dimensioné así: con 500 clientes, si el 70% sale verde y se revisa en ~2 mi
 ### Por qué reglas y no IA para clasificar
 Las reglas son **explicables**: cada movimiento muestra qué regla lo clasificó, por ejemplo "Empresa del exterior → ingreso", y el contador puede auditarlas y corregirlas. Además respetan que **los datos no salgan de Wallbit**, porque no se mandan a un modelo externo. Cubren el caso típico (cobros de empresas del exterior, transferencias propias, gastos con tarjeta, conversiones a stablecoins). Lo dudoso queda "sin clasificar" y aparece en amarillo: prefiero pedirle 10 segundos al contador antes que adivinar un número impositivo.
 
-### El semáforo
+### Sistema de semáforo que pense:
 - 🔴 **Requiere acción:** excede el tope de la categoría K, facturas C después de la exclusión, cobros sin factura, depósitos por encima del tope.
 - 🟡 **Revisar:** cerca del tope K o de su categoría, debe recategorizar, cobro fuera de lo habitual, movimientos sin clasificar, cobros declarados fuera de Wallbit, facturas sin cobro, gastos con tarjeta altos, puede bajar de categoría.
-- 🟢 **Todo ok.**
+- 🟢 **Todo ok.**: No requiere cambios.
 
 El color es la situación **más grave** del cliente, y la descripción explica esa situación en una línea. El color nunca va solo: siempre lo acompañan un ícono y un texto, para quien no distingue colores. El **estado del cierre** (esperando al cliente, para revisar, aprobado, notificado) va en otra columna. Mezclarlo con el semáforo haría que "todavía no subió facturas" se viera igual que "tiene un problema real".
 

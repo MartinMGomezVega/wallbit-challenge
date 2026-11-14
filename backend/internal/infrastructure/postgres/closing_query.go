@@ -81,13 +81,36 @@ func buildWhere(p period.Period, f closing.Filter) (string, []any) {
 }
 
 func buildOrderBy(s closing.Sort) string {
+	by := s.By
+	if by == "" {
+		by = "severity"
+	}
 	dir := strings.ToLower(s.Dir)
-	switch s.By {
+	if dir == "" {
+		switch by {
+		case "name", "regime", "status":
+			dir = "asc"
+		default:
+			dir = "desc"
+		}
+	}
+
+	switch by {
 	case "name":
 		if dir == "desc" {
 			return `cl.name_search COLLATE "C" DESC, c.client_id ASC`
 		}
 		return `cl.name_search COLLATE "C" ASC, c.client_id ASC`
+	case "regime":
+		if dir == "desc" {
+			return `c.regime DESC, c.category DESC, c.client_id ASC`
+		}
+		return `c.regime ASC, c.category ASC, c.client_id ASC`
+	case "status":
+		if dir == "desc" {
+			return `CASE c.status WHEN 'PENDING_CLIENT_INPUT' THEN 1 WHEN 'READY_FOR_REVIEW' THEN 2 WHEN 'APPROVED' THEN 3 WHEN 'NOTIFIED' THEN 4 ELSE 5 END DESC, c.client_id ASC`
+		}
+		return `CASE c.status WHEN 'PENDING_CLIENT_INPUT' THEN 1 WHEN 'READY_FOR_REVIEW' THEN 2 WHEN 'APPROVED' THEN 3 WHEN 'NOTIFIED' THEN 4 ELSE 5 END ASC, c.client_id ASC`
 	case "billed":
 		if dir == "asc" {
 			return `c.billed_ars_cents ASC, c.client_id ASC`

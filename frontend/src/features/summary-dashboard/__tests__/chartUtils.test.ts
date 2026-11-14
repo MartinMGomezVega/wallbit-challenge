@@ -12,3 +12,4 @@ describe('chartUtils tokens', () => {
     expect(WARNING_BORDER_COLOR).toBe('var(--color-severity-yellow-fill)');
   });
 });
+

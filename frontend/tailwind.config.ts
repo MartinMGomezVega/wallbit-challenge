@@ -41,6 +41,9 @@ export default {
             border: 'var(--color-severity-green-border)',
           },
         },
+        progress: {
+          warning: 'var(--color-progress-warning)',
+        },
         status: {
           pending: {
             bg: 'var(--color-status-pending-bg)',

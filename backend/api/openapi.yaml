@@ -191,6 +191,19 @@ paths:
           in: path
           required: true
           schema: { type: string }
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [severity, name, regime, billed, pctKCap, toPay, status]
+            default: severity
+        - name: dir
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
       responses:
         '200':
           description: Página de cierres
@@ -204,6 +217,19 @@ paths:
           in: path
           required: true
           schema: { type: string }
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [severity, name, regime, billed, pctKCap, toPay, status]
+            default: severity
+        - name: dir
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
       responses:
         '200':
           description: IDs de cierres

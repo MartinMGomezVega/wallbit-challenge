@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, AlertCircle, Save, Loader2 } from 'lucide-react';
+import { useBlocker } from 'react-router-dom';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { getParameters, updateParameters } from './api';
 import { ParametersDTO } from './schemas';
 import { ApiError } from '../../shared/api/http';
+import { Toast } from '../../shared/ui/Toast';
 import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 
 export function ParametersPage() {
@@ -15,31 +18,60 @@ export function ParametersPage() {
   });
 
   const [form, setForm] = useState<ParametersDTO | null>(null);
+  const [savedParams, setSavedParams] = useState<ParametersDTO | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (initialParams) {
       setForm(initialParams);
+      setSavedParams(initialParams);
     }
   }, [initialParams]);
+
+  const isDirty = useMemo(() => {
+    if (!form || !savedParams) return false;
+    return JSON.stringify(form) !== JSON.stringify(savedParams);
+  }, [form, savedParams]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
 
   const mutation = useMutation({
     mutationFn: updateParameters,
     onSuccess: (res) => {
       setFieldErrors({});
-      setSuccessMessage(
-        `Parámetros guardados. Se recalcularon ${res.recalculated} cierres.`
-      );
+      setSavedParams(res.parameters);
+      setForm(res.parameters);
+      setToast({
+        message: `Parámetros guardados. Se recalcularon ${res.recalculated} cierres.`,
+        type: 'success',
+      });
       queryClient.setQueryData(['parameters'], res.parameters);
       queryClient.invalidateQueries({ queryKey: ['closings'] });
       queryClient.invalidateQueries({ queryKey: ['closings-summary'] });
     },
     onError: (err) => {
-      setSuccessMessage(null);
       if (err instanceof ApiError && err.status === 422) {
         setFieldErrors(err.fields || {});
       }
+      setToast({
+        message: (err instanceof ApiError && err.message) || 'Error al guardar los parámetros',
+        type: 'error',
+      });
     },
   });
 
@@ -67,7 +99,7 @@ export function ParametersPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMessage(null);
+    if (!isDirty || mutation.isPending) return;
     setFieldErrors({});
     mutation.mutate(form);
   };
@@ -82,26 +114,6 @@ export function ParametersPage() {
           Parámetros globales de contabilidad. Configurá las reglas de negocio, umbrales de alerta y tolerancias aplicadas a todos los cierres.
         </p>
       </div>
-
-      {successMessage && (
-        <div
-          role="status"
-          className="flex items-center gap-2 rounded-card border border-severity-green-border bg-severity-green-bg px-4 py-3 text-xs font-medium text-severity-green-text shadow-sm"
-        >
-          <CheckCircle2 className="h-4 w-4 text-severity-green-icon flex-shrink-0" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-
-      {mutation.isError && !(mutation.error instanceof ApiError && mutation.error.status === 422) && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 rounded-card border border-severity-red-border bg-severity-red-bg px-4 py-3 text-xs font-medium text-severity-red-text"
-        >
-          <AlertCircle className="h-4 w-4 text-severity-red-icon flex-shrink-0" />
-          <span>{(mutation.error as Error)?.message || 'Error al guardar los parámetros'}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Sección 1: Monotributo y categorías */}
@@ -491,18 +503,86 @@ export function ParametersPage() {
         <div className="flex items-center justify-end gap-3 pt-2">
           <button
             type="submit"
-            disabled={mutation.isPending}
-            className="inline-flex h-9 items-center gap-2 rounded-control bg-app-primary px-4 text-xs font-semibold text-white shadow-sm hover:bg-app-primary-hover disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
+            disabled={!isDirty || mutation.isPending}
+            className="inline-flex h-9 items-center rounded-control bg-app-primary px-4 text-xs font-semibold text-white shadow-sm hover:bg-app-primary-hover disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-app-focus"
           >
             {mutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Guardando...
+              </span>
             ) : (
-              <Save className="h-4 w-4" />
+              <span>Guardar</span>
             )}
-            <span>{mutation.isPending ? 'Guardando...' : 'Guardar parámetros'}</span>
           </button>
         </div>
       </form>
+
+      {/* Toast de notificación */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Modal de cambios sin guardar al navegar */}
+      <Dialog.Root
+        open={blocker.state === 'blocked'}
+        onOpenChange={(open) => {
+          if (!open && blocker.state === 'blocked') {
+            blocker.reset?.();
+          }
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#0A0A0A]/50 backdrop-blur-xs transition-opacity" />
+          <Dialog.Content
+            aria-describedby="unsaved-modal-desc"
+            className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-card border border-app-border bg-app-surface p-6 shadow-xl focus:outline-none"
+          >
+            <Dialog.Title className="text-base font-semibold text-app-text">
+              ¿Salir sin guardar?
+            </Dialog.Title>
+            <p id="unsaved-modal-desc" className="mt-2 text-xs text-app-text-muted">
+              Tenés cambios sin guardar en los parámetros.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => blocker.reset?.()}
+                className="h-8 rounded-control border border-app-border bg-white px-3 text-xs font-medium text-app-text hover:bg-app-surface-muted focus:outline-none focus:ring-1 focus:ring-app-focus"
+              >
+                Seguir editando
+              </button>
+              <button
+                type="button"
+                onClick={() => blocker.proceed?.()}
+                className="h-8 rounded-control border border-severity-red-border bg-white px-3 text-xs font-medium text-severity-red-text hover:bg-severity-red-bg focus:outline-none focus:ring-1 focus:ring-severity-red-border"
+              >
+                Salir sin guardar
+              </button>
+              <button
+                type="button"
+                disabled={mutation.isPending}
+                onClick={async () => {
+                  if (!form) return;
+                  try {
+                    await mutation.mutateAsync(form);
+                    blocker.proceed?.();
+                  } catch {
+                    blocker.reset?.();
+                  }
+                }}
+                className="h-8 rounded-control bg-app-primary px-3 text-xs font-semibold text-white shadow-sm hover:bg-app-primary-hover disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
+              >
+                {mutation.isPending ? 'Guardando...' : 'Guardar y salir'}
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

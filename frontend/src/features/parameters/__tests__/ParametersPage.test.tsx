@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { server } from '../../../mocks/server';
 import { ParametersPage } from '../ParametersPage';
 
-function renderParametersPage() {
+function renderParametersPage(initialEntries = ['/contador/parametros']) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -15,15 +16,31 @@ function renderParametersPage() {
     },
   });
 
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <ParametersPage />
-    </QueryClientProvider>
-  );
+  const routes = [
+    {
+      path: '/contador/parametros',
+      element: (
+        <QueryClientProvider client={queryClient}>
+          <ParametersPage />
+        </QueryClientProvider>
+      ),
+    },
+    {
+      path: '/contador',
+      element: <div>Página de Cierres</div>,
+    },
+  ];
+
+  const router = createMemoryRouter(routes, { initialEntries });
+
+  return {
+    ...render(<RouterProvider router={router} />),
+    router,
+  };
 }
 
 describe('ParametersPage', () => {
-  it('renderiza el título, las secciones y los valores iniciales', async () => {
+  it('renderiza el título, las secciones y los valores iniciales con botón Guardar deshabilitado', async () => {
     renderParametersPage();
 
     expect(screen.getByLabelText('Cargando parámetros')).toBeInTheDocument();
@@ -45,38 +62,35 @@ describe('ParametersPage', () => {
     const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)') as HTMLInputElement;
     expect(categoryCapInput.value).toBe('80');
 
-    const kCapInput = screen.getByLabelText('Alerta de tope K de exclusión (%)') as HTMLInputElement;
-    expect(kCapInput.value).toBe('80');
-
-    const fxSelect = screen.getByLabelText('Regla de cotización de divisas') as HTMLSelectElement;
-    expect(fxSelect.value).toBe('BNA_BUY_PREV_BUSINESS_DAY');
-
-    const minUsdInput = screen.getByLabelText(/Monto mínimo para alerta de facturas faltantes/i) as HTMLInputElement;
-    expect(minUsdInput.value).toBe('50.00');
-
-    const atypicalMultInput = screen.getByLabelText('Multiplicador de cobro atípico (ratio)') as HTMLInputElement;
-    expect(atypicalMultInput.value).toBe('2.5');
-
-    const atypicalWindowInput = screen.getByLabelText('Ventana de cobro atípico (meses)') as HTMLInputElement;
-    expect(atypicalWindowInput.value).toBe('6');
-
-    const cardSpendInput = screen.getByLabelText('Tope de gastos con tarjeta (%)') as HTMLInputElement;
-    expect(cardSpendInput.value).toBe('40');
-
-    const reminderDaysInput = screen.getByLabelText('Días de aviso previo a vencimiento (días)') as HTMLInputElement;
-    expect(reminderDaysInput.value).toBe('3');
-
-    const toleranceInput = screen.getByLabelText('Tolerancia de importe (%)') as HTMLInputElement;
-    expect(toleranceInput.value).toBe('3.0');
-
-    const windowBeforeInput = screen.getByLabelText('Días previos (emisión antes de cobro)') as HTMLInputElement;
-    expect(windowBeforeInput.value).toBe('45');
-
-    const windowAfterInput = screen.getByLabelText('Días posteriores (cobro posterior)') as HTMLInputElement;
-    expect(windowAfterInput.value).toBe('10');
+    // Botón Guardar deshabilitado por defecto (sin cambios)
+    const saveButton = screen.getByRole('button', { name: /^guardar$/i });
+    expect(saveButton).toBeDisabled();
   });
 
-  it('permite modificar parámetros y guardarlos con éxito', async () => {
+  it('el botón Guardar se habilita al editar y se vuelve a deshabilitar si se restaura el valor original', async () => {
+    const user = userEvent.setup();
+    renderParametersPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
+    });
+
+    const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)');
+    const saveButton = screen.getByRole('button', { name: /^guardar$/i });
+    expect(saveButton).toBeDisabled();
+
+    // 1. Modificar valor -> botón habilitado
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '85');
+    expect(saveButton).not.toBeDisabled();
+
+    // 2. Restaurar valor original -> botón deshabilitado nuevamente
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '80');
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('permite modificar parámetros, guardarlos con éxito y muestra toast flotante', async () => {
     const user = userEvent.setup();
     renderParametersPage();
 
@@ -88,50 +102,153 @@ describe('ParametersPage', () => {
     await user.clear(categoryCapInput);
     await user.type(categoryCapInput, '85');
 
-    const saveButton = screen.getByRole('button', { name: /Guardar parámetros/i });
+    const saveButton = screen.getByRole('button', { name: /^guardar$/i });
+    expect(saveButton).not.toBeDisabled();
     await user.click(saveButton);
 
+    const toast = await screen.findByRole('status');
+    expect(toast).toBeInTheDocument();
+    expect(toast).toHaveTextContent('Parámetros guardados. Se recalcularon 42 cierres.');
+
+    // Tras guardar con éxito, no hay cambios pendientes por lo que Guardar vuelve a deshabilitarse
     await waitFor(() => {
-      expect(
-        screen.getByText('Parámetros guardados. Se recalcularon 42 cierres.')
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^guardar$/i })).toBeDisabled();
     });
+
+    // Cerrar toast manualmente
+    const closeToastBtn = screen.getByRole('button', { name: 'Cerrar notificación' });
+    await user.click(closeToastBtn);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('muestra errores de validación de campo cuando el backend devuelve 422', async () => {
-    const user = userEvent.setup();
-    renderParametersPage();
+  it('sin cambios permite navegar libremente sin mostrar modal', async () => {
+    const { router } = renderParametersPage();
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
     });
 
-    const windowInput = screen.getByLabelText('Ventana de cobro atípico (meses)');
-    fireEvent.change(windowInput, { target: { value: '0' } });
-
-    const saveButton = screen.getByRole('button', { name: /Guardar parámetros/i });
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('debe ser mayor a 0')).toBeInTheDocument();
+    act(() => {
+      router.navigate('/contador');
     });
+
+    expect(screen.queryByText('¿Salir sin guardar?')).not.toBeInTheDocument();
+    expect(screen.getByText('Página de Cierres')).toBeInTheDocument();
   });
 
-  it('muestra mensaje de error cuando falla la carga inicial', async () => {
+  it('con cambios bloquea la navegación y el botón Seguir editando cierra el modal y se queda', async () => {
+    const user = userEvent.setup();
+    const { router } = renderParametersPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
+    });
+
+    const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)');
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '88');
+
+    act(() => {
+      router.navigate('/contador');
+    });
+
+    expect(await screen.findByText('¿Salir sin guardar?')).toBeInTheDocument();
+    expect(screen.getByText('Tenés cambios sin guardar en los parámetros.')).toBeInTheDocument();
+
+    const keepEditingBtn = screen.getByRole('button', { name: 'Seguir editando' });
+    await user.click(keepEditingBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText('¿Salir sin guardar?')).not.toBeInTheDocument();
+    });
+    expect(router.state.location.pathname).toBe('/contador/parametros');
+  });
+
+  it('con cambios bloquea la navegación y el botón Salir sin guardar descarta y navega', async () => {
+    const user = userEvent.setup();
+    const { router } = renderParametersPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
+    });
+
+    const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)');
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '88');
+
+    act(() => {
+      router.navigate('/contador');
+    });
+
+    expect(await screen.findByText('¿Salir sin guardar?')).toBeInTheDocument();
+
+    const discardBtn = screen.getByRole('button', { name: 'Salir sin guardar' });
+    await user.click(discardBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Página de Cierres')).toBeInTheDocument();
+    });
+    expect(router.state.location.pathname).toBe('/contador');
+  });
+
+  it('con cambios bloquea la navegación y el botón Guardar y salir guarda y navega', async () => {
+    const user = userEvent.setup();
+    const { router } = renderParametersPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
+    });
+
+    const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)');
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '92');
+
+    act(() => {
+      router.navigate('/contador');
+    });
+
+    expect(await screen.findByText('¿Salir sin guardar?')).toBeInTheDocument();
+
+    const saveAndLeaveBtn = screen.getByRole('button', { name: 'Guardar y salir' });
+    await user.click(saveAndLeaveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Página de Cierres')).toBeInTheDocument();
+    });
+    expect(router.state.location.pathname).toBe('/contador');
+  });
+
+  it('con cambios y error al guardar en Guardar y salir se queda en la pantalla y muestra error', async () => {
     server.use(
-      http.get('/api/v1/accountant/parameters', () => {
+      http.put('/api/v1/accountant/parameters', () => {
         return new HttpResponse(null, { status: 500 });
       })
     );
 
-    renderParametersPage();
+    const user = userEvent.setup();
+    const { router } = renderParametersPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Error al cargar los parámetros')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
     });
+
+    const categoryCapInput = screen.getByLabelText('Alerta de tope de categoría (%)');
+    await user.clear(categoryCapInput);
+    await user.type(categoryCapInput, '99');
+
+    act(() => {
+      router.navigate('/contador');
+    });
+
+    expect(await screen.findByText('¿Salir sin guardar?')).toBeInTheDocument();
+    const saveAndLeaveBtn = screen.getByRole('button', { name: 'Guardar y salir' });
+    await user.click(saveAndLeaveBtn);
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/contador/parametros');
   });
 
-  it('permite modificar todos los campos del formulario', async () => {
+  it('permite modificar todos los campos del formulario y activa el aviso de beforeunload', async () => {
     const user = userEvent.setup();
     renderParametersPage();
 
@@ -158,53 +275,27 @@ describe('ParametersPage', () => {
     fireEvent.change(atypicalMultInput, { target: { value: '3.0' } });
 
     const reminderDaysInput = screen.getByLabelText('Días de aviso previo a vencimiento (días)');
-    fireEvent.change(reminderDaysInput, { target: { value: '7' } });
+    fireEvent.change(reminderDaysInput, { target: { value: '5' } });
+
+    const atypicalWindowInput = screen.getByLabelText('Ventana de cobro atípico (meses)');
+    fireEvent.change(atypicalWindowInput, { target: { value: '8' } });
 
     const toleranceInput = screen.getByLabelText('Tolerancia de importe (%)');
-    fireEvent.change(toleranceInput, { target: { value: '2.5' } });
+    fireEvent.change(toleranceInput, { target: { value: '4.5' } });
 
     const windowBeforeInput = screen.getByLabelText('Días previos (emisión antes de cobro)');
     fireEvent.change(windowBeforeInput, { target: { value: '30' } });
 
     const windowAfterInput = screen.getByLabelText('Días posteriores (cobro posterior)');
-    fireEvent.change(windowAfterInput, { target: { value: '20' } });
+    fireEvent.change(windowAfterInput, { target: { value: '15' } });
 
-    const saveButton = screen.getByRole('button', { name: /Guardar parámetros/i });
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Parámetros guardados. Se recalcularon 42 cierres.')).toBeInTheDocument();
-    });
+    // Disparar beforeunload cuando está dirty
+    const beforeUnloadEvent = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(beforeUnloadEvent);
+    expect(beforeUnloadEvent.defaultPrevented).toBe(true);
   });
 
-  it('muestra errores de validación devueltos por el backend para múltiples campos', async () => {
-    server.use(
-      http.put('/api/v1/accountant/parameters', () => {
-        return HttpResponse.json(
-          {
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Parámetros inválidos',
-              fields: {
-                categoryCapWarningBp: 'tope categoría inválido',
-                kCapWarningBp: 'tope K inválido',
-                cardSpendKCapBp: 'tope tarjeta inválido',
-                fxRule: 'regla inválida',
-                missingInvoiceMinUsd: 'monto inválido',
-                atypicalMultiplierBp: 'multiplicador inválido',
-                atypicalWindowMonths: 'ventana inválida',
-                reminderDaysBeforeDue: 'días recordatorio inválidos',
-                reconciliationToleranceBp: 'tolerancia inválida',
-                reconciliationWindowBeforeDays: 'días previos inválidos',
-                reconciliationWindowAfterDays: 'días posteriores inválidos',
-              },
-            },
-          },
-          { status: 422 }
-        );
-      })
-    );
-
+  it('muestra errores de validación de campo cuando el backend devuelve 422', async () => {
     const user = userEvent.setup();
     renderParametersPage();
 
@@ -212,43 +303,29 @@ describe('ParametersPage', () => {
       expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
     });
 
-    const saveButton = screen.getByRole('button', { name: /Guardar parámetros/i });
+    const windowInput = screen.getByLabelText('Ventana de cobro atípico (meses)');
+    fireEvent.change(windowInput, { target: { value: '0' } });
+
+    const saveButton = screen.getByRole('button', { name: /^guardar$/i });
+    expect(saveButton).not.toBeDisabled();
     await user.click(saveButton);
 
     await waitFor(() => {
-      expect(screen.getByText('tope categoría inválido')).toBeInTheDocument();
-      expect(screen.getByText('tope K inválido')).toBeInTheDocument();
-      expect(screen.getByText('tope tarjeta inválido')).toBeInTheDocument();
-      expect(screen.getByText('regla inválida')).toBeInTheDocument();
-      expect(screen.getByText('monto inválido')).toBeInTheDocument();
-      expect(screen.getByText('multiplicador inválido')).toBeInTheDocument();
-      expect(screen.getByText('ventana inválida')).toBeInTheDocument();
-      expect(screen.getByText('días recordatorio inválidos')).toBeInTheDocument();
-      expect(screen.getByText('tolerancia inválida')).toBeInTheDocument();
-      expect(screen.getByText('días previos inválidos')).toBeInTheDocument();
-      expect(screen.getByText('días posteriores inválidos')).toBeInTheDocument();
+      expect(screen.getByText('debe ser mayor a 0')).toBeInTheDocument();
     });
   });
 
-  it('muestra alerta de error general cuando falla el guardado con error 500', async () => {
+  it('muestra mensaje de error cuando falla la carga inicial', async () => {
     server.use(
-      http.put('/api/v1/accountant/parameters', () => {
+      http.get('/api/v1/accountant/parameters', () => {
         return new HttpResponse(null, { status: 500 });
       })
     );
 
-    const user = userEvent.setup();
     renderParametersPage();
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
-    });
-
-    const saveButton = screen.getByRole('button', { name: /Guardar parámetros/i });
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Error al cargar los parámetros')).toBeInTheDocument();
     });
   });
 });

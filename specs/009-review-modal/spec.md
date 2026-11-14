@@ -6,9 +6,11 @@ Que el contador revise clientes uno tras otro sin volver a la tabla, recorriendo
 ## Formas de abrir (todas generan una cola)
 | Acción | Cola | Arranca en |
 |---|---|---|
-| Click en una fila / botón "Revisar" de la fila | todos los IDs del filtro actual (todas las páginas) | ese cliente |
+| Botón "Revisar" de la fila / click en el nombre del cliente | todos los IDs del filtro actual (todas las páginas) | ese cliente |
 | "Revisar" en un chip de color | IDs del filtro actual **+** ese color | el primero |
 | "Revisar seleccionados" | los seleccionados, en el orden de la tabla | el primero |
+
+Nota: la fila no responde a click general, permitiendo seleccionar y copiar texto libremente; la apertura se realiza únicamente mediante el botón "Revisar" o el nombre del cliente.
 
 ## Criterios de aceptación
 ### Backend

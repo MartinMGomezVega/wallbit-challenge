@@ -8,6 +8,7 @@ import {
 import { SearchX } from 'lucide-react';
 import { ClosingRow } from './schemas';
 import { createColumns } from './columns';
+import { SortField } from './useDashboardParams';
 import { Pagination } from '../../shared/ui/Pagination';
 
 export interface ClosingsTableProps {
@@ -15,10 +16,10 @@ export interface ClosingsTableProps {
   total: number;
   page: number;
   pageSize: number;
-  sort: 'severity' | 'name' | 'billed' | 'toPay' | 'pctKCap';
+  sort: SortField;
   dir: 'asc' | 'desc';
   isLoading?: boolean;
-  onSortChange: (field: 'severity' | 'name' | 'billed' | 'toPay' | 'pctKCap') => void;
+  onSortChange: (field: SortField) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   onReviewRow?: (row: ClosingRow) => void;
@@ -80,23 +81,36 @@ export function ClosingsTable({
   return (
     <div className={`flex flex-col rounded-card border border-app-border bg-app-surface shadow-sm ${className}`}>
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse min-w-[1050px]">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="sticky top-0 z-10 h-10 border-b border-app-border bg-app-surface-muted"
+                className="sticky top-0 z-30 h-10 border-b border-app-border bg-app-surface-muted"
               >
                 {headerGroup.headers.map((header) => {
                   const isSorted = sort === header.id;
                   const ariaSort = isSorted
                     ? (dir === 'asc' ? 'ascending' : 'descending')
                     : undefined;
+                  const isSelect = header.id === 'select';
+                  const isSeverity = header.id === 'severity';
+                  const isClient = header.id === 'client';
+
+                  let stickyClass = '';
+                  if (isSelect) {
+                    stickyClass = 'sticky left-0 z-20 bg-app-surface-muted';
+                  } else if (isSeverity) {
+                    stickyClass = 'sticky left-[44px] z-20 bg-app-surface-muted';
+                  } else if (isClient) {
+                    stickyClass = 'sticky left-[88px] z-20 bg-app-surface-muted border-r border-app-border';
+                  }
+
                   return (
                     <th
                       key={header.id}
                       aria-sort={ariaSort}
-                      className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-app-text-muted"
+                      className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-app-text-muted ${stickyClass}`}
                       style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                     >
                       {header.isPlaceholder
@@ -114,38 +128,38 @@ export function ClosingsTable({
               // Skeleton de carga: 8 filas con shimmer
               Array.from({ length: 8 }).map((_, rIdx) => (
                 <tr key={`skeleton-${rIdx}`} className="h-[52px] animate-pulse">
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 w-[44px]">
                     <div className="h-4 w-4 rounded bg-app-border/60" />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 w-[44px]">
                     <div className="h-3 w-6 rounded bg-app-border/60" />
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="h-3 w-48 rounded bg-app-border/60 mb-1" />
-                    <div className="h-2.5 w-24 rounded bg-app-border/40" />
-                  </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 w-[180px]">
                     <div className="h-3 w-32 rounded bg-app-border/60 mb-1" />
                     <div className="h-2.5 w-20 rounded bg-app-border/40" />
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="h-5 w-16 rounded bg-app-border/60" />
+                  <td className="px-3 py-3 min-w-[220px]">
+                    <div className="h-3 w-48 rounded bg-app-border/60 mb-1" />
+                    <div className="h-2.5 w-24 rounded bg-app-border/40" />
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="h-3 w-20 rounded bg-app-border/60 ml-auto mb-1" />
-                    <div className="h-2.5 w-16 rounded bg-app-border/40 ml-auto" />
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="h-2 w-24 rounded bg-app-border/60 ml-auto" />
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="h-3 w-20 rounded bg-app-border/60 ml-auto mb-1" />
-                    <div className="h-2.5 w-16 rounded bg-app-border/40 ml-auto" />
-                  </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 w-[140px]">
                     <div className="h-5 w-24 rounded bg-app-border/60" />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3 w-[140px]">
+                    <div className="h-3 w-20 rounded bg-app-border/60 ml-auto mb-1" />
+                    <div className="h-2.5 w-16 rounded bg-app-border/40 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3 w-[170px]">
+                    <div className="h-2 w-24 rounded bg-app-border/60 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3 w-[140px]">
+                    <div className="h-3 w-20 rounded bg-app-border/60 ml-auto mb-1" />
+                    <div className="h-2.5 w-16 rounded bg-app-border/40 ml-auto" />
+                  </td>
+                  <td className="px-3 py-3 w-[150px]">
+                    <div className="h-5 w-24 rounded bg-app-border/60" />
+                  </td>
+                  <td className="px-3 py-3 w-[88px]">
                     <div className="h-7 w-16 rounded bg-app-border/60" />
                   </td>
                 </tr>
@@ -179,6 +193,12 @@ export function ClosingsTable({
                 const isSelected = row.getIsSelected();
                 const isHighlighted = highlightedClosingId === item.closingId;
 
+                const baseBg = isHighlighted
+                  ? 'bg-app-primary-soft'
+                  : isSelected
+                  ? 'bg-app-primary-soft'
+                  : 'bg-app-surface';
+
                 return (
                   <tr
                     key={row.id}
@@ -187,22 +207,32 @@ export function ClosingsTable({
                         el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                       }
                     }}
-                    onClick={() => onReviewRow?.(item)}
-                    className={`h-[52px] cursor-pointer transition-colors duration-200 hover:bg-app-surface-muted ${
-                      isHighlighted
-                        ? 'bg-app-primary-soft ring-1 ring-app-primary'
-                        : isSelected
-                        ? 'bg-app-primary-soft'
-                        : isRed
-                        ? 'border-l-[3px] border-l-severity-red-icon'
-                        : ''
+                    className={`group h-[52px] transition-colors duration-150 hover:bg-app-surface-muted ${baseBg} ${
+                      isHighlighted ? 'ring-1 ring-app-primary' : ''
                     }`}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-3 py-2 text-xs">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isSelect = cell.column.id === 'select';
+                      const isSeverity = cell.column.id === 'severity';
+                      const isClient = cell.column.id === 'client';
+
+                      let stickyClass = '';
+                      if (isSelect) {
+                        stickyClass = `sticky left-0 z-10 ${baseBg} group-hover:bg-app-surface-muted ${
+                          isRed ? 'border-l-[3px] border-l-severity-red-icon' : ''
+                        }`;
+                      } else if (isSeverity) {
+                        stickyClass = `sticky left-[44px] z-10 ${baseBg} group-hover:bg-app-surface-muted`;
+                      } else if (isClient) {
+                        stickyClass = `sticky left-[88px] z-10 ${baseBg} group-hover:bg-app-surface-muted border-r border-app-border`;
+                      }
+
+                      return (
+                        <td key={cell.id} className={`px-3 py-2 text-xs ${stickyClass}`}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })

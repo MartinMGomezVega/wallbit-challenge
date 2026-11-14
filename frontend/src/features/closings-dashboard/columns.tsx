@@ -5,13 +5,15 @@ import { SeverityIndicator } from '../../shared/ui/SeverityIndicator';
 import { SignalChip, OtherSignalsChip } from '../../shared/ui/SignalChip';
 import { ProgressBar } from '../../shared/ui/ProgressBar';
 import { StatusBadge } from '../../shared/ui/StatusBadge';
+import { Tooltip } from '../../shared/ui/Tooltip';
 import { formatMoney } from '../../shared/format/money';
 import { formatDate } from '../../shared/format/date';
+import { SortField } from './useDashboardParams';
 
 export interface ColumnOptions {
-  sort?: string;
+  sort?: SortField;
   dir?: 'asc' | 'desc';
-  onSort?: (sortField: 'severity' | 'name' | 'billed' | 'toPay' | 'pctKCap') => void;
+  onSort?: (sortField: SortField) => void;
   onReview?: (row: ClosingRow) => void;
 }
 
@@ -20,7 +22,7 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
 
   const renderSortHeader = (
     label: string,
-    field: 'severity' | 'name' | 'billed' | 'toPay' | 'pctKCap',
+    field: SortField,
     align: 'left' | 'right' = 'left'
   ) => {
     const isSorted = sort === field;
@@ -53,7 +55,7 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
   };
 
   return [
-    // 1. Checkbox de selección
+    // 1. Checkbox de selección (sticky col 1)
     {
       id: 'select',
       header: ({ table }) => (
@@ -88,10 +90,10 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
         </div>
       ),
       enableSorting: false,
-      size: 40,
+      size: 44,
     },
 
-    // 2. Semáforo
+    // 2. Semáforo (sticky col 2)
     {
       id: 'severity',
       header: () => (
@@ -104,23 +106,46 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
           <SeverityIndicator severity={row.original.severity} mode="table" />
         </div>
       ),
-      size: 50,
+      size: 44,
     },
 
-    // 3. Situación
+    // 3. Cliente (sticky col 3, abre modal desde el nombre)
+    {
+      id: 'client',
+      header: () => renderSortHeader('Cliente', 'name'),
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex flex-col py-1">
+            <button
+              type="button"
+              onClick={() => onReview?.(item)}
+              className="text-left text-xs font-semibold text-app-text hover:text-app-primary hover:underline focus:outline-none focus:ring-1 focus:ring-app-focus rounded-[2px]"
+            >
+              {item.clientName}
+            </button>
+            <span className="text-[11px] tabular-nums text-app-text-muted">
+              {item.cuit}
+            </span>
+          </div>
+        );
+      },
+      size: 180,
+    },
+
+    // 4. Situación (columna flexible con tooltip)
     {
       id: 'situation',
       header: () => renderSortHeader('Situación', 'severity'),
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex flex-col gap-1 py-1 max-w-sm">
-            <span
-              className="line-clamp-2 text-xs text-app-text font-normal"
-              title={item.description}
-            >
-              {item.description}
-            </span>
+          <div className="flex flex-col gap-1 py-1 min-w-[220px] max-w-sm">
+            <Tooltip content={item.description}>
+              <span className="line-clamp-2 text-xs text-app-text font-normal">
+                {item.description}
+              </span>
+            </Tooltip>
             <div className="flex flex-wrap items-center gap-1.5">
               {item.primarySignal && <SignalChip signal={item.primarySignal} />}
               {item.otherSignals.length > 0 && (
@@ -132,74 +157,59 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
       },
     },
 
-    // 4. Cliente
-    {
-      id: 'client',
-      header: () => renderSortHeader('Cliente', 'name'),
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <div className="flex flex-col py-1">
-            <span className="text-xs font-semibold text-app-text">
-              {item.clientName}
-            </span>
-            <span className="text-[11px] tabular-nums text-app-text-muted">
-              {item.cuit}
-            </span>
-          </div>
-        );
-      },
-    },
-
-    // 5. Régimen
+    // 5. Régimen (orden por regime + categoría, nombre completo y tooltip para RI)
     {
       id: 'regime',
-      header: () => (
-        <span className="text-xs font-semibold uppercase tracking-wider text-app-text-muted">
-          Rég.
-        </span>
-      ),
+      header: () => renderSortHeader('Régimen', 'regime'),
       cell: ({ row }) => {
         const item = row.original;
-        const text =
-          item.regime === 'MONOTRIBUTO'
-            ? `Mono ${item.category || ''}`.trim()
-            : 'RI';
+        if (item.regime === 'MONOTRIBUTO') {
+          const cat = item.category ? ` ${item.category}` : '';
+          return (
+            <span className="inline-flex items-center rounded-control border border-app-border bg-app-surface-muted px-2 py-0.5 text-xs font-medium text-app-text whitespace-nowrap">
+              Monotributo{cat}
+            </span>
+          );
+        }
         return (
-          <span className="inline-flex items-center rounded-control border border-app-border bg-app-surface-muted px-2 py-0.5 text-xs font-medium text-app-text">
-            {text}
-          </span>
+          <Tooltip content="Responsable Inscripto">
+            <span className="inline-flex items-center rounded-control border border-app-border bg-app-surface-muted px-2 py-0.5 text-xs font-medium text-app-text whitespace-nowrap cursor-help">
+              Resp. Inscripto
+            </span>
+          </Tooltip>
         );
       },
+      size: 140,
     },
 
-    // 6. Facturado
+    // 6. Facturado (monto USD grande y ARS chico, whitespace-nowrap, tabular-nums)
     {
       id: 'billed',
       header: () => renderSortHeader('Facturado', 'billed', 'right'),
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex flex-col items-end py-1">
-            <span className="text-xs font-medium tabular-nums text-app-text">
+          <div className="flex flex-col items-end py-1 whitespace-nowrap">
+            <span className="text-xs font-medium tabular-nums text-app-text whitespace-nowrap">
               {formatMoney(item.billedInPeriod.usd)}
             </span>
-            <span className="text-[11px] tabular-nums text-app-text-muted">
+            <span className="text-[11px] tabular-nums text-app-text-muted whitespace-nowrap">
               {formatMoney(item.billedInPeriod.ars)}
             </span>
           </div>
         );
       },
+      size: 140,
     },
 
-    // 7. Acumulado 12 meses
+    // 7. Acumulado 12 meses (header "Acum. 12 meses", tramo naranja, whitespace-nowrap)
     {
       id: 'accumulated12m',
-      header: () => renderSortHeader('Acum. 12m', 'pctKCap', 'right'),
+      header: () => renderSortHeader('Acum. 12 meses', 'pctKCap', 'right'),
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex justify-end py-1">
+          <div className="flex justify-end py-1 whitespace-nowrap">
             <ProgressBar
               pctBp={item.accumulated12m.pctOfKCapBp}
               arsAmount={item.accumulated12m.ars}
@@ -207,42 +217,45 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
           </div>
         );
       },
+      size: 170,
     },
 
-    // 8. A pagar
+    // 8. A pagar (monto + vencimiento, whitespace-nowrap, tabular-nums)
     {
       id: 'toPay',
       header: () => renderSortHeader('A pagar', 'toPay', 'right'),
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex flex-col items-end py-1">
-            <span className="text-xs font-medium tabular-nums text-app-text">
+          <div className="flex flex-col items-end py-1 whitespace-nowrap">
+            <span className="text-xs font-medium tabular-nums text-app-text whitespace-nowrap">
               {formatMoney(item.toPay.amount)}
             </span>
-            <span className="text-[11px] tabular-nums text-app-text-muted">
+            <span className="text-[11px] tabular-nums text-app-text-muted whitespace-nowrap">
               vence {formatDate(item.toPay.dueDate, 'short')}
             </span>
           </div>
         );
       },
+      size: 140,
     },
 
-    // 9. Estado
+    // 9. Estado (orden por status flujo del cierre, whitespace-nowrap)
     {
       id: 'status',
-      header: () => (
-        <span className="text-xs font-semibold uppercase tracking-wider text-app-text-muted">
-          Estado
-        </span>
-      ),
+      header: () => renderSortHeader('Estado', 'status'),
       cell: ({ row }) => {
         const item = row.original;
-        return <StatusBadge status={item.status} paidAt={item.paidAt} />;
+        return (
+          <div className="whitespace-nowrap">
+            <StatusBadge status={item.status} paidAt={item.paidAt} />
+          </div>
+        );
       },
+      size: 150,
     },
 
-    // 10. Acción
+    // 10. Acción (botón Revisar abre modal)
     {
       id: 'action',
       header: () => null,
@@ -251,18 +264,14 @@ export function createColumns(options: ColumnOptions = {}): ColumnDef<ClosingRow
         return (
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onReview?.(item);
-            }}
+            onClick={() => onReview?.(item)}
             className="inline-flex h-8 items-center rounded-control border border-app-border bg-white px-2.5 text-xs font-medium text-app-text hover:bg-app-surface-muted focus:outline-none focus:ring-2 focus:ring-app-focus"
           >
             Revisar
           </button>
         );
       },
-      size: 80,
+      size: 88,
     },
   ];
 }
-

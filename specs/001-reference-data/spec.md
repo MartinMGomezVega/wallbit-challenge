@@ -35,7 +35,7 @@ Tener los value objects base (`Money`, `Rate`, `Period`) y los **proveedores ext
 
 ### Parámetros del contador
 11. `parameters.Defaults()` con los valores de `domain-context.md §9`. `Validate()` rechaza: bp fuera de `[0, 100000]`, ventanas ≤ 0, `fx_rule` desconocido.
-12. `GET /api/v1/accountant/parameters` → parámetros actuales. `PUT` con el objeto completo → valida, guarda, devuelve el nuevo objeto con `updatedAt` y `updatedBy`. (El recálculo de cierres se conecta en 007.)
+12. `GET /api/v1/accountant/parameters` → parámetros actuales. `PUT` con el objeto completo → valida, guarda, recalcula cierres afectados y devuelve `{ "parameters": ..., "recalculated": N }`. En la UI, el botón "Guardar" permanece deshabilitado sin cambios, notifica con toast al guardar y protege con modal de confirmación si el usuario intenta navegar con cambios pendientes.
 
 ## Fuera de alcance
 Cliente HTTP real contra ARCA/BCRA (solo se documenta la interfaz).

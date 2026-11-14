@@ -41,10 +41,15 @@ Definidos como variables CSS en `src/shared/ui/tokens.css` y mapeados en `tailwi
 | GREEN | `#059669` | `#047857` | `#ECFDF5` | `#A7F3D0` | `CircleCheck` | "Todo ok" |
 
 > Regla de aplicación para el amarillo:
-> - Usar **fill** (`#EAB308` / `--color-severity-yellow-fill`) en formas geométricas y rellenos: punto del semáforo en la tabla, borde izquierdo de tarjetas de severidad, barras del gráfico de situaciones, borde de alerta en distribución y tramo 80–99% de la barra de acumulado.
+> - Usar **fill** (`#EAB308` / `--color-severity-yellow-fill`) en formas geométricas y rellenos: punto del semáforo en la tabla, borde izquierdo de tarjetas de severidad, barras del gráfico de situaciones y borde de alerta en distribución.
 > - Usar **icon / text** (`#A16207` / `--color-severity-yellow-icon`, `--color-severity-yellow-text`) en íconos vectoriales y textos (chips, labels, StatusBadge).
 > - Nunca usar amarillo `#F59E0B` para texto o íconos sobre blanco (no llega a contraste).
 > - Los elementos del semáforo (íconos, chips, textos) van **siempre sobre superficies blancas** (tabla, tarjetas, modal), no directamente sobre el fondo `#F1F1F1`, donde el amarillo pierde contraste.
+
+**Barra de progreso de acumulado:**
+- Umbral normal (< 80%): verde (`--color-severity-green-icon`: `#059669`).
+- Umbral de advertencia (80–99%): naranja (`--color-progress-warning`: `#EA580C`). Se utiliza naranja para diferenciar nítidamente este umbral de límite fiscal del amarillo del semáforo.
+- Umbral crítico (≥ 100%): rojo (`--color-severity-red-icon`: `#DC2626`).
 
 **Estados del cierre** (badges neutros, sin competir con el semáforo):
 
@@ -126,13 +131,15 @@ Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
 ## 4. Componentes
 
 ### 4.1 Tabla de cierres (008)
-- Encabezado sticky, fondo `surface-muted`, `text-xs` MAYÚSCULAS muted, alto 40 px. Columnas ordenables con ícono `ArrowUpDown` / `ArrowUp` / `ArrowDown` y `aria-sort`.
-- Filas de 52 px, borde inferior `--color-border`, hover `surface-muted`, seleccionada `primary-soft`, cursor pointer.
-- **Fila roja:** borde izquierdo de 3 px `#DC2626` (no se pinta la fila entera: el rojo se mantiene como acento, no como ruido).
-- Columna Semáforo: 40 px, punto de 10 px + ícono de 16 px; tooltip con el label.
-- Columna Situación: 2 líneas máximo (`line-clamp-2`), chip de la señal principal (fondo suave + texto de su severidad) y chip `+N` neutro.
-- Montos: USD en `text-sm` 500, ARS debajo en `text-xs` muted. Alineados a la derecha.
-- Acum. 12 meses: barra de 6 px de alto y 96 px de ancho, fondo `border`, relleno según umbral (verde < 80%, `#EAB308` 80–99%, `#DC2626` ≥ 100%), porcentaje a la derecha.
+- Encabezado sticky, fondo `surface-muted`, `text-xs` MAYÚSCULAS muted, alto 40 px. Todas las columnas de datos son ordenables server-side con ícono `ArrowUpDown` / `ArrowUp` / `ArrowDown` y `aria-sort`.
+- Filas de 52 px, borde inferior `--color-border`, hover `surface-muted` como resaltado visual, seleccionada `primary-soft`. Sin cursor pointer general en la fila: el texto se puede seleccionar y copiar libremente.
+- Apertura del modal de revisión: únicamente a través del botón "Revisar" o haciendo click en el nombre del cliente (como link).
+- **Fila roja:** borde izquierdo de 3 px `#DC2626` en la celda fija izquierda (no se pinta la fila entera: el rojo se mantiene como acento, no como ruido).
+- Columnas fijas a la izquierda (sticky): Checkbox (44 px), Semáforo (44 px, punto de 10 px + ícono de 16 px) y Cliente (180 px con borde divisor derecho). Al hacer scroll horizontal en pantallas pequeñas (1024 px), estas tres columnas permanecen visibles.
+- Columna Situación: flexible, 2 líneas máximo (`line-clamp-2`), tooltip con el texto completo, chip de la señal principal y chip `+N` neutro.
+- Columna Régimen: ancho confortable (`min-w-[140px]`, `whitespace-nowrap`), muestra `Monotributo [Categoría]` o `Resp. Inscripto` con tooltip "Responsable Inscripto".
+- Montos y porcentajes: `whitespace-nowrap`, `tabular-nums`, alineados a la derecha y con anchos que nunca cortan cifras grandes (ej. "$ 1.614.446,04" entra completo).
+- Acum. 12 meses: barra de 6 px de alto y 96 px de ancho, fondo `border`, relleno según umbral (verde < 80%, naranja `--color-progress-warning` #EA580C 80–99%, rojo `#DC2626` ≥ 100%), porcentaje a la derecha.
 - Skeleton de carga: 8 filas grises con shimmer (desactivado con reduced-motion).
 
 ### 4.2 Chips de resumen

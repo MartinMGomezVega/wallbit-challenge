@@ -67,7 +67,7 @@ type Filter struct {
 
 // Sort especifica la columna y dirección de ordenamiento.
 type Sort struct {
-	By  string // "severity", "name", "billed", "toPay", "pctKCap"
+	By  string // "severity", "name", "regime", "billed", "toPay", "pctKCap", "status"
 	Dir string // "asc", "desc"
 }
 
@@ -160,12 +160,35 @@ func Apply(rows []Row, f Filter, s Sort) []Row {
 	return out
 }
 
+func statusRank(st Status) int {
+	switch st {
+	case StatusPendingClientInput:
+		return 1
+	case StatusReadyForReview:
+		return 2
+	case StatusApproved:
+		return 3
+	case StatusNotified:
+		return 4
+	default:
+		return 5
+	}
+}
+
 func sortRows(rows []Row, s Sort) {
 	by := s.By
 	if by == "" {
 		by = "severity"
 	}
 	dir := strings.ToLower(s.Dir)
+	if dir == "" {
+		switch by {
+		case "name", "regime", "status":
+			dir = "asc"
+		default:
+			dir = "desc"
+		}
+	}
 
 	sort.Slice(rows, func(i, j int) bool {
 		switch by {
@@ -176,6 +199,41 @@ func sortRows(rows []Row, s Sort) {
 					return cmp > 0
 				}
 				return cmp < 0
+			}
+
+		case "regime":
+			regimeI := string(rows[i].Regime)
+			regimeJ := string(rows[j].Regime)
+			if regimeI != regimeJ {
+				if dir == "desc" {
+					return regimeI > regimeJ
+				}
+				return regimeI < regimeJ
+			}
+			catI := ""
+			if rows[i].Category != nil {
+				catI = string(*rows[i].Category)
+			}
+			catJ := ""
+			if rows[j].Category != nil {
+				catJ = string(*rows[j].Category)
+			}
+			if catI != catJ {
+				if dir == "desc" {
+					return catI > catJ
+				}
+				return catI < catJ
+			}
+
+		case "status":
+			rankI := statusRank(rows[i].Status)
+			rankJ := statusRank(rows[j].Status)
+			diff := rankI - rankJ
+			if diff != 0 {
+				if dir == "desc" {
+					return diff > 0
+				}
+				return diff < 0
 			}
 
 		case "billed":

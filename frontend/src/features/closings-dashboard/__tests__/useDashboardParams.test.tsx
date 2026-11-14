@@ -130,6 +130,30 @@ describe('useDashboardParams', () => {
       expect(result.current.filters.dir).toBe('asc');
     });
 
+    it('setSort cambia sort y dirección por defecto para columnas nuevas (regime y status)', () => {
+      const wrapper = createWrapper();
+      const { result } = renderHook(() => useDashboardParams(), { wrapper });
+
+      act(() => {
+        result.current.setSort('regime');
+      });
+      expect(result.current.filters.sort).toBe('regime');
+      expect(result.current.filters.dir).toBe('asc');
+
+      act(() => {
+        result.current.setSort('status');
+      });
+      expect(result.current.filters.sort).toBe('status');
+      expect(result.current.filters.dir).toBe('asc');
+
+      // Si se vuelve a tocar status, alterna a desc
+      act(() => {
+        result.current.setSort('status');
+      });
+      expect(result.current.filters.sort).toBe('status');
+      expect(result.current.filters.dir).toBe('desc');
+    });
+
     it('clearFilters resetea todos los filtros de búsqueda preservando período', () => {
       const wrapper = createWrapper(
         '/contador?period=2026-08&severity=RED&q=Test&regime=RI&page=2'

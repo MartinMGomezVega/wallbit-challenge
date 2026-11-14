@@ -347,6 +347,12 @@ export const handlers = [
 
     // Sort
     const sevRank = { RED: 3, YELLOW: 2, GREEN: 1 };
+    const statusRank = {
+      PENDING_CLIENT_INPUT: 1,
+      READY_FOR_REVIEW: 2,
+      APPROVED: 3,
+      NOTIFIED: 4,
+    };
     rows.sort((a, b) => {
       let cmp = 0;
       if (sort === 'severity') {
@@ -356,6 +362,10 @@ export const handlers = [
         }
       } else if (sort === 'name') {
         cmp = a.clientName.localeCompare(b.clientName);
+      } else if (sort === 'regime') {
+        cmp = a.regime.localeCompare(b.regime) || (a.category || '').localeCompare(b.category || '');
+      } else if (sort === 'status') {
+        cmp = (statusRank[a.status] || 0) - (statusRank[b.status] || 0);
       } else if (sort === 'billed') {
         cmp = a.billedInPeriod.usd.amount - b.billedInPeriod.usd.amount;
       } else if (sort === 'toPay') {
@@ -367,7 +377,7 @@ export const handlers = [
       if (dir === 'desc' && sort !== 'severity') {
         cmp = -cmp;
       }
-      return cmp;
+      return cmp || a.clientId.localeCompare(b.clientId);
     });
 
     const total = rows.length;
@@ -461,6 +471,12 @@ export const handlers = [
     }
 
     const sevRank = { RED: 3, YELLOW: 2, GREEN: 1 };
+    const statusRank = {
+      PENDING_CLIENT_INPUT: 1,
+      READY_FOR_REVIEW: 2,
+      APPROVED: 3,
+      NOTIFIED: 4,
+    };
     rows.sort((a, b) => {
       let cmp = 0;
       if (sort === 'severity') {
@@ -470,6 +486,10 @@ export const handlers = [
         }
       } else if (sort === 'name') {
         cmp = a.clientName.localeCompare(b.clientName);
+      } else if (sort === 'regime') {
+        cmp = a.regime.localeCompare(b.regime) || (a.category || '').localeCompare(b.category || '');
+      } else if (sort === 'status') {
+        cmp = (statusRank[a.status] || 0) - (statusRank[b.status] || 0);
       } else if (sort === 'billed') {
         cmp = a.billedInPeriod.usd.amount - b.billedInPeriod.usd.amount;
       } else if (sort === 'toPay') {
@@ -481,7 +501,7 @@ export const handlers = [
       if (dir === 'desc' && sort !== 'severity') {
         cmp = -cmp;
       }
-      return cmp;
+      return cmp || a.clientId.localeCompare(b.clientId);
     });
 
     return HttpResponse.json({

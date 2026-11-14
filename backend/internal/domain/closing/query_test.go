@@ -230,6 +230,26 @@ func TestSorts(t *testing.T) {
 	if resSevAsc[0].ClientID != "cli_01" || resSevAsc[1].ClientID != "cli_02" || resSevAsc[2].ClientID != "cli_03" {
 		t.Fatalf("orden severity asc incorrecto")
 	}
+
+	// 8. Sort by regime asc / desc
+	resRegimeAsc := closing.Apply(rows, closing.Filter{}, closing.Sort{By: "regime", Dir: "asc"})
+	if resRegimeAsc[0].ClientID != "cli_01" || resRegimeAsc[1].ClientID != "cli_02" || resRegimeAsc[2].ClientID != "cli_03" {
+		t.Fatalf("orden regime asc incorrecto: %+v", resRegimeAsc)
+	}
+	resRegimeDesc := closing.Apply(rows, closing.Filter{}, closing.Sort{By: "regime", Dir: "desc"})
+	if resRegimeDesc[0].ClientID != "cli_03" || resRegimeDesc[1].ClientID != "cli_02" || resRegimeDesc[2].ClientID != "cli_01" {
+		t.Fatalf("orden regime desc incorrecto: %+v", resRegimeDesc)
+	}
+
+	// 9. Sort by status asc / desc
+	resStatusAsc := closing.Apply(rows, closing.Filter{}, closing.Sort{By: "status", Dir: "asc"})
+	if resStatusAsc[0].ClientID != "cli_02" || resStatusAsc[1].ClientID != "cli_01" || resStatusAsc[2].ClientID != "cli_03" {
+		t.Fatalf("orden status asc incorrecto: %+v", resStatusAsc)
+	}
+	resStatusDesc := closing.Apply(rows, closing.Filter{}, closing.Sort{By: "status", Dir: "desc"})
+	if resStatusDesc[0].ClientID != "cli_03" || resStatusDesc[1].ClientID != "cli_01" || resStatusDesc[2].ClientID != "cli_02" {
+		t.Fatalf("orden status desc incorrecto: %+v", resStatusDesc)
+	}
 }
 
 func TestApplyPurity(t *testing.T) {

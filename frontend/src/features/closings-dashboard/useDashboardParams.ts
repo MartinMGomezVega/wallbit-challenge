@@ -1,6 +1,23 @@
 import { useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+export type SortField = 'severity' | 'name' | 'regime' | 'billed' | 'toPay' | 'pctKCap' | 'status';
+
+export function getDefaultSortDir(field: SortField): 'asc' | 'desc' {
+  switch (field) {
+    case 'name':
+    case 'regime':
+    case 'status':
+      return 'asc';
+    case 'severity':
+    case 'billed':
+    case 'toPay':
+    case 'pctKCap':
+    default:
+      return 'desc';
+  }
+}
+
 export interface DashboardFilters {
   period: string;
   severity: string[];
@@ -8,7 +25,7 @@ export interface DashboardFilters {
   regime: string;
   status: string[];
   q: string;
-  sort: 'severity' | 'name' | 'billed' | 'toPay' | 'pctKCap';
+  sort: SortField;
   dir: 'asc' | 'desc';
   page: number;
   pageSize: number;
@@ -48,15 +65,17 @@ export function parseFiltersFromSearchParams(
   const q = searchParams.get('q') || '';
 
   const sortRaw = searchParams.get('sort');
-  const sort =
+  const sort: SortField =
     sortRaw === 'name' ||
+    sortRaw === 'regime' ||
     sortRaw === 'billed' ||
     sortRaw === 'toPay' ||
-    sortRaw === 'pctKCap'
+    sortRaw === 'pctKCap' ||
+    sortRaw === 'status'
       ? sortRaw
       : 'severity';
 
-  const defaultDir = sort === 'name' ? 'asc' : 'desc';
+  const defaultDir = getDefaultSortDir(sort);
   const dirRaw = searchParams.get('dir');
   const dir = dirRaw === 'asc' || dirRaw === 'desc' ? dirRaw : defaultDir;
 
@@ -104,7 +123,7 @@ export function filtersToSearchParams(filters: Partial<DashboardFilters>): URLSe
   if (filters.sort && filters.sort !== 'severity') {
     sp.set('sort', filters.sort);
   }
-  const defaultDir = (filters.sort || 'severity') === 'name' ? 'asc' : 'desc';
+  const defaultDir = getDefaultSortDir(filters.sort || 'severity');
   if (filters.dir && filters.dir !== defaultDir) {
     sp.set('dir', filters.dir);
   }
@@ -208,7 +227,7 @@ export function useDashboardParams(defaultPeriod: string = DEFAULT_PERIOD) {
           const current = parseFiltersFromSearchParams(prev, defaultPeriod);
           let newDir = dir;
           if (!newDir) {
-            const defaultDir = sort === 'name' ? 'asc' : 'desc';
+            const defaultDir = getDefaultSortDir(sort);
             newDir = current.sort === sort ? (current.dir === 'asc' ? 'desc' : 'asc') : defaultDir;
           }
           return filtersToSearchParams({

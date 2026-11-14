@@ -26,7 +26,7 @@ function renderApp(initialUrl = '/contador?period=2026-10', queryClient?: QueryC
 }
 
 describe('Dashboard + ReviewModal Integration (009)', () => {
-  it('Modo 1 (row): click en fila abre el modal en ese cliente', async () => {
+  it('Modo 1 (row): click en el nombre del cliente o botón abre el modal en ese cliente', async () => {
     const user = userEvent.setup();
     renderApp();
 
@@ -34,7 +34,7 @@ describe('Dashboard + ReviewModal Integration (009)', () => {
       expect(screen.getByText('Ignacio Sosa')).toBeInTheDocument();
     });
 
-    // Click en la fila de Ignacio Sosa
+    // Click en el nombre de Ignacio Sosa (link al modal)
     await user.click(screen.getByText('Ignacio Sosa'));
 
     // Modal abierto con Ignacio Sosa
