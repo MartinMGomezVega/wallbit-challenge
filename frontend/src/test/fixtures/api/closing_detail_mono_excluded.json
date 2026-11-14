@@ -1,0 +1,331 @@
+{
+  "closing": {
+    "id": "clo_000287",
+    "clientId": "cli_demo_02",
+    "period": "2026-10",
+    "status": "READY_FOR_REVIEW",
+    "version": 1,
+    "resultHash": "5478f966fa8ccd972e3894d0b67f89a9b1d55738abb367c46be68273149853ee",
+    "severity": "RED",
+    "signals": [
+      {
+        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
+        "severity": "RED",
+        "priority": 1,
+        "message": "Superó el tope de la categoría K el 02/10/2026 por $ 0,00. Corresponde pase a Responsable Inscripto.",
+        "data": {
+          "excessARS": "0.00",
+          "exclusionDate": "02/10/2026",
+          "exclusionDateISO": "2026-10-02"
+        }
+      }
+    ],
+    "description": "Superó el tope de la categoría K el 02/10/2026 por $ 0,00. Corresponde pase a Responsable Inscripto.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 750000,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 1113196500,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 12208778300,
+        "currency": "ARS"
+      },
+      "currentCategory": "K",
+      "requiredCategory": null,
+      "pctOfCurrentCapBp": 9642,
+      "pctOfKCapBp": 9642,
+      "excluded": true,
+      "exclusionDate": "2026-10-02T00:00:00-03:00",
+      "excessARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "canReturnFrom": "2030-01-01T00:00:00-03:00",
+      "fee": {
+        "amount": 161444604,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-11-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 12178655400,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_demo_00220",
+          "invoiceId": "inv_demo_00182",
+          "diffAmount": 0
+        },
+        {
+          "movementId": "mov_demo_00221",
+          "invoiceId": "inv_demo_00183",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": []
+  },
+  "client": {
+    "id": "cli_demo_02",
+    "name": "Ignacio Sosa",
+    "email": "ignacio.sosa@demo.wallbit.io",
+    "cuit": "20-28222221-4",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "K",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00220",
+        "clientId": "cli_demo_02",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 400000,
+          "currency": "USD"
+        },
+        "fxRate": 14871500,
+        "occurredAt": "2026-10-05T11:00:00-03:00",
+        "counterparty": {
+          "name": "Northwind Labs LLC",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Pago servicios consultoría cloud"
+      },
+      "classification": {
+        "movementId": "mov_demo_00220",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_demo_00221",
+        "clientId": "cli_demo_02",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "fxRate": 14818000,
+        "occurredAt": "2026-10-14T15:00:00-03:00",
+        "counterparty": {
+          "name": "Orbital SaaS Corp",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Hito final migración arquitectura"
+      },
+      "classification": {
+        "movementId": "mov_demo_00221",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "FOREIGN_COMPANY"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_demo_00182",
+        "clientId": "cli_demo_02",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 20,
+        "issueDate": "2026-10-02T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 400000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 400000,
+          "currency": "USD"
+        },
+        "fxRate": 14861100,
+        "receiverName": "Northwind Labs LLC",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-10-02T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 594444000,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14861100
+    },
+    {
+      "invoice": {
+        "id": "inv_demo_00183",
+        "clientId": "cli_demo_02",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 21,
+        "issueDate": "2026-10-14T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "fxRate": 14821500,
+        "receiverName": "Orbital SaaS Corp",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-10-14T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 518752500,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14821500
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_demo_00220",
+          "clientId": "cli_demo_02",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 400000,
+            "currency": "USD"
+          },
+          "fxRate": 14871500,
+          "occurredAt": "2026-10-05T11:00:00-03:00",
+          "counterparty": {
+            "name": "Northwind Labs LLC",
+            "country": "US",
+            "kind": "COMPANY",
+            "isOwnAccount": false
+          },
+          "description": "Pago servicios consultoría cloud"
+        },
+        "invoice": {
+          "id": "inv_demo_00182",
+          "clientId": "cli_demo_02",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 20,
+          "issueDate": "2026-10-02T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 400000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 400000,
+            "currency": "USD"
+          },
+          "fxRate": 14861100,
+          "receiverName": "Northwind Labs LLC",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-10-02T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      },
+      {
+        "movement": {
+          "id": "mov_demo_00221",
+          "clientId": "cli_demo_02",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "fxRate": 14818000,
+          "occurredAt": "2026-10-14T15:00:00-03:00",
+          "counterparty": {
+            "name": "Orbital SaaS Corp",
+            "country": "US",
+            "kind": "COMPANY",
+            "isOwnAccount": false
+          },
+          "description": "Hito final migración arquitectura"
+        },
+        "invoice": {
+          "id": "inv_demo_00183",
+          "clientId": "cli_demo_02",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 21,
+          "issueDate": "2026-10-14T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "fxRate": 14821500,
+          "receiverName": "Orbital SaaS Corp",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-10-14T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_02",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": true,
+    "confirmedAt": "2026-11-02T11:00:00-03:00",
+    "updatedAt": "2026-11-02T11:00:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 7.500,00 ($ 11.131.965,00). Cuota de Monotributo categoría K: $ 1.614.446,04, vence el 20/11/2026. Superaste el tope del Monotributo. Tu contador te va a contactar para el pase a Responsable Inscripto."
+  }
+}
+

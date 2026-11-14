@@ -1,0 +1,223 @@
+{
+  "closing": {
+    "id": "clo_000290",
+    "clientId": "cli_demo_05",
+    "period": "2026-10",
+    "status": "READY_FOR_REVIEW",
+    "version": 2,
+    "resultHash": "reopened_hash_val_v2",
+    "severity": "YELLOW",
+    "signals": [
+      {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "severity": "YELLOW",
+        "priority": 7,
+        "message": "Acumulado al 86% del tope de la categoría F.",
+        "data": {
+          "current": "F",
+          "pct": "86%"
+        }
+      }
+    ],
+    "description": "Acumulado al 86% del tope de la categoría F.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 228000,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 339615120,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 3894582000,
+        "currency": "ARS"
+      },
+      "currentCategory": "F",
+      "requiredCategory": "F",
+      "pctOfCurrentCapBp": 8625,
+      "pctOfKCapBp": 3076,
+      "excluded": false,
+      "fee": {
+        "amount": 15078400,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-11-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 3874862280,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_demo_00225",
+          "invoiceId": "inv_demo_00185",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": [
+      {
+        "id": "apr_000301",
+        "version": 1,
+        "resultHash": "9a465b0ecab3b0596b3e5f5339daf019d45a6e9fee904e9dbbda6a2673fe288f",
+        "approvedBy": "accountant",
+        "approvedAt": "2026-11-05T07:00:00-03:00",
+        "note": "Primera aprobación antes de nuevo comprobante",
+        "batch": false
+      }
+    ]
+  },
+  "client": {
+    "id": "cli_demo_05",
+    "name": "Valentina Ruiz",
+    "email": "valentina.ruiz@demo.wallbit.io",
+    "cuit": "27-36555554-6",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "F",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00225",
+        "clientId": "cli_demo_05",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 228000,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "occurredAt": "2026-10-11T10:00:00-03:00",
+        "counterparty": {
+          "name": "Northwind Labs LLC",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Data engineering"
+      },
+      "classification": {
+        "movementId": "mov_demo_00225",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_demo_00185",
+        "clientId": "cli_demo_05",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 13,
+        "issueDate": "2026-10-08T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 228000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 228000,
+          "currency": "USD"
+        },
+        "fxRate": 14895400,
+        "receiverName": "Northwind Labs LLC",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-10-08T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 339615120,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14895400
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_demo_00225",
+          "clientId": "cli_demo_05",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 228000,
+            "currency": "USD"
+          },
+          "fxRate": 14838000,
+          "occurredAt": "2026-10-11T10:00:00-03:00",
+          "counterparty": {
+            "name": "Northwind Labs LLC",
+            "country": "US",
+            "kind": "COMPANY",
+            "isOwnAccount": false
+          },
+          "description": "Data engineering"
+        },
+        "invoice": {
+          "id": "inv_demo_00185",
+          "clientId": "cli_demo_05",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 13,
+          "issueDate": "2026-10-08T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 228000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 228000,
+            "currency": "USD"
+          },
+          "fxRate": 14895400,
+          "receiverName": "Northwind Labs LLC",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-10-08T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_05",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": true,
+    "confirmedAt": "2026-11-02T11:00:00-03:00",
+    "updatedAt": "2026-11-02T11:00:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 2.280,00 ($ 3.396.151,20). Cuota de Monotributo categoría F: $ 150.784,00, vence el 20/11/2026. Nota de tu contador: Primera aprobación antes de nuevo comprobante"
+  }
+}
+

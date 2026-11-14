@@ -1,0 +1,145 @@
+{
+  "closing": {
+    "id": "clo_000300",
+    "clientId": "cli_demo_15",
+    "period": "2026-10",
+    "status": "PENDING_CLIENT_INPUT",
+    "version": 1,
+    "resultHash": "53e07cc2c6738854a0edd35ef8d9d40eb3be2f05bb91a09a9b04d984cb2df3d0",
+    "severity": "RED",
+    "signals": [
+      {
+        "code": "MISSING_INVOICES",
+        "severity": "RED",
+        "priority": 3,
+        "message": "1 cobros por US$ 850,00 sin factura asociada.",
+        "data": {
+          "count": "1",
+          "totalUSD": "850.00"
+        }
+      }
+    ],
+    "description": "1 cobros por US$ 850,00 sin factura asociada.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 0,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 1318456250,
+        "currency": "ARS"
+      },
+      "currentCategory": "B",
+      "requiredCategory": "B",
+      "pctOfCurrentCapBp": 7493,
+      "pctOfKCapBp": 1041,
+      "excluded": false,
+      "fee": {
+        "amount": 5637908,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-11-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 1438772900,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [],
+      "unmatchedIncomeIds": [
+        "mov_demo_00236"
+      ],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": []
+  },
+  "client": {
+    "id": "cli_demo_15",
+    "name": "Paula Rojas",
+    "email": "paula.rojas@demo.wallbit.io",
+    "cuit": "27-33444444-4",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "B",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00236",
+        "clientId": "cli_demo_15",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 85000,
+          "currency": "USD"
+        },
+        "fxRate": 14798600,
+        "occurredAt": "2026-10-15T10:00:00-03:00",
+        "counterparty": {
+          "name": "Brightloop GmbH",
+          "country": "DE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Traducción técnica"
+      },
+      "classification": {
+        "movementId": "mov_demo_00236",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    }
+  ],
+  "periodInvoices": [],
+  "reconciliation": {
+    "matchedPairs": [],
+    "unmatchedIncome": [
+      {
+        "id": "mov_demo_00236",
+        "clientId": "cli_demo_15",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 85000,
+          "currency": "USD"
+        },
+        "fxRate": 14798600,
+        "occurredAt": "2026-10-15T10:00:00-03:00",
+        "counterparty": {
+          "name": "Brightloop GmbH",
+          "country": "DE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Traducción técnica"
+      }
+    ],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_15",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": false,
+    "updatedAt": "2026-10-31T00:00:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 0,00 ($ 0,00). Cuota de Monotributo categoría B: $ 56.379,08, vence el 20/11/2026. Tenés 1 cobros sin factura. Emitilas y subilas para que quede todo en orden."
+  }
+}
+

@@ -61,7 +61,15 @@ export async function apiFetch<T>(path: string, schema: ZodType<T, ZodTypeDef, u
   if (!res.ok) throw toApiError(res.status, body);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    throw new ApiError(res.status, 'INVALID_RESPONSE', 'Respuesta inesperada del servidor.');
+    const firstIssue = parsed.error.issues[0];
+    const fieldPath = firstIssue ? firstIssue.path.join('.') : '';
+    if (import.meta.env?.DEV) {
+      console.error(`[apiFetch] Error de parseo Zod en ${path} (campo: ${fieldPath}): ${firstIssue?.message}`);
+    }
+    const message = fieldPath
+      ? `Respuesta inesperada del servidor (campo: ${fieldPath})`
+      : 'Respuesta inesperada del servidor.';
+    throw new ApiError(res.status, 'INVALID_RESPONSE', message);
   }
   return parsed.data;
 }

@@ -572,14 +572,15 @@ export const handlers = [
           ? {
               billedInPeriodUSD: row.billedInPeriod.usd,
               billedInPeriodARS: row.billedInPeriod.ars,
-              debitoFiscalARS: { amount: 4200000, currency: 'ARS' },
-              creditoFiscalARS: { amount: 800000, currency: 'ARS' },
-              saldoTecnicoARS: { amount: 3400000, currency: 'ARS' },
-              retencionesPercepcionesARS: { amount: 200000, currency: 'ARS' },
-              ivaToPay: { amount: 3200000, currency: 'ARS' },
+              exportSalesARS: row.billedInPeriod.ars,
+              localSalesNetARS: { amount: 0, currency: 'ARS' },
+              outputVat: { amount: 4200000, currency: 'ARS' },
+              inputVat: { amount: 800000, currency: 'ARS' },
+              previousVatCredit: { amount: 0, currency: 'ARS' },
+              vatToPay: { amount: 3200000, currency: 'ARS' },
+              newVatCredit: { amount: 0, currency: 'ARS' },
               vatDueDate: '2026-11-18T00:00:00Z',
-              autonomousCategory: 'Cat. III',
-              autonomousFee: { amount: 450000, currency: 'ARS' },
+              selfEmployedContribution: { amount: 450000, currency: 'ARS' },
               selfEmployedDueDate: '2026-11-05T00:00:00Z',
               incomeTaxAdvance: { amount: 1200000, currency: 'ARS' },
               incomeTaxAdvanceDueDate: '2026-11-15T00:00:00Z',
@@ -590,6 +591,20 @@ export const handlers = [
         paidAt: row.paidAt,
         approvedAt: row.status === 'APPROVED' ? '2026-11-02T10:00:00Z' : null,
         approvedBy: row.status === 'APPROVED' ? 'contador@estudio.com' : null,
+        approvals:
+          row.status === 'APPROVED' || row.status === 'NOTIFIED'
+            ? [
+                {
+                  id: 'appr_01',
+                  version: row.version,
+                  resultHash: 'hash_approved_01',
+                  approvedBy: 'contador@estudio.com',
+                  approvedAt: '2026-11-02T10:00:00Z',
+                  note: '',
+                  batch: false,
+                },
+              ]
+            : [],
       },
       client: {
         id: row.clientId,
@@ -740,20 +755,113 @@ export const handlers = [
       );
     }
 
+    const row = mockClosings.find((c) => c.closingId === id) || mockClosings[0];
+    if (!row) {
+      return new HttpResponse(null, { status: 404 });
+    }
+    const isMono = row.regime === 'MONOTRIBUTO';
+    const signals = [
+      ...(row.primarySignal
+        ? [
+            {
+              code: row.primarySignal.code,
+              severity: row.primarySignal.severity || row.severity,
+              message: row.description,
+            },
+          ]
+        : []),
+      ...row.otherSignals.map((s) => ({
+        code: s.code,
+        severity: s.severity || 'YELLOW',
+        message: s.label,
+      })),
+    ];
+
     return HttpResponse.json({
-      id,
-      version: body.version,
-      status: 'NOTIFIED',
+      closing: {
+        id,
+        clientId: row.clientId,
+        period: '2026-10',
+        status: 'APPROVED',
+        version: body.version,
+        resultHash: 'hash_approved_' + id,
+        severity: row.severity,
+        description: row.description,
+        signals,
+        mono: isMono
+          ? {
+              billedInPeriodUSD: row.billedInPeriod.usd,
+              billedInPeriodARS: row.billedInPeriod.ars,
+              currentCategory: row.category || 'A',
+              requiredCategory: undefined,
+              billed12mARS: row.accumulated12m.ars,
+              kCapARS: { amount: 12660000000, currency: 'ARS' as const },
+              pctOfKCapBp: row.accumulated12m.pctOfKCapBp,
+              currentCapARS: { amount: 12660000000, currency: 'ARS' as const },
+              fee: row.toPay.amount,
+              feeDueDate: row.toPay.dueDate,
+              exclusionReason: undefined,
+              exclusionEffectiveDate: undefined,
+              exclusionDate: undefined,
+            }
+          : null,
+        ri: !isMono
+          ? {
+              billedInPeriodUSD: row.billedInPeriod.usd,
+              billedInPeriodARS: row.billedInPeriod.ars,
+              exportSalesARS: row.billedInPeriod.ars,
+              localSalesNetARS: { amount: 0, currency: 'ARS' as const },
+              outputVat: { amount: 4200000, currency: 'ARS' as const },
+              inputVat: { amount: 800000, currency: 'ARS' as const },
+              previousVatCredit: { amount: 0, currency: 'ARS' as const },
+              vatToPay: { amount: 3200000, currency: 'ARS' as const },
+              newVatCredit: { amount: 0, currency: 'ARS' as const },
+              vatDueDate: '2026-11-18T00:00:00Z',
+              selfEmployedContribution: { amount: 450000, currency: 'ARS' as const },
+              selfEmployedDueDate: '2026-11-05T00:00:00Z',
+              incomeTaxAdvance: { amount: 1200000, currency: 'ARS' as const },
+              incomeTaxAdvanceDueDate: '2026-11-15T00:00:00Z',
+              totalToPay: row.toPay.amount,
+            }
+          : null,
+        computedAt: '2026-11-01T03:00:00Z',
+        paidAt: row.paidAt,
+        approvals: [
+          {
+            id: 'appr_01',
+            version: body.version,
+            resultHash: 'hash_approved_' + id,
+            approvedBy: 'contador@estudio.com',
+            approvedAt: new Date().toISOString(),
+            note: body.clientNote || '',
+            batch: false,
+          },
+        ],
+      },
+      client: {
+        id: row.clientId,
+        name: row.clientName,
+        cuit: row.cuit,
+        regime: row.regime,
+        monotributoCategory: row.category || '',
+        regimeHistory: [],
+      },
+      periodMovements: [],
+      periodInvoices: [],
+      reconciliation: {
+        matchedPairs: [],
+        unmatchedIncome: [],
+        unmatchedInvoices: [],
+      },
+      clientInput: {
+        externalIncome: [],
+        declaredNoExternalIncome: true,
+      },
+      draftMessage: {
+        title: 'Cierre aprobado',
+        body: 'Tu cierre fue aprobado por el contador.',
+      },
       warning: id === 'clo_warning' ? 'CLIENT_INPUT_NOT_CONFIRMED' : undefined,
-      approvals: [
-        {
-          version: body.version,
-          approvedBy: 'contador@estudio.com',
-          approvedAt: new Date().toISOString(),
-          note: body.clientNote || '',
-          batch: false,
-        },
-      ],
     });
   }),
 

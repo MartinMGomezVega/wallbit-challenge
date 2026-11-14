@@ -1,0 +1,223 @@
+{
+  "closing": {
+    "id": "clo_000294",
+    "clientId": "cli_demo_09",
+    "period": "2026-10",
+    "status": "READY_FOR_REVIEW",
+    "version": 1,
+    "resultHash": "91d7a103db6c0e28df17466f23131b7cdae7fd5670a2aca1659649724ea12749",
+    "severity": "GREEN",
+    "signals": [],
+    "description": "Facturó US$ 3.500,00 · IVA $ 0,00 · todo conciliado.",
+    "ri": {
+      "billedInPeriodUSD": {
+        "amount": 350000,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 519330000,
+        "currency": "ARS"
+      },
+      "exportSalesARS": {
+        "amount": 519330000,
+        "currency": "ARS"
+      },
+      "localSalesNetARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "outputVat": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "inputVat": {
+        "amount": 84000000,
+        "currency": "ARS"
+      },
+      "previousVatCredit": {
+        "amount": 20000000,
+        "currency": "ARS"
+      },
+      "vatToPay": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "newVatCredit": {
+        "amount": 104000000,
+        "currency": "ARS"
+      },
+      "vatDueDate": "2026-11-25T00:00:00-03:00",
+      "selfEmployedContribution": {
+        "amount": 5500000,
+        "currency": "ARS"
+      },
+      "selfEmployedDueDate": "2026-11-11T00:00:00-03:00",
+      "totalToPay": {
+        "amount": 5500000,
+        "currency": "ARS"
+      }
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_demo_00230",
+          "invoiceId": "inv_demo_00189",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": []
+  },
+  "client": {
+    "id": "cli_demo_09",
+    "name": "Camila Torres",
+    "email": "camila.torres@demo.wallbit.io",
+    "cuit": "27-39999998-2",
+    "regime": "RI",
+    "regimeHistory": [],
+    "riProfile": {
+      "selfEmployedMonthlyContribution": {
+        "amount": 5500000,
+        "currency": "ARS"
+      },
+      "incomeTaxAdvances": null,
+      "previousVatCredit": {
+        "amount": 20000000,
+        "currency": "ARS"
+      }
+    },
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00230",
+        "clientId": "cli_demo_09",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "fxRate": 14798600,
+        "occurredAt": "2026-10-15T10:00:00-03:00",
+        "counterparty": {
+          "name": "Upwork",
+          "country": "US",
+          "kind": "PLATFORM",
+          "isOwnAccount": false
+        },
+        "description": "Honorarios Upwork exportación"
+      },
+      "classification": {
+        "movementId": "mov_demo_00230",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_demo_00189",
+        "clientId": "cli_demo_09",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 13,
+        "issueDate": "2026-10-12T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "receiverName": "Upwork",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-10-12T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 519330000,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14838000
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_demo_00230",
+          "clientId": "cli_demo_09",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "fxRate": 14798600,
+          "occurredAt": "2026-10-15T10:00:00-03:00",
+          "counterparty": {
+            "name": "Upwork",
+            "country": "US",
+            "kind": "PLATFORM",
+            "isOwnAccount": false
+          },
+          "description": "Honorarios Upwork exportación"
+        },
+        "invoice": {
+          "id": "inv_demo_00189",
+          "clientId": "cli_demo_09",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 13,
+          "issueDate": "2026-10-12T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 350000,
+            "currency": "USD"
+          },
+          "fxRate": 14838000,
+          "receiverName": "Upwork",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-10-12T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_09",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": true,
+    "confirmedAt": "2026-11-02T11:00:00-03:00",
+    "updatedAt": "2026-11-02T11:00:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 3.500,00 ($ 5.193.300,00). No tenés IVA a pagar; te queda un saldo a favor de $ 1.040.000,00. Aportes de autónomos: $ 55.000,00 (vence 11/11/2026). Total: $ 55.000,00."
+  }
+}
+

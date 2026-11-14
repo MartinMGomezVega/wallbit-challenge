@@ -62,11 +62,11 @@ describe('closing-review api', () => {
 
   it('approveClosing calls approve endpoint with version and optional clientNote', async () => {
     const res = await approveClosing('cls_01', 1, 'Nota para el cliente');
-    expect(res.id).toBe('cls_01');
-    expect(res.status).toBe('NOTIFIED');
+    expect(res.closing.id).toBe('cls_01');
+    expect(res.closing.status).toBe('APPROVED');
 
     const resWithoutNote = await approveClosing('cls_01', 1);
-    expect(resWithoutNote.id).toBe('cls_01');
+    expect(resWithoutNote.closing.id).toBe('cls_01');
   });
 
   it('approveBatch calls approve-batch endpoint with items', async () => {

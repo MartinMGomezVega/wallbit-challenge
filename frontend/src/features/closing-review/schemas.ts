@@ -62,6 +62,10 @@ export const InvoiceDTOSchema = z.object({
   currency: z.enum(['ARS', 'USD']),
   cae: z.string().optional().default(''),
   caeDueDate: z.string().optional().default(''),
+  source: z.string().optional(),
+  uploadedBy: z.enum(['CLIENT', 'ACCOUNTANT', 'SEED']).optional(),
+  receiverName: z.string().optional(),
+  receiverDoc: z.string().optional(),
 });
 export type InvoiceDTO = z.infer<typeof InvoiceDTOSchema>;
 
@@ -95,8 +99,12 @@ export const MonotributoAssessmentSchema = z.object({
   requiredCategory: z.string().nullable().optional(),
   billed12mARS: MoneySchema,
   kCapARS: MoneySchema.optional(),
+  pctOfCurrentCapBp: z.number().optional(),
   pctOfKCapBp: z.number(),
   currentCapARS: MoneySchema.optional(),
+  excluded: z.boolean().optional(),
+  excessARS: MoneySchema.nullable().optional(),
+  canReturnFrom: z.string().nullable().optional(),
   fee: MoneySchema,
   feeDueDate: z.string(),
   exclusionReason: z.string().optional(),
@@ -109,49 +117,97 @@ export type MonotributoAssessment = z.infer<typeof MonotributoAssessmentSchema>;
 export const RIAssessmentSchema = z.object({
   billedInPeriodUSD: MoneySchema,
   billedInPeriodARS: MoneySchema,
-  debitoFiscalARS: MoneySchema,
-  creditoFiscalARS: MoneySchema,
-  saldoTecnicoARS: MoneySchema,
-  retencionesPercepcionesARS: MoneySchema,
-  ivaToPay: MoneySchema,
+  exportSalesARS: MoneySchema,
+  localSalesNetARS: MoneySchema,
+  outputVat: MoneySchema,
+  inputVat: MoneySchema,
+  previousVatCredit: MoneySchema,
+  vatToPay: MoneySchema,
+  newVatCredit: MoneySchema,
   vatDueDate: z.string(),
-  autonomousCategory: z.string(),
-  autonomousFee: MoneySchema,
+  selfEmployedContribution: MoneySchema,
   selfEmployedDueDate: z.string(),
-  incomeTaxAdvance: MoneySchema,
-  incomeTaxAdvanceDueDate: z.string(),
+  incomeTaxAdvance: MoneySchema.nullable().optional(),
+  incomeTaxAdvanceDueDate: z.string().nullable().optional(),
   totalToPay: MoneySchema,
 });
 export type RIAssessment = z.infer<typeof RIAssessmentSchema>;
 
 // Client DTO
+export const RegimeHistoryItemSchema = z.object({
+  regime: z.enum(['MONOTRIBUTO', 'RI']).optional(),
+  from: z.string(),
+  to: z.string().nullable().optional(),
+  reason: z.string().optional().default(''),
+  note: z.string().optional(),
+});
+export type RegimeHistoryItem = z.infer<typeof RegimeHistoryItemSchema>;
+
 export const ClientDTOSchema = z.object({
   id: z.string(),
   name: z.string(),
   cuit: z.string(),
   regime: z.enum(['MONOTRIBUTO', 'RI']),
   monotributoCategory: z.string().optional().default(''),
+  regimeHistory: z.array(RegimeHistoryItemSchema).optional(),
 });
 export type ClientDTO = z.infer<typeof ClientDTOSchema>;
 
+// Approval DTO
+export const ApprovalSchema = z.object({
+  id: z.string(),
+  version: z.number(),
+  resultHash: z.string(),
+  approvedBy: z.string(),
+  approvedAt: z.string(),
+  note: z.string().optional(),
+  batch: z.boolean(),
+});
+export type ApprovalDTO = z.infer<typeof ApprovalSchema>;
+
 // Published snapshot
+export const PublishedFigureItemSchema = z.object({
+  concept: z.string(),
+  amount: MoneySchema,
+  dueDate: z.string(),
+});
+export type PublishedFigureItem = z.infer<typeof PublishedFigureItemSchema>;
+
+export const PublishedFiguresSchema = z.object({
+  billedUSD: MoneySchema,
+  billedARS: MoneySchema,
+  items: z.array(PublishedFigureItemSchema).default([]),
+  total: MoneySchema,
+});
+export type PublishedFigures = z.infer<typeof PublishedFiguresSchema>;
+
 export const PublishedSchema = z.object({
   version: z.number(),
   title: z.string(),
   body: z.string(),
-  figures: z.object({
-    billedUSD: MoneySchema,
-    billedARS: MoneySchema,
-    items: z.array(z.object({
-      concept: z.string(),
-      amount: MoneySchema,
-      dueDate: z.string(),
-    })).default([]),
-    total: MoneySchema,
-  }).optional(),
+  figures: PublishedFiguresSchema.optional(),
   publishedAt: z.string(),
 });
 export type PublishedDTO = z.infer<typeof PublishedSchema>;
+
+// Client Period Input
+export const ExternalIncomeItemSchema = z.object({
+  amount: MoneySchema,
+  description: z.string(),
+});
+export type ExternalIncomeItem = z.infer<typeof ExternalIncomeItemSchema>;
+
+export const ClientPeriodInputDTOSchema = z.object({
+  clientId: z.string().optional(),
+  period: z.string().optional(),
+  externalIncome: z.array(ExternalIncomeItemSchema).optional(),
+  declaredNoExternalIncome: z.boolean().optional(),
+  confirmedAt: z.string().nullable().optional(),
+  confirmedBy: z.enum(['CLIENT', 'ACCOUNTANT']).nullable().optional(),
+  confirmationNote: z.string().nullable().optional(),
+  updatedAt: z.string().optional(),
+}).passthrough();
+export type ClientPeriodInputDTO = z.infer<typeof ClientPeriodInputDTOSchema>;
 
 // Closing Detail
 export const ClosingDetailDTOSchema = z.object({
@@ -182,15 +238,17 @@ export const ClosingDetailDTOSchema = z.object({
     ri: RIAssessmentSchema.nullable().optional(),
     computedAt: z.string(),
     paidAt: z.string().nullable().optional(),
+    firstPublishedAt: z.string().nullable().optional(),
+    published: PublishedSchema.nullable().optional(),
+    approvals: z.array(ApprovalSchema).optional(),
     approvedAt: z.string().nullable().optional(),
     approvedBy: z.string().nullable().optional(),
-    published: PublishedSchema.nullable().optional(),
   }),
   client: ClientDTOSchema,
   periodMovements: z.array(PeriodMovementDTOSchema).default([]),
   periodInvoices: z.array(PeriodInvoiceDTOSchema).default([]),
   reconciliation: ReconciliationDetailSchema,
-  clientInput: z.record(z.unknown()).optional().default({}),
+  clientInput: ClientPeriodInputDTOSchema.optional().default({}),
   draftMessage: z.object({
     title: z.string(),
     body: z.string(),
@@ -204,12 +262,9 @@ export const MessageSchema = z.object({
 });
 export type MessageDTO = z.infer<typeof MessageSchema>;
 
-export const ApproveClosingResponseSchema = z.object({
-  id: z.string(),
-  version: z.number(),
-  status: z.string(),
+export const ApproveClosingResponseSchema = ClosingDetailDTOSchema.extend({
   warning: z.string().optional(),
-}).passthrough();
+});
 export type ApproveClosingResponse = z.infer<typeof ApproveClosingResponseSchema>;
 
 export const ApproveBatchResponseSchema = z.object({
@@ -224,6 +279,26 @@ export const ApproveBatchResponseSchema = z.object({
   ),
 });
 export type ApproveBatchResponse = z.infer<typeof ApproveBatchResponseSchema>;
+
+export const RegimeChangeResponseSchema = ClientDTOSchema.extend({
+  effectiveDate: z.string().optional(),
+  updatedAt: z.string().optional(),
+}).passthrough();
+export type RegimeChangeResponse = z.infer<typeof RegimeChangeResponseSchema>;
+
+export const LineIssueSchema = z.object({
+  line: z.number(),
+  message: z.string(),
+});
+export type LineIssue = z.infer<typeof LineIssueSchema>;
+
+export const ImportResultSchema = z.object({
+  imported: z.number(),
+  skippedDuplicates: z.number(),
+  warnings: z.array(LineIssueSchema).default([]),
+  errors: z.array(LineIssueSchema).default([]),
+});
+export type ImportResultDTO = z.infer<typeof ImportResultSchema>;
 
 export const UpdateClassificationResponseSchema = z.object({
   id: z.string(),

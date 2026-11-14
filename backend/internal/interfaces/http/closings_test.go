@@ -507,17 +507,17 @@ func TestApproveClosing_Individual_Success_And_Warnings(t *testing.T) {
 		t.Fatalf("error unmarshaling approveResponse: %v", err)
 	}
 
-	if res.Status != closing.StatusNotified {
-		t.Errorf("esperaba status NOTIFIED, got %s", res.Status)
+	if res.Closing.Status != closing.StatusNotified {
+		t.Errorf("esperaba status NOTIFIED, got %s", res.Closing.Status)
 	}
-	if res.Version != 2 {
-		t.Errorf("esperaba versión 2, got %d", res.Version)
+	if res.Closing.Version != 2 {
+		t.Errorf("esperaba versión 2, got %d", res.Closing.Version)
 	}
 	if res.Warning != "" {
 		t.Errorf("no esperaba warning, got %s", res.Warning)
 	}
-	if len(res.Approvals) != 1 || res.Approvals[0].Note != "Todo en orden para este mes" {
-		t.Errorf("auditoría de aprobación inválida: %+v", res.Approvals)
+	if len(res.Closing.Approvals) != 1 || res.Closing.Approvals[0].Note != "Todo en orden para este mes" {
+		t.Errorf("auditoría de aprobación inválida: %+v", res.Closing.Approvals)
 	}
 
 	// Verificar notificación in-app y outbox
@@ -564,8 +564,8 @@ func TestApproveClosing_Individual_Success_And_Warnings(t *testing.T) {
 	if res2.Warning != "CLIENT_INPUT_NOT_CONFIRMED" {
 		t.Errorf("esperaba warning CLIENT_INPUT_NOT_CONFIRMED, got %q", res2.Warning)
 	}
-	if res2.Status != closing.StatusNotified {
-		t.Errorf("esperaba status NOTIFIED, got %s", res2.Status)
+	if res2.Closing.Status != closing.StatusNotified {
+		t.Errorf("esperaba status NOTIFIED, got %s", res2.Closing.Status)
 	}
 
 	_ = outboxRepo

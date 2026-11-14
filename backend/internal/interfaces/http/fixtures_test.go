@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"mime/multipart"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,8 +15,10 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports/fakes"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/usecase"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/closing"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/movement"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
 	arcamock "github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/arca/mock"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/clock"
 	fxmock "github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/fx/mock"
@@ -80,6 +85,8 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	_ = classRepo.SaveAll(ctx, classifications)
 
 	p := period.MustParse("2026-10")
+	pSep := period.MustParse("2026-09")
+
 	computeUC := &usecase.ComputeClosing{
 		Clients: clientRepo, Movements: movRepo, Classifications: classRepo,
 		Invoices: invRepo, PurchaseInvoices: purchRepo, ClientInputs: inputRepo,
@@ -89,7 +96,13 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	}
 	runUC := &usecase.RunMonthlyClosing{Clients: clientRepo, Compute: computeUC, Workers: 1}
 	if _, err := runUC.Execute(ctx, p); err != nil {
-		t.Fatalf("RunMonthlyClosing: %v", err)
+		t.Fatalf("RunMonthlyClosing 2026-10: %v", err)
+	}
+	if _, err := runUC.Execute(ctx, pSep); err != nil {
+		t.Fatalf("RunMonthlyClosing 2026-09: %v", err)
+	}
+	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42); err != nil {
+		t.Fatalf("SeedSeptemberClosings: %v", err)
 	}
 
 	h := NewRouter(Deps{
@@ -101,7 +114,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		InvoiceRepo:               invRepo,
 		PurchaseInvoiceRepo:       purchRepo,
 		ClientInputRepo:           inputRepo,
-		LatestExclusionDateReader: &fakes.LatestExclusionDateReader{},
+		LatestExclusionDateReader: closingRepo,
 		ClosingRepo:               closingRepo,
 		ClosingQuery:              memory.NewClosingQuery(closingRepo, clientRepo),
 		StatsQuery:                memory.NewStatsQuery(closingRepo),
@@ -134,7 +147,31 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(outDir, name), buf.Bytes(), 0o644); err != nil {
 			t.Fatalf("write %s: %v", name, err)
 		}
-		return rec.Body.Bytes()
+		return buf.Bytes()
+	}
+
+	writePostFixture := func(name, path, user string, body io.Reader, contentType string) []byte {
+		req := httptest.NewRequest("POST", path, body)
+		if user != "" {
+			req.Header.Set("X-Demo-User", user)
+		}
+		if contentType != "" {
+			req.Header.Set("Content-Type", contentType)
+		}
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code != 200 {
+			t.Fatalf("POST %s status %d: %s", path, rec.Code, rec.Body.String())
+		}
+		var buf bytes.Buffer
+		if err := json.Indent(&buf, rec.Body.Bytes(), "", "  "); err != nil {
+			t.Fatalf("indent %s: %v", name, err)
+		}
+		buf.WriteByte('\n')
+		if err := os.WriteFile(filepath.Join(outDir, name), buf.Bytes(), 0o644); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+		return buf.Bytes()
 	}
 
 	closingsBytes := writeFixture("closings.json", "/api/v1/accountant/periods/2026-10/closings?page=1&pageSize=50")
@@ -144,13 +181,110 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	writeFixture("signals_catalog.json", "/api/v1/accountant/signals/catalog")
 	writeFixture("parameters.json", "/api/v1/accountant/parameters")
 
-	var page struct {
-		Items []struct {
-			ClosingID string `json:"closingId"`
-		} `json:"items"`
+	getClosing := func(clientID string, per period.Period) closing.Closing {
+		c, found, err := closingRepo.ByClientPeriod(ctx, clientID, per)
+		if err != nil || !found {
+			t.Fatalf("closing not found for client %s, period %s: err=%v, found=%v", clientID, per, err, found)
+		}
+		return c
 	}
-	if err := json.Unmarshal(closingsBytes, &page); err != nil || len(page.Items) == 0 {
-		t.Fatalf("no items in closings.json: %v", err)
+
+	// 1. Monotributo estándar (cli_demo_01)
+	cloMono := getClosing("cli_demo_01", p)
+	monoBytes := writeFixture("closing_detail_mono.json", "/api/v1/accountant/closings/"+cloMono.ID)
+	if err := os.WriteFile(filepath.Join(outDir, "closing_detail.json"), monoBytes, 0o644); err != nil {
+		t.Fatalf("write closing_detail.json: %v", err)
 	}
-	writeFixture("closing_detail.json", "/api/v1/accountant/closings/"+page.Items[0].ClosingID)
+
+	// 2. Monotributo con exclusión (cli_demo_02 - Ignacio Sosa)
+	cloExcl := getClosing("cli_demo_02", p)
+	writeFixture("closing_detail_mono_excluded.json", "/api/v1/accountant/closings/"+cloExcl.ID)
+
+	// 3. Responsable Inscripto (cli_demo_09 - Camila Torres)
+	cloRI := getClosing("cli_demo_09", p)
+	writeFixture("closing_detail_ri.json", "/api/v1/accountant/closings/"+cloRI.ID)
+
+	// 4. Pendiente de confirmación del cliente (cli_demo_15 - Paula Rojas)
+	cloPending := getClosing("cli_demo_15", p)
+	writeFixture("closing_detail_pending_input.json", "/api/v1/accountant/closings/"+cloPending.ID)
+
+	// 5. Cierre notificado de septiembre 2026 (cli_demo_01)
+	cloNotified := getClosing("cli_demo_01", pSep)
+	writeFixture("closing_detail_notified.json", "/api/v1/accountant/closings/"+cloNotified.ID)
+
+	// 6. Cierre reabierto v2 con aprobaciones previas (cli_demo_05)
+	cloReopen := getClosing("cli_demo_05", p)
+	cloReopen.Status = closing.StatusApproved
+	cloReopen.Approvals = []closing.Approval{{
+		ID:         idGen.New("apr"),
+		Version:    cloReopen.Version,
+		ResultHash: cloReopen.ResultHash,
+		ApprovedBy: "accountant",
+		ApprovedAt: clk.Now().Add(-2 * time.Hour),
+		Note:       "Primera aprobación antes de nuevo comprobante",
+	}}
+	cloReopen.ApplyResult("reopened_hash_val_v2", cloReopen.Severity, cloReopen.Signals, cloReopen.Description, cloReopen.Mono, cloReopen.RI, cloReopen.Reconciliation, clk.Now())
+	if err := closingRepo.Save(ctx, cloReopen); err != nil {
+		t.Fatalf("save reopened closing: %v", err)
+	}
+	writeFixture("closing_detail_reopened.json", "/api/v1/accountant/closings/"+cloReopen.ID)
+
+	// 7. Endpoint de escritura: approve_response.json (cli_demo_04)
+	cloApprove := getClosing("cli_demo_04", p)
+	approveBody, _ := json.Marshal(map[string]any{
+		"version": cloApprove.Version,
+	})
+	writePostFixture("approve_response.json", "/api/v1/accountant/closings/"+cloApprove.ID+"/approve", "accountant", bytes.NewReader(approveBody), "application/json")
+
+	// 8. Endpoint de escritura: approve_batch_response.json (2 cierres verdes)
+	var green1, green2 closing.Closing
+	closingsList, err := closingRepo.ListByPeriod(ctx, p)
+	if err != nil {
+		t.Fatalf("ListByPeriod: %v", err)
+	}
+	for _, c := range closingsList {
+		if c.Severity == signal.SeverityGreen && c.Status == closing.StatusReadyForReview {
+			if green1.ID == "" {
+				green1 = c
+			} else if green2.ID == "" {
+				green2 = c
+				break
+			}
+		}
+	}
+	if green1.ID == "" || green2.ID == "" {
+		t.Fatalf("no green closings found for batch approve fixture")
+	}
+	batchReqBody, _ := json.Marshal(map[string]any{
+		"items": []map[string]any{
+			{"id": green1.ID, "version": green1.Version},
+			{"id": green2.ID, "version": green2.Version},
+		},
+	})
+	writePostFixture("approve_batch_response.json", "/api/v1/accountant/periods/2026-10/closings/approve-batch", "accountant", bytes.NewReader(batchReqBody), "application/json")
+
+	// 9. Endpoint de escritura: regime_change_response.json (cli_demo_02 - Ignacio Sosa)
+	latestExcl, _ := closingRepo.LatestExclusionDate(ctx, "cli_demo_02")
+	effDateStr := "2026-10-15"
+	if latestExcl != nil {
+		effDateStr = latestExcl.In(period.Location()).Format("2006-01-02")
+	}
+	regimeReqBody, _ := json.Marshal(map[string]any{
+		"to":            "RI",
+		"effectiveDate": effDateStr,
+		"force":         true,
+		"note":          "Pase a Responsable Inscripto por superar límite de facturación",
+	})
+	writePostFixture("regime_change_response.json", "/api/v1/accountant/clients/cli_demo_02/regime-change", "accountant", bytes.NewReader(regimeReqBody), "application/json")
+
+	// 10. Endpoint de escritura: invoices_import_client_response.json (cli_demo_03)
+	csvContent := "Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total\n12/10/2026,19 - Factura E,00001,00000099,00000099,74392819289901,80,DE329182391,Brightloop GmbH,1482.15,USD,850.00,0.00,0.00,0.00,850.00\n"
+	bodyBuf := &bytes.Buffer{}
+	mpWriter := multipart.NewWriter(bodyBuf)
+	part, _ := mpWriter.CreateFormFile("file", "mis_comprobantes.csv")
+	_, _ = part.Write([]byte(csvContent))
+	_ = mpWriter.Close()
+	writePostFixture("invoices_import_client_response.json", "/api/v1/me/invoices/import", "client:cli_demo_03", bodyBuf, mpWriter.FormDataContentType())
+
+	_ = closingsBytes
 }

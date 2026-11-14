@@ -1,0 +1,15 @@
+{
+  "approved": 2,
+  "failed": 0,
+  "results": [
+    {
+      "id": "clo_000001",
+      "ok": true
+    },
+    {
+      "id": "clo_000003",
+      "ok": true
+    }
+  ]
+}
+

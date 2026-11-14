@@ -1,0 +1,254 @@
+{
+  "closing": {
+    "id": "clo_000289",
+    "clientId": "cli_demo_04",
+    "period": "2026-10",
+    "status": "NOTIFIED",
+    "version": 1,
+    "resultHash": "1980c5932accf381a9b08e9e3e75232de1a14d4a1431968088a3f88339545558",
+    "severity": "YELLOW",
+    "signals": [
+      {
+        "code": "MONO_CATEGORY_CHANGE_REQUIRED",
+        "severity": "YELLOW",
+        "priority": 6,
+        "message": "Facturó $ 32.290.595,00 en 12 meses: supera el tope de la C. Recategorizar a E.",
+        "data": {
+          "billed12m": "$ 32.290.595,00",
+          "current": "C",
+          "required": "E"
+        }
+      }
+    ],
+    "description": "Facturó $ 32.290.595,00 en 12 meses: supera el tope de la C. Recategorizar a E.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 190000,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 281922000,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 3229059500,
+        "currency": "ARS"
+      },
+      "currentCategory": "C",
+      "requiredCategory": "E",
+      "pctOfCurrentCapBp": 13088,
+      "pctOfKCapBp": 2550,
+      "excluded": false,
+      "fee": {
+        "amount": 6602000,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-11-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 3216080600,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 0,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_demo_00224",
+          "invoiceId": "inv_demo_00184",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": [
+      {
+        "id": "appr_000001",
+        "version": 1,
+        "resultHash": "1980c5932accf381a9b08e9e3e75232de1a14d4a1431968088a3f88339545558",
+        "approvedBy": "accountant",
+        "approvedAt": "2026-11-05T09:00:00-03:00",
+        "batch": false
+      }
+    ],
+    "firstPublishedAt": "2026-11-05T09:00:00-03:00",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de octubre 2026 está listo",
+      "body": "Facturaste US$ 1.900,00 ($ 2.819.220,00). Cuota de Monotributo categoría C: $ 66.020,00, vence el 20/11/2026. En la próxima recategorización tenés que pasar a la categoría E.",
+      "figures": {
+        "billedUSD": {
+          "amount": 190000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 281922000,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "Cuota Monotributo",
+            "amount": {
+              "amount": 6602000,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-11-20T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 6602000,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-11-05T09:00:00-03:00"
+    }
+  },
+  "client": {
+    "id": "cli_demo_04",
+    "name": "Diego Romero",
+    "email": "diego.romero@demo.wallbit.io",
+    "cuit": "20-30444443-7",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "C",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00224",
+        "clientId": "cli_demo_04",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 190000,
+          "currency": "USD"
+        },
+        "fxRate": 14798600,
+        "occurredAt": "2026-10-15T10:00:00-03:00",
+        "counterparty": {
+          "name": "Kiwi Studio Ltd",
+          "country": "GB",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Desarrollo mobile"
+      },
+      "classification": {
+        "movementId": "mov_demo_00224",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_demo_00184",
+        "clientId": "cli_demo_04",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 13,
+        "issueDate": "2026-10-12T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 190000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 190000,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "receiverName": "Kiwi Studio Ltd",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-10-12T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 281922000,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14838000
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_demo_00224",
+          "clientId": "cli_demo_04",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 190000,
+            "currency": "USD"
+          },
+          "fxRate": 14798600,
+          "occurredAt": "2026-10-15T10:00:00-03:00",
+          "counterparty": {
+            "name": "Kiwi Studio Ltd",
+            "country": "GB",
+            "kind": "COMPANY",
+            "isOwnAccount": false
+          },
+          "description": "Desarrollo mobile"
+        },
+        "invoice": {
+          "id": "inv_demo_00184",
+          "clientId": "cli_demo_04",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 13,
+          "issueDate": "2026-10-12T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 190000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 190000,
+            "currency": "USD"
+          },
+          "fxRate": 14838000,
+          "receiverName": "Kiwi Studio Ltd",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-10-12T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_04",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": true,
+    "confirmedAt": "2026-11-02T11:00:00-03:00",
+    "updatedAt": "2026-11-02T11:00:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 1.900,00 ($ 2.819.220,00). Cuota de Monotributo categoría C: $ 66.020,00, vence el 20/11/2026. En la próxima recategorización tenés que pasar a la categoría E."
+  }
+}
+

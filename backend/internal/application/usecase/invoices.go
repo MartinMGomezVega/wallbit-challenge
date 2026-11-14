@@ -126,6 +126,13 @@ func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.
 		}
 	}
 
+	if warnings == nil {
+		warnings = []invoice.LineIssue{}
+	}
+	if lineErrors == nil {
+		lineErrors = []invoice.LineIssue{}
+	}
+
 	return ImportResult{
 		Imported:          imported,
 		SkippedDuplicates: skippedDuplicates,

@@ -254,7 +254,7 @@ type approveRequest struct {
 }
 
 type approveResponse struct {
-	closing.Closing
+	usecase.ClosingDetailDTO
 	Warning string `json:"warning,omitempty"`
 }
 
@@ -283,9 +283,15 @@ func (h *closingsHandler) approve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	det, err := h.getDetailUC.Execute(r.Context(), id)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
 	writeJSON(w, http.StatusOK, approveResponse{
-		Closing: res.Closing,
-		Warning: res.Warning,
+		ClosingDetailDTO: det,
+		Warning:          res.Warning,
 	})
 }
 

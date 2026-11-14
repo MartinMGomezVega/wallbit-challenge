@@ -15,7 +15,9 @@ import { HistorySection } from './sections/HistorySection';
 import { ConfirmRegimeModal } from './ConfirmRegimeModal';
 import { SeverityIndicator } from '../../shared/ui/SeverityIndicator';
 import { StatusBadge } from '../../shared/ui/StatusBadge';
-import { AlertCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Tooltip } from '../../shared/ui/Tooltip';
+import { formatDateTime } from '../../shared/format/date';
+import { AlertCircle, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 
 export type ReviewTabKey =
   | 'resumen'
@@ -62,16 +64,34 @@ export function ReviewModal() {
   const approveMutation = useApprove({
     onError: (err) => {
       const apiErr = err as { code?: string; status?: number; message?: string };
-      if (apiErr.code === 'VERSION_CONFLICT' || apiErr.status === 409) {
+      if (apiErr.code === 'VERSION_CONFLICT') {
         setConflictError(true);
+      } else if (apiErr.code === 'ALREADY_APPROVED') {
+        refetch();
       } else {
         setGeneralError(apiErr.message || 'Error al aprobar');
       }
     },
   });
 
+  const isCurrentApproved =
+    detail?.closing.status === 'APPROVED' || detail?.closing.status === 'NOTIFIED';
+  const hasPriorApprovals = Boolean(
+    detail?.closing.approvals && detail.closing.approvals.length > 0
+  );
+  const isReopened = !isCurrentApproved && hasPriorApprovals;
+  const currentApproval =
+    detail?.closing.approvals?.find((a) => a.version === detail.closing.version) ||
+    detail?.closing.approvals?.[detail.closing.approvals.length - 1];
+  const lastApproval = detail?.closing.approvals?.[detail.closing.approvals.length - 1];
+  const approverName =
+    currentApproval?.approvedBy &&
+    currentApproval.approvedBy.toLowerCase() === 'accountant'
+      ? 'Contador'
+      : currentApproval?.approvedBy || 'Contador';
+
   const handleApprove = (andNext: boolean) => {
-    if (!currentClosingId || !detail) return;
+    if (!currentClosingId || !detail || isCurrentApproved) return;
     setConflictError(false);
     setGeneralError(null);
 
@@ -104,7 +124,7 @@ export function ReviewModal() {
     onPrev: canGoPrev ? goPrev : undefined,
     onClose: closeQueue,
     onApprove: () => {
-      if (!approveMutation.isPending) {
+      if (!approveMutation.isPending && !isCurrentApproved) {
         handleApprove(true);
       }
     },
@@ -226,6 +246,32 @@ export function ReviewModal() {
               )}
             </div>
 
+            {/* Franja verde de cierre aprobado */}
+            {isCurrentApproved && (
+              <div
+                role="status"
+                className="flex items-center gap-2 border-b border-severity-green-border bg-severity-green-bg px-6 py-2.5 text-xs font-semibold text-severity-green-text shrink-0"
+              >
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-severity-green-icon" />
+                <span>
+                  ✓ Aprobado por {approverName} el{' '}
+                  {formatDateTime(currentApproval?.approvedAt || detail?.closing.computedAt)}
+                  {detail?.closing.status === 'NOTIFIED' ? ' y notificado al cliente' : ''}
+                </span>
+              </div>
+            )}
+
+            {/* Franja de cierre reabierto */}
+            {isReopened && lastApproval && (
+              <div
+                role="status"
+                className="flex items-center gap-2 border-b border-severity-yellow-border bg-severity-yellow-bg px-6 py-2.5 text-xs font-semibold text-severity-yellow-text shrink-0"
+              >
+                <AlertTriangle className="h-4 w-4 shrink-0 text-severity-yellow-icon" />
+                <span>Hay cambios desde la última aprobación (versión {lastApproval.version})</span>
+              </div>
+            )}
+
             {/* Barra de pestañas */}
             <div className="flex items-center border-b border-app-border bg-app-surface px-6 shrink-0 overflow-x-auto">
               {tabs.map((tab) => {
@@ -344,16 +390,18 @@ export function ReviewModal() {
 
             {/* Footer sticky (64 px) */}
             <div className="flex items-center justify-between border-t border-app-border bg-app-surface px-6 py-3.5 shrink-0">
-              {/* Izquierda: Nota para el cliente */}
+              {/* Izquierda: Nota para el cliente (se oculta si ya está aprobado) */}
               <div className="flex items-center gap-2 w-full max-w-sm">
-                <input
-                  type="text"
-                  placeholder="Nota para el cliente (opcional)..."
-                  maxLength={500}
-                  value={clientNote}
-                  onChange={(e) => setClientNote(e.target.value)}
-                  className="h-8 w-full rounded-control border border-app-border bg-white px-3 text-xs text-app-text placeholder:text-app-text-muted/60 focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary"
-                />
+                {!isCurrentApproved && (
+                  <input
+                    type="text"
+                    placeholder="Nota para el cliente (opcional)..."
+                    maxLength={500}
+                    value={clientNote}
+                    onChange={(e) => setClientNote(e.target.value)}
+                    className="h-8 w-full rounded-control border border-app-border bg-white px-3 text-xs text-app-text placeholder:text-app-text-muted/60 focus:border-app-primary focus:outline-none focus:ring-1 focus:ring-app-primary"
+                  />
+                )}
               </div>
 
               {/* Derecha: Botones de acción y atajos */}
@@ -373,7 +421,7 @@ export function ReviewModal() {
                   </kbd>
                 </div>
 
-                {hasExclusionK && (
+                {hasExclusionK && !isCurrentApproved && (
                   <button
                     type="button"
                     onClick={() => setConfirmRegimeOpen(true)}
@@ -383,23 +431,52 @@ export function ReviewModal() {
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  disabled={approveMutation.isPending}
-                  onClick={() => handleApprove(false)}
-                  className="inline-flex h-8 items-center rounded-control border border-app-border bg-white px-3 text-xs font-medium text-app-text hover:bg-app-surface-muted disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
-                >
-                  Aprobar
-                </button>
+                {isCurrentApproved && detail ? (
+                  <Tooltip content={`Ya está aprobado (versión ${detail.closing.version})`}>
+                    <button
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      className="inline-flex h-8 items-center rounded-control border border-app-border bg-white px-3 text-xs font-medium text-app-text-muted opacity-50 cursor-not-allowed focus:outline-none"
+                    >
+                      Aprobar
+                    </button>
+                  </Tooltip>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={approveMutation.isPending}
+                    onClick={() => handleApprove(false)}
+                    className="inline-flex h-8 items-center rounded-control border border-app-border bg-white px-3 text-xs font-medium text-app-text hover:bg-app-surface-muted disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
+                  >
+                    Aprobar
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  disabled={approveMutation.isPending}
-                  onClick={() => handleApprove(true)}
-                  className="inline-flex h-8 items-center rounded-control bg-app-primary px-3 text-xs font-medium text-white hover:bg-app-primary-hover disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
-                >
-                  {approveMutation.isPending ? 'Aprobando...' : 'Aprobar y siguiente'}
-                </button>
+                {isCurrentApproved ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (canGoNext) {
+                        goNext();
+                      } else {
+                        closeQueue();
+                      }
+                    }}
+                    className="inline-flex h-8 items-center rounded-control bg-app-primary px-3 text-xs font-medium text-white hover:bg-app-primary-hover focus:outline-none focus:ring-2 focus:ring-app-focus"
+                  >
+                    Siguiente →
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={approveMutation.isPending}
+                    onClick={() => handleApprove(true)}
+                    className="inline-flex h-8 items-center rounded-control bg-app-primary px-3 text-xs font-medium text-white hover:bg-app-primary-hover disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-app-focus"
+                  >
+                    {approveMutation.isPending ? 'Aprobando...' : 'Aprobar y siguiente'}
+                  </button>
+                )}
               </div>
             </div>
           </Dialog.Content>

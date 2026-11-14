@@ -107,8 +107,10 @@ export function BatchApproveDialog({
             {!result && !error && (
               <p>
                 Vas a aprobar y notificar <strong>{items.length}</strong>{' '}
-                {items.length === 1 ? 'cliente verde' : 'clientes verdes'}. Cada cliente recibirá la
-                notificación in-app con el detalle y los avisos salientes correspondientes.
+                {items.length === 1 ? 'cliente verde' : 'clientes verdes'}. Los clientes que no están
+                listos para revisar (ej. pendientes de confirmación) o que ya fueron aprobados quedan
+                excluidos de la acción. Cada cliente recibirá la notificación in-app con el detalle y los
+                avisos salientes correspondientes.
               </p>
             )}
 

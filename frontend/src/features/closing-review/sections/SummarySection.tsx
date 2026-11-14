@@ -100,22 +100,34 @@ export function SummarySection({ detail }: SummarySectionProps) {
             </div>
 
             {/* Desglose RI */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
               {/* IVA */}
               <div className="rounded-control border border-app-border bg-app-surface-muted p-3">
                 <span className="font-semibold text-app-text block mb-1">IVA</span>
                 <div className="space-y-1 text-[11px] text-app-text-muted">
                   <div className="flex justify-between">
                     <span>Débito fiscal:</span>
-                    <span className="font-medium text-app-text">{formatMoney(ri.debitoFiscalARS)}</span>
+                    <span className="font-medium text-app-text">{formatMoney(ri.outputVat)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Crédito fiscal:</span>
-                    <span className="font-medium text-app-text">{formatMoney(ri.creditoFiscalARS)}</span>
+                    <span className="font-medium text-app-text">{formatMoney(ri.inputVat)}</span>
                   </div>
+                  {ri.previousVatCredit && ri.previousVatCredit.amount > 0 && (
+                    <div className="flex justify-between">
+                      <span>Saldo técnico anterior:</span>
+                      <span className="font-medium text-app-text">{formatMoney(ri.previousVatCredit)}</span>
+                    </div>
+                  )}
+                  {ri.newVatCredit && ri.newVatCredit.amount > 0 && (
+                    <div className="flex justify-between text-app-primary">
+                      <span>Saldo a favor nuevo:</span>
+                      <span className="font-medium">{formatMoney(ri.newVatCredit)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-1 border-t border-app-border font-semibold text-app-text">
                     <span>A pagar:</span>
-                    <span>{formatMoney(ri.ivaToPay)}</span>
+                    <span>{formatMoney(ri.vatToPay)}</span>
                   </div>
                   <div className="text-[10px] text-right text-app-text-muted">
                     Vence: {formatDate(ri.vatDueDate, 'short')}
@@ -127,13 +139,9 @@ export function SummarySection({ detail }: SummarySectionProps) {
               <div className="rounded-control border border-app-border bg-app-surface-muted p-3">
                 <span className="font-semibold text-app-text block mb-1">Autónomos</span>
                 <div className="space-y-1 text-[11px] text-app-text-muted">
-                  <div className="flex justify-between">
-                    <span>Categoría:</span>
-                    <span className="font-medium text-app-text">{ri.autonomousCategory}</span>
-                  </div>
-                  <div className="flex justify-between pt-1 border-t border-app-border font-semibold text-app-text">
+                  <div className="flex justify-between pt-1 font-semibold text-app-text">
                     <span>A pagar:</span>
-                    <span>{formatMoney(ri.autonomousFee)}</span>
+                    <span>{formatMoney(ri.selfEmployedContribution)}</span>
                   </div>
                   <div className="text-[10px] text-right text-app-text-muted">
                     Vence: {formatDate(ri.selfEmployedDueDate, 'short')}
@@ -142,18 +150,22 @@ export function SummarySection({ detail }: SummarySectionProps) {
               </div>
 
               {/* Anticipo Ganancias */}
-              <div className="rounded-control border border-app-border bg-app-surface-muted p-3">
-                <span className="font-semibold text-app-text block mb-1">Anticipo Ganancias</span>
-                <div className="space-y-1 text-[11px] text-app-text-muted">
-                  <div className="flex justify-between pt-1 font-semibold text-app-text">
-                    <span>A pagar:</span>
-                    <span>{formatMoney(ri.incomeTaxAdvance)}</span>
-                  </div>
-                  <div className="text-[10px] text-right text-app-text-muted">
-                    Vence: {formatDate(ri.incomeTaxAdvanceDueDate, 'short')}
+              {ri.incomeTaxAdvance && ri.incomeTaxAdvance.amount > 0 && (
+                <div className="rounded-control border border-app-border bg-app-surface-muted p-3">
+                  <span className="font-semibold text-app-text block mb-1">Anticipo Ganancias</span>
+                  <div className="space-y-1 text-[11px] text-app-text-muted">
+                    <div className="flex justify-between pt-1 font-semibold text-app-text">
+                      <span>A pagar:</span>
+                      <span>{formatMoney(ri.incomeTaxAdvance)}</span>
+                    </div>
+                    {ri.incomeTaxAdvanceDueDate && (
+                      <div className="text-[10px] text-right text-app-text-muted">
+                        Vence: {formatDate(ri.incomeTaxAdvanceDueDate, 'short')}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

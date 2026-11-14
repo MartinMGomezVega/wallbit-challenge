@@ -1,0 +1,295 @@
+{
+  "closing": {
+    "id": "clo_000586",
+    "clientId": "cli_demo_01",
+    "period": "2026-09",
+    "status": "NOTIFIED",
+    "version": 1,
+    "resultHash": "94b1ed5bf2fc37afb7622e6ffebc7a6c74a12d9c39438931594fac37139ff173",
+    "severity": "GREEN",
+    "signals": [],
+    "description": "Facturó US$ 500,00 · cuota $ 49.527,18 · todo conciliado.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 50000,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 73860500,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 850831500,
+        "currency": "ARS"
+      },
+      "currentCategory": "A",
+      "requiredCategory": "A",
+      "pctOfCurrentCapBp": 7084,
+      "pctOfKCapBp": 672,
+      "excluded": false,
+      "fee": {
+        "amount": 4952718,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-10-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 847068500,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 152309425,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_demo_00199",
+          "invoiceId": "inv_demo_00166",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": [
+      {
+        "id": "apr_000286",
+        "version": 1,
+        "resultHash": "94b1ed5bf2fc37afb7622e6ffebc7a6c74a12d9c39438931594fac37139ff173",
+        "approvedBy": "accountant",
+        "approvedAt": "2026-10-03T16:11:00-03:00",
+        "note": "Cierre de septiembre (dato semilla)",
+        "batch": true
+      }
+    ],
+    "paidAt": "2026-10-19T13:47:00-03:00",
+    "firstPublishedAt": "2026-10-03T16:11:00-03:00",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de septiembre 2026 está listo",
+      "body": "Facturaste US$ 500,00 ($ 738.605,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/10/2026.",
+      "figures": {
+        "billedUSD": {
+          "amount": 50000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 73860500,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "Cuota Monotributo",
+            "amount": {
+              "amount": 4952718,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-10-20T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 4952718,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-10-03T16:11:00-03:00"
+    }
+  },
+  "client": {
+    "id": "cli_demo_01",
+    "name": "Lucía Fernández",
+    "email": "lucia.fernandez@demo.wallbit.io",
+    "cuit": "27-32111110-1",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "A",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_demo_00199",
+        "clientId": "cli_demo_01",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 50000,
+          "currency": "USD"
+        },
+        "fxRate": 14825800,
+        "occurredAt": "2026-09-10T14:30:00-03:00",
+        "counterparty": {
+          "name": "Brightloop GmbH",
+          "country": "DE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Honorarios desarrollo backend"
+      },
+      "classification": {
+        "movementId": "mov_demo_00199",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_demo_00200",
+        "clientId": "cli_demo_01",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 2500,
+          "currency": "USD"
+        },
+        "fxRate": 14803000,
+        "occurredAt": "2026-09-12T10:00:00-03:00",
+        "counterparty": {
+          "name": "Spotify",
+          "country": "SE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Suscripción Spotify"
+      },
+      "classification": {
+        "movementId": "mov_demo_00200",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_demo_00201",
+        "clientId": "cli_demo_01",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 6500,
+          "currency": "USD"
+        },
+        "fxRate": 14822900,
+        "occurredAt": "2026-09-20T18:00:00-03:00",
+        "counterparty": {
+          "name": "Amazon",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Compra insumos de trabajo"
+      },
+      "classification": {
+        "movementId": "mov_demo_00201",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_demo_00166",
+        "clientId": "cli_demo_01",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 12,
+        "issueDate": "2026-09-06T10:00:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 50000,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 50000,
+          "currency": "USD"
+        },
+        "fxRate": 14772100,
+        "receiverName": "Brightloop GmbH",
+        "receiverDoc": "",
+        "source": "SEED",
+        "createdAt": "2026-09-06T10:00:00-03:00"
+      },
+      "amountArs": {
+        "amount": 73860500,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14772100
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_demo_00199",
+          "clientId": "cli_demo_01",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 50000,
+            "currency": "USD"
+          },
+          "fxRate": 14825800,
+          "occurredAt": "2026-09-10T14:30:00-03:00",
+          "counterparty": {
+            "name": "Brightloop GmbH",
+            "country": "DE",
+            "kind": "COMPANY",
+            "isOwnAccount": false
+          },
+          "description": "Honorarios desarrollo backend"
+        },
+        "invoice": {
+          "id": "inv_demo_00166",
+          "clientId": "cli_demo_01",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 12,
+          "issueDate": "2026-09-06T10:00:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 50000,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 50000,
+            "currency": "USD"
+          },
+          "fxRate": 14772100,
+          "receiverName": "Brightloop GmbH",
+          "receiverDoc": "",
+          "source": "SEED",
+          "createdAt": "2026-09-06T10:00:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_demo_01",
+    "period": "2026-09",
+    "externalIncome": [],
+    "declaredNoExternalIncome": false,
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de septiembre 2026 está listo",
+    "body": "Facturaste US$ 500,00 ($ 738.605,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/10/2026. Nota de tu contador: Cierre de septiembre (dato semilla)"
+  }
+}
+

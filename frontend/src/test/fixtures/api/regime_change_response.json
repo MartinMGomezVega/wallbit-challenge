@@ -1,0 +1,35 @@
+{
+  "id": "cli_demo_02",
+  "name": "Ignacio Sosa",
+  "email": "ignacio.sosa@demo.wallbit.io",
+  "cuit": "20-28222221-4",
+  "regime": "RI",
+  "monotributoCategory": "K",
+  "regimeHistory": [
+    {
+      "regime": "MONOTRIBUTO",
+      "from": "2025-10-01T00:00:00-03:00",
+      "to": "2026-10-01T23:59:59.999999999-03:00",
+      "reason": "INICIAL"
+    },
+    {
+      "regime": "RI",
+      "from": "2026-10-02T00:00:00-03:00",
+      "reason": "EXCLUSION_K_CAP",
+      "note": "Pase a Responsable Inscripto por superar límite de facturación"
+    }
+  ],
+  "riProfile": {
+    "selfEmployedMonthlyContribution": {
+      "amount": 0,
+      "currency": "ARS"
+    },
+    "incomeTaxAdvances": null,
+    "previousVatCredit": {
+      "amount": 0,
+      "currency": "ARS"
+    }
+  },
+  "createdAt": "2025-10-01T00:00:00-03:00"
+}
+

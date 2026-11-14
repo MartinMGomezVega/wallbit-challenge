@@ -24,9 +24,10 @@ export function useApprove(options?: UseApproveOptions) {
       clientNote?: string;
     }) => approveClosing(closingId, version, clientNote),
     onSuccess: (data, variables) => {
+      queryClient.setQueryData(['closing-detail', variables.closingId], data);
       queryClient.invalidateQueries({ queryKey: ['closings'] });
       queryClient.invalidateQueries({ queryKey: ['closings-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['closing-detail', variables.closingId] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
       options?.onSuccess?.(data, variables);
     },
     onError: (err) => {

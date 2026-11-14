@@ -167,7 +167,7 @@ describe('ReviewModal', () => {
     });
   });
 
-  it('permite hacer click en Aprobar y Aprobar y siguiente', async () => {
+  it('permite hacer click en Aprobar y luego avanzar con Siguiente', async () => {
     const user = userEvent.setup();
     render(
       <TestReviewWrapper>
@@ -182,8 +182,10 @@ describe('ReviewModal', () => {
     const aprobarBtn = screen.getByRole('button', { name: /^aprobar$/i });
     await user.click(aprobarBtn);
 
-    const aprobarYNextBtn = screen.getByRole('button', { name: /aprobar y siguiente/i });
-    await user.click(aprobarYNextBtn);
+    // Tras aprobar, aparece la franja verde y el botón pasa a ser "Siguiente →"
+    expect(await screen.findByText(/aprobado por contador/i)).toBeInTheDocument();
+    const nextBtn = screen.getByRole('button', { name: /siguiente →/i });
+    await user.click(nextBtn);
 
     expect(await screen.findByText('Cliente 2 de 2')).toBeInTheDocument();
   });

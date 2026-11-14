@@ -42,6 +42,16 @@ export function formatDueDate(dateInput: string | Date | null | undefined): stri
   return `vence ${formatted}`;
 }
 
+export function formatDateTime(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '-';
+  const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (isNaN(d.getTime())) return '-';
+  const dateStr = formatDate(d, 'full');
+  const hours = d.getHours().toString().padStart(2, '0');
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  return `${dateStr} a las ${hours}:${minutes}`;
+}
+
 const MONTH_NAMES = [
   'enero',
   'febrero',

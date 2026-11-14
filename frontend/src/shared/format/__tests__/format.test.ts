@@ -4,6 +4,7 @@ import {
   formatMoneyParts,
   formatDate,
   formatDueDate,
+  formatDateTime,
   formatPeriodName,
   formatPercentBp,
 } from '../index';
@@ -57,12 +58,23 @@ describe('shared/format', () => {
     it('formatDueDate formatea "vence dd/MM"', () => {
       expect(formatDueDate('2026-11-20')).toBe('vence 20/11');
       expect(formatDueDate(null)).toBe('-');
+      expect(formatDueDate('invalid-date')).toBe('-');
+    });
+
+    it('formatDateTime formatea fecha y hora dd/MM/yyyy a las HH:mm', () => {
+      const d = new Date(2026, 10, 14, 11, 52);
+      expect(formatDateTime(d)).toBe('14/11/2026 a las 11:52');
+      expect(formatDateTime('2026-11-14T11:52:00')).toContain('14/11/2026');
+      expect(formatDateTime(null)).toBe('-');
+      expect(formatDateTime(undefined)).toBe('-');
+      expect(formatDateTime('invalid')).toBe('-');
     });
 
     it('formatPeriodName convierte YYYY-MM a "mes año"', () => {
       expect(formatPeriodName('2026-10')).toBe('octubre 2026');
       expect(formatPeriodName('2025-01')).toBe('enero 2025');
       expect(formatPeriodName('invalid')).toBe('invalid');
+      expect(formatPeriodName('2026-99')).toBe('2026-99');
     });
   });
 
