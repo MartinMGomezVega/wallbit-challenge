@@ -168,6 +168,7 @@ func Generate(ctx context.Context, cfg SeedConfig, fx ports.ExchangeRateProvider
 		regime := client.RegimeMonotributo
 		var monoCategory tax.Category
 		var riProfile *client.RIProfile
+		var skipOctInvoice bool
 
 		var baseIncomeUSD int64
 
@@ -181,34 +182,57 @@ func Generate(ctx context.Context, cfg SeedConfig, fx ports.ExchangeRateProvider
 		} else {
 			monoIdx := i - remainingRI
 			switch {
-			case monoIdx < 16:
-				// 16 clientes RED: superan tope K (pasan a RI)
-				baseIncomeUSD = int64(7500 + rng.IntN(500))
+			case monoIdx < 3:
+				// 3 clientes RED: superan tope K (además de cli_demo_02)
 				monoCategory = tax.CatK
-			case monoIdx < 16+46:
-				// 46 clientes YELLOW: cerca del tope de categoría
-				switch monoIdx % 4 {
-				case 0:
-					baseIncomeUSD = int64(1600 + rng.IntN(50))
-					monoCategory = tax.CatD
-				case 1:
-					baseIncomeUSD = int64(1900 + rng.IntN(50))
-					monoCategory = tax.CatE
-				case 2:
-					baseIncomeUSD = int64(2800 + rng.IntN(50))
-					monoCategory = tax.CatG
-				default:
-					baseIncomeUSD = int64(6700 + rng.IntN(100))
-					monoCategory = tax.CatK
-				}
+				baseIncomeUSD = int64(7600 + rng.IntN(300))
+			case monoIdx < 3+5:
+				// 5 clientes YELLOW: cerca de exclusión (> 80% tope K, además de cli_demo_08)
+				monoCategory = tax.CatK
+				baseIncomeUSD = int64(6400 + rng.IntN(200))
+			case monoIdx < 8+11:
+				// 11 clientes Cat D (YELLOW cerca de tope D)
+				monoCategory = tax.CatD
+				baseIncomeUSD = int64(1650 + rng.IntN(80))
+			case monoIdx < 19+13:
+				// 13 clientes Cat E (YELLOW cerca de tope E)
+				monoCategory = tax.CatE
+				baseIncomeUSD = int64(1950 + rng.IntN(80))
+			case monoIdx < 32+11:
+				// 11 clientes Cat F (YELLOW cerca de tope F)
+				monoCategory = tax.CatF
+				baseIncomeUSD = int64(2450 + rng.IntN(80))
+			case monoIdx < 43+9:
+				// 9 clientes Cat G (YELLOW cerca de tope G)
+				monoCategory = tax.CatG
+				baseIncomeUSD = int64(2950 + rng.IntN(80))
+			case monoIdx < 52+2:
+				// 2 clientes Cat I (YELLOW cerca de tope I)
+				monoCategory = tax.CatI
+				baseIncomeUSD = int64(5100 + rng.IntN(80))
+			case monoIdx < 54+2:
+				// 2 clientes Cat J (YELLOW cerca de tope J)
+				monoCategory = tax.CatJ
+				baseIncomeUSD = int64(5800 + rng.IntN(80))
+			case monoIdx < 56+60:
+				// 60 clientes Cat A (GREEN)
+				monoCategory = tax.CatA
+				baseIncomeUSD = int64(350 + rng.IntN(100))
+			case monoIdx < 116+27:
+				// 27 clientes Cat B (GREEN)
+				monoCategory = tax.CatB
+				baseIncomeUSD = int64(760 + rng.IntN(40))
+			case monoIdx < 143+27:
+				// 27 clientes Cat C (GREEN)
+				monoCategory = tax.CatC
+				baseIncomeUSD = int64(1100 + rng.IntN(40))
 			default:
-				// 180 clientes GREEN: cómodos dentro de su categoría (< 80% del tope)
-				if monoIdx%5 < 2 {
-					baseIncomeUSD = int64(350 + rng.IntN(100))
-					monoCategory = tax.CatA
-				} else {
-					baseIncomeUSD = int64(3300 + rng.IntN(50))
-					monoCategory = tax.CatH
+				// 73 clientes Cat H (61 GREEN, 12 con factura de octubre faltante -> RED)
+				monoCategory = tax.CatH
+				baseIncomeUSD = int64(3400 + rng.IntN(100))
+				hIdx := monoIdx - 170
+				if hIdx < 12 {
+					skipOctInvoice = true
 				}
 			}
 		}
@@ -279,30 +303,32 @@ func Generate(ctx context.Context, cfg SeedConfig, fx ports.ExchangeRateProvider
 				})
 
 				// Generar factura E fechada 0 a 5 días antes del cobro (criterio 18)
-				invDate := payDate.AddDate(0, 0, -rng.IntN(5))
-				prevDay := period.PrevBusinessDay(invDate.AddDate(0, 0, -1))
-				var invFXRate *money.Rate
-				if qPrev, err := fx.USDQuote(ctx, prevDay); err == nil {
-					invFXRate = &qPrev.Buy
+				if !(skipOctInvoice && m == 12) {
+					invDate := payDate.AddDate(0, 0, -rng.IntN(5))
+					prevDay := period.PrevBusinessDay(invDate.AddDate(0, 0, -1))
+					var invFXRate *money.Rate
+					if qPrev, err := fx.USDQuote(ctx, prevDay); err == nil {
+						invFXRate = &qPrev.Buy
+					}
+					invoices = append(invoices, invoice.Invoice{
+						ID:           idGen.New("inv"),
+						ClientID:     cid,
+						Type:         invoice.TypeE,
+						PointOfSale:  1,
+						Number:       m + 1,
+						IssueDate:    invDate,
+						Currency:     money.USD,
+						NetAmount:    money.New(monthUSD*100, money.USD),
+						VatAmount:    money.Zero(money.USD),
+						TotalAmount:  money.New(monthUSD*100, money.USD),
+						FXRate:       invFXRate,
+						ReceiverName: payer.name,
+						ReceiverDoc:  fmt.Sprintf("US%08d", rng.IntN(100000000)),
+						Source:       invoice.SourceSeed,
+						UploadedBy:   invoice.UploadedBySeed,
+						CreatedAt:    invDate,
+					})
 				}
-				invoices = append(invoices, invoice.Invoice{
-					ID:           idGen.New("inv"),
-					ClientID:     cid,
-					Type:         invoice.TypeE,
-					PointOfSale:  1,
-					Number:       m + 1,
-					IssueDate:    invDate,
-					Currency:     money.USD,
-					NetAmount:    money.New(monthUSD*100, money.USD),
-					VatAmount:    money.Zero(money.USD),
-					TotalAmount:  money.New(monthUSD*100, money.USD),
-					FXRate:       invFXRate,
-					ReceiverName: payer.name,
-					ReceiverDoc:  fmt.Sprintf("US%08d", rng.IntN(100000000)),
-					Source:       invoice.SourceSeed,
-					UploadedBy:   invoice.UploadedBySeed,
-					CreatedAt:    invDate,
-				})
 			}
 
 			// Para clientes RI: generar factura de compra mensual para crédito fiscal

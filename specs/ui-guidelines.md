@@ -111,7 +111,7 @@ Reglas:
 ### 3.1 Contador (desktop-first, mínimo soportado 1280 px)
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [logo wallbit 24px]   Cierres  Resumen  Parámetros   Período [octubre 2026 ▾]  (C) Contador │  ← header 56 px, fondo #0A0A0A, logo blanco 24 px; navegación activa con subrayado 2 px #0D99FF
+│ [logo wallbit 24px]   Cierres  Resumen  Parámetros   [Hoy: 05/11/2026 · fecha simulada]  Período [octubre 2026 ▾]  (C) Contador │  ← header 56 px, fondo #0A0A0A, logo blanco 24 px; navegación activa con subrayado 2 px #0D99FF
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Cierre de octubre 2026                                   300 clientes     │  ← título + subtítulo muted
 │ [● Rojos 12  Revisar] [▲ Amarillos 47  Revisar] [✓ Verdes 241]           │  ← chips de resumen (toggle)
@@ -124,6 +124,7 @@ Reglas:
 ```
 - Contenido a ancho completo (la tabla necesita el espacio). Fondo `--color-bg`; tabla dentro de una tarjeta `surface`.
 - Barra de selección: flotante, centrada abajo, `shadow-xl`, aparece con ≥ 1 seleccionado.
+- **Badge de fecha simulada:** A la izquierda del selector de período en el header del contador y en la barra superior de "Cliente (demo)", un badge no cliqueable (`text-xs`, fondo `#171717`, borde `#262626`, texto `#D4D4D4`) con ícono de reloj (`Clock` de Lucide) y texto `Hoy: dd/MM/yyyy · fecha simulada` (o `Hoy: dd/MM/yyyy` si `now` coincide con la fecha real del sistema). Tooltip: *"El prototipo usa una fecha fija (APP_NOW) para que la demo sea siempre igual: el cierre de octubre ya corrió y estamos en la ventana de revisión, antes de los vencimientos de noviembre."*
 
 ### 3.2 Cliente
 Vista demo integrada dentro de un marco de celular (390×780 px, radio 36 px) sobre fondo neutro, accesible desde el switch `Contador | Cliente (demo)` del header. Permite experimentar el check-in (carga de comprobantes y cobros externos), el estado 'En revisión' y el resumen con la tarjeta validada por el contador.

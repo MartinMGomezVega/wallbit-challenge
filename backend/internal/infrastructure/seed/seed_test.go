@@ -11,6 +11,7 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/client"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/movement"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/fx/mock"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/idgen"
 )
@@ -252,5 +253,56 @@ func TestSeedDistributionAndCUITs(t *testing.T) {
 	confPct := float64(confirmedCount) / float64(len(ds.ClientInputs)) * 100
 	if confPct < 80 || confPct > 98 {
 		t.Errorf("confirmed client input pct %.2f%% outside [80%%, 98%%]", confPct)
+	}
+}
+
+func TestSeedMonotributoDistribution(t *testing.T) {
+	ctx := context.Background()
+	fxClient, err := mock.New()
+	if err != nil {
+		t.Fatalf("mock.New failed: %v", err)
+	}
+
+	cfg := SeedConfig{
+		Seed:    42,
+		Clients: 300,
+		AppNow:  time.Date(2026, 11, 5, 9, 0, 0, 0, period.Location()),
+	}
+
+	ds, err := Generate(ctx, cfg, fxClient, idgen.NewSequential())
+	if err != nil {
+		t.Fatalf("Generate failed: %v", err)
+	}
+
+	monoByCat := make(map[tax.Category]int)
+	monoTotal := 0
+	for _, c := range ds.Clients {
+		if c.Regime == client.RegimeMonotributo {
+			monoTotal++
+			monoByCat[c.MonotributoCategory]++
+		}
+	}
+
+	// Al menos 1 cliente en cada categoría A..K
+	allCats := []tax.Category{
+		tax.CatA, tax.CatB, tax.CatC, tax.CatD, tax.CatE,
+		tax.CatF, tax.CatG, tax.CatH, tax.CatI, tax.CatJ, tax.CatK,
+	}
+	for _, cat := range allCats {
+		count := monoByCat[cat]
+		if count < 1 {
+			t.Errorf("categoría %s tiene 0 clientes en Monotributo", cat)
+		}
+		pct := float64(count) / float64(monoTotal) * 100
+		if pct > 30.0 {
+			t.Errorf("categoría %s supera el 30%% de la cartera: %.2f%% (%d/%d)", cat, pct, count, monoTotal)
+		}
+	}
+
+	// Centrada en intermedias D a H (al menos 40% del total de Monotributo)
+	intermediateCount := monoByCat[tax.CatD] + monoByCat[tax.CatE] + monoByCat[tax.CatF] + monoByCat[tax.CatG] + monoByCat[tax.CatH]
+	interPct := float64(intermediateCount) / float64(monoTotal) * 100
+	if interPct < 40.0 {
+		t.Errorf("categorías intermedias D a H tienen %.2f%% (< 40%%)", interPct)
 	}
 }

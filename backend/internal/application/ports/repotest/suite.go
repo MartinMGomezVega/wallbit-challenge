@@ -51,6 +51,7 @@ func RunAll(t *testing.T, newBundle func(t *testing.T) Bundle, supportsRollback 
 	t.Run("ClientInputs", func(t *testing.T) { RunClientInputRepo(t, newBundle(t)) })
 	t.Run("Closings", func(t *testing.T) { RunClosingRepo(t, newBundle(t)) })
 	t.Run("ClosingQuery", func(t *testing.T) { RunClosingQuery(t, newBundle(t)) })
+	t.Run("AccentedNameSorting", func(t *testing.T) { RunAccentedNameSorting(t, newBundle(t)) })
 	t.Run("StatsQuery", func(t *testing.T) { RunStatsQuery(t, newBundle(t)) })
 	t.Run("Notifications", func(t *testing.T) { RunNotificationRepo(t, newBundle(t)) })
 	t.Run("Outbox", func(t *testing.T) { RunOutboxRepo(t, newBundle(t).Outbox) })
@@ -457,6 +458,81 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 	}
 	if len(periods) == 0 || periods[0] != p.String() {
 		t.Fatalf("unexpected Periods: got %v, want at least %s", periods, p.String())
+	}
+}
+
+// RunAccentedNameSorting verifica que el ordenamiento por nombre (asc y desc)
+// trate las tildes al inicio ("Álvarez", "Ñuñez", "Ébano") de forma idéntica en memoria y Postgres.
+func RunAccentedNameSorting(t *testing.T, b Bundle) {
+	t.Helper()
+	ctx := context.Background()
+	p := period.MustParse("2026-10")
+	now := time.Date(2026, 11, 1, 9, 0, 0, 0, period.Location())
+
+	clients := []client.Client{
+		sampleClient("cli_zap", "Zapata, Pedro", "20-11111111-1", client.RegimeMonotributo, tax.CatA),
+		sampleClient("cli_alv", "Álvarez, Tomás", "20-22222222-2", client.RegimeMonotributo, tax.CatB),
+		sampleClient("cli_eba", "Ébano, Martín", "20-33333333-3", client.RegimeMonotributo, tax.CatC),
+		sampleClient("cli_nun", "Ñuñez, Carlos", "20-44444444-4", client.RegimeMonotributo, tax.CatD),
+		sampleClient("cli_bia", "Bianchi, Sofía", "20-55555555-5", client.RegimeMonotributo, tax.CatE),
+		sampleClient("cli_dia", "Díaz, Lucía", "20-66666666-6", client.RegimeMonotributo, tax.CatF),
+	}
+	if err := b.Clients.SaveAll(ctx, clients); err != nil {
+		t.Fatalf("SaveAll clients failed: %v", err)
+	}
+
+	for _, c := range clients {
+		clo := closing.NewClosing("clo_"+c.ID, c.ID, p, true, "hash_"+c.ID, signal.SeverityGreen,
+			nil, "Sin novedades",
+			&tax.MonotributoAssessment{CurrentCategory: tax.CatA, Fee: money.New(100000, money.ARS), FeeDueDate: now, BilledInPeriodARS: money.New(500000, money.ARS), BilledInPeriodUSD: money.New(300, money.USD), Billed12mARS: money.New(10000000, money.ARS), PctOfKCapBp: 1200},
+			nil, closing.Reconciliation{}, now)
+		if err := b.Closings.Save(ctx, clo); err != nil {
+			t.Fatalf("Save closing failed: %v", err)
+		}
+	}
+
+	// Ascendente: Álvarez ("alvarez") < Bianchi ("bianchi") < Díaz ("diaz") < Ébano ("ebano") < Ñuñez ("nunez") < Zapata ("zapata")
+	wantAsc := []string{"clo_cli_alv", "clo_cli_bia", "clo_cli_dia", "clo_cli_eba", "clo_cli_nun", "clo_cli_zap"}
+	idsAsc, err := b.ClosingQuery.IDs(ctx, p, closing.Filter{}, closing.Sort{By: "name", Dir: "asc"})
+	if err != nil {
+		t.Fatalf("IDs asc failed: %v", err)
+	}
+	if !reflect.DeepEqual(idsAsc, wantAsc) {
+		t.Fatalf("IDs asc mismatch: got %v, want %v", idsAsc, wantAsc)
+	}
+
+	pageAsc, err := b.ClosingQuery.Page(ctx, p, closing.Filter{}, closing.Sort{By: "name", Dir: "asc"}, ports.PageRequest{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("Page asc failed: %v", err)
+	}
+	gotPageAscIDs := make([]string, len(pageAsc.Items))
+	for i, item := range pageAsc.Items {
+		gotPageAscIDs[i] = item.ClosingID
+	}
+	if !reflect.DeepEqual(gotPageAscIDs, wantAsc) {
+		t.Fatalf("Page asc IDs mismatch: got %v, want %v", gotPageAscIDs, wantAsc)
+	}
+
+	// Descendente: Zapata > Ñuñez > Ébano > Díaz > Bianchi > Álvarez
+	wantDesc := []string{"clo_cli_zap", "clo_cli_nun", "clo_cli_eba", "clo_cli_dia", "clo_cli_bia", "clo_cli_alv"}
+	idsDesc, err := b.ClosingQuery.IDs(ctx, p, closing.Filter{}, closing.Sort{By: "name", Dir: "desc"})
+	if err != nil {
+		t.Fatalf("IDs desc failed: %v", err)
+	}
+	if !reflect.DeepEqual(idsDesc, wantDesc) {
+		t.Fatalf("IDs desc mismatch: got %v, want %v", idsDesc, wantDesc)
+	}
+
+	pageDesc, err := b.ClosingQuery.Page(ctx, p, closing.Filter{}, closing.Sort{By: "name", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("Page desc failed: %v", err)
+	}
+	gotPageDescIDs := make([]string, len(pageDesc.Items))
+	for i, item := range pageDesc.Items {
+		gotPageDescIDs[i] = item.ClosingID
+	}
+	if !reflect.DeepEqual(gotPageDescIDs, wantDesc) {
+		t.Fatalf("Page desc IDs mismatch: got %v, want %v", gotPageDescIDs, wantDesc)
 	}
 }
 

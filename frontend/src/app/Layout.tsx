@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
-import { WallbitLogo } from '../shared/ui/WallbitLogo';
+import { WallbitLogo, SimulatedDateBadge } from '../shared/ui';
 import { PeriodSelect } from './PeriodSelect';
 import { ViewSwitch } from './ViewSwitch';
 
@@ -58,6 +58,7 @@ export function Layout() {
           </div>
           <div className="flex items-center gap-4">
             <ViewSwitch />
+            {!isClient && <SimulatedDateBadge />}
             {!isClient && <PeriodSelect />}
             {!isClient && (
               <div

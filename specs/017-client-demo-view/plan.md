@@ -7,7 +7,7 @@
 ## Backend
 - `internal/config`: `AccountantDisplayName`, `AccountantLicense`.
 - `domain/closing`: ampliar `Published` con `ValidatedBy{Name, License}`, `Regime`, `Category *tax.Category`, `PctOfCategoryCapBp *int64`, `CategoryCapARS *money.Money`, `Billed12mARS money.Money`. `NotifyClosing` / `Publish` los completan desde el assessment de la versión aprobada y la config.
-- Seed: aprobar y notificar octubre de `cli_demo_01` y `cli_demo_09` reutilizando `ApproveClosing` (no escribir estados a mano), con el reloj fijo en 2026-11-06.
+- Seed: aprobar y notificar octubre de `cli_demo_01` y `cli_demo_09` reutilizando `ApproveClosing` (no escribir estados a mano), con el reloj fijo en 2026-11-04 10:00.
 - Fixtures de `/me/**`.
 - OpenAPI: `Published` con los campos nuevos.
 

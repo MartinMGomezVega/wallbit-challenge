@@ -3,13 +3,13 @@ package postgres
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/client"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/money"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/movement"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 	"github.com/jackc/pgx/v5"
@@ -258,7 +258,7 @@ func (r *ClientRepository) saveOne(ctx context.Context, db DBTX, c client.Client
 			ri_self_employed_cents = EXCLUDED.ri_self_employed_cents,
 			ri_prev_vat_credit_cents = EXCLUDED.ri_prev_vat_credit_cents,
 			name_search = EXCLUDED.name_search
-	`, c.ID, c.Name, c.Email, string(c.CUIT), string(c.Regime), string(c.MonotributoCategory), seCents, prevVatCents, strings.ToLower(c.Name), c.CreatedAt)
+	`, c.ID, c.Name, c.Email, string(c.CUIT), string(c.Regime), string(c.MonotributoCategory), seCents, prevVatCents, movement.NormalizeName(c.Name), c.CreatedAt)
 	if err != nil {
 		return err
 	}

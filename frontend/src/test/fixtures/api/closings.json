@@ -13,7 +13,7 @@
         "label": "Excede tope K (pasa a RI)",
         "severity": "RED"
       },
-      "description": "Superó el tope de la categoría K el 10/09/2026 por $ 2.372.599,37. Corresponde pase a Responsable Inscripto.",
+      "description": "Superó el tope de la categoría K el 10/09/2026 por $ 3.217.868,57. Corresponde pase a Responsable Inscripto.",
       "otherSignals": [
         {
           "code": "DEPOSITS_EXCEED_K_CAP",
@@ -23,206 +23,20 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 668600,
+          "amount": 673000,
           "currency": "USD"
         },
         "ars": {
-          "amount": 992068680,
+          "amount": 998597400,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 12898343812,
+          "amount": 12982870732,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 10187
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000052",
-      "clientId": "cli_000052",
-      "clientName": "Florencia Navarro",
-      "cuit": "27-20006631-1",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 12/07/2026 por $ 2.412.311,31. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 768200,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1139855160,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 12902315006,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10190
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000047",
-      "clientId": "cli_000047",
-      "clientName": "Franco González",
-      "cuit": "27-20005986-2",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 13/07/2026 por $ 10.834.381,99. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 855000,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1266939000,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13744522074,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10855
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000046",
-      "clientId": "cli_000046",
-      "clientName": "Franco Herrera",
-      "cuit": "20-20005855-1",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 15/10/2026 por $ 0,00. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 750100,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1111498180,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 12583465180,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9938
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000051",
-      "clientId": "cli_000051",
-      "clientName": "Ignacio Rojas",
-      "cuit": "27-20006500-5",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 12/09/2026 por $ 2.472.652,39. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 856800,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1271319840,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 12908349114,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10195
+        "pctOfKCapBp": 10254
       },
       "toPay": {
         "amount": {
@@ -247,7 +61,7 @@
         "label": "Excede tope K (pasa a RI)",
         "severity": "RED"
       },
-      "description": "Superó el tope de la categoría K el 18/07/2026 por $ 9.153.763,06. Corresponde pase a Responsable Inscripto.",
+      "description": "Superó el tope de la categoría K el 18/07/2026 por $ 8.636.430,69. Corresponde pase a Responsable Inscripto.",
       "otherSignals": [
         {
           "code": "DEPOSITS_EXCEED_K_CAP",
@@ -257,20 +71,20 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 733300,
+          "amount": 730500,
           "currency": "USD"
         },
         "ars": {
-          "amount": 1085181338,
+          "amount": 1081037730,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 13576460181,
+          "amount": 13524726944,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 10722
+        "pctOfKCapBp": 10682
       },
       "toPay": {
         "amount": {
@@ -337,7 +151,7 @@
         "label": "Excede tope K (pasa a RI)",
         "severity": "RED"
       },
-      "description": "Superó el tope de la categoría K el 11/07/2026 por $ 5.729.866,40. Corresponde pase a Responsable Inscripto.",
+      "description": "Superó el tope de la categoría K el 11/07/2026 por $ 4.693.673,60. Corresponde pase a Responsable Inscripto.",
       "otherSignals": [
         {
           "code": "DEPOSITS_EXCEED_K_CAP",
@@ -347,452 +161,20 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 771500,
+          "amount": 765400,
           "currency": "USD"
         },
         "ars": {
-          "amount": 1144751700,
+          "amount": 1135700520,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 13234070515,
+          "amount": 13130451235,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 10452
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000057",
-      "clientId": "cli_000057",
-      "clientName": "Martina Domínguez",
-      "cuit": "20-20007286-4",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 03/07/2026 por $ 8.498.050,08. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 771500,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1146533865,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13510888883,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10671
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000049",
-      "clientId": "cli_000049",
-      "clientName": "Martina Sánchez",
-      "cuit": "27-20006248-0",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 03/07/2026 por $ 5.907.153,75. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 728200,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1084872360,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13251799250,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10466
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000055",
-      "clientId": "cli_000055",
-      "clientName": "Nicolás Navarro",
-      "cuit": "20-20007024-1",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 21/09/2026 por $ 1.245.308,66. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 751600,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1121116624,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 12785614741,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10098
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000058",
-      "clientId": "cli_000058",
-      "clientName": "Paula Díaz",
-      "cuit": "20-20007417-4",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 19/09/2026 por $ 5.574.131,75. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 660500,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 988306150,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13218497050,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10440
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000056",
-      "clientId": "cli_000056",
-      "clientName": "Paula Guzmán",
-      "cuit": "20-20007155-8",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 19/09/2026 por $ 6.006.707,24. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 785500,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1168541220,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13261754599,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10474
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000053",
-      "clientId": "cli_000053",
-      "clientName": "Paula López",
-      "cuit": "27-20006762-8",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 05/07/2026 por $ 8.737.613,09. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 811400,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1206673510,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13534845184,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10690
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000054",
-      "clientId": "cli_000054",
-      "clientName": "Sol Silva",
-      "cuit": "27-20006893-4",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 18/07/2026 por $ 5.319.997,00. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 735000,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1087697100,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13193083575,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10420
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000050",
-      "clientId": "cli_000050",
-      "clientName": "Valentina Bustos",
-      "cuit": "20-20006379-2",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 24/07/2026 por $ 12.283.287,49. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 714000,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1065844920,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13889412624,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10970
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000048",
-      "clientId": "cli_000048",
-      "clientName": "Valentina Sánchez",
-      "cuit": "27-20006117-4",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "RED",
-      "primarySignal": {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
-        "severity": "RED"
-      },
-      "description": "Superó el tope de la categoría K el 19/09/2026 por $ 6.754.236,44. Corresponde pase a Responsable Inscripto.",
-      "otherSignals": [
-        {
-          "code": "DEPOSITS_EXCEED_K_CAP",
-          "label": "Depósitos sobre tope K",
-          "severity": "RED"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 820400,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1223741456,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 13336507519,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 10533
+        "pctOfKCapBp": 10370
       },
       "toPay": {
         "amount": {
@@ -857,6 +239,48 @@
       "version": 1
     },
     {
+      "closingId": "clo_000214",
+      "clientId": "cli_000214",
+      "clientName": "Agustín Mendoza",
+      "cuit": "27-20027693-6",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.431,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5469848929,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4320
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
       "closingId": "clo_000288",
       "clientId": "cli_demo_03",
       "clientName": "Carla Benítez",
@@ -897,6 +321,276 @@
       "toPay": {
         "amount": {
           "amount": 11981100,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000215",
+      "clientId": "cli_000215",
+      "clientName": "Catalina Sánchez",
+      "cuit": "20-20027824-1",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.755,00 sin factura asociada.",
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5385587528,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4253
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "PENDING_CLIENT_INPUT",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000217",
+      "clientId": "cli_000217",
+      "clientName": "Ignacio Acosta",
+      "cuit": "27-20028086-0",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.756,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5550237400,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4383
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000218",
+      "clientId": "cli_000218",
+      "clientName": "Manuel Guzmán",
+      "cuit": "27-20028217-0",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.003,00 sin factura asociada.",
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5371070758,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4242
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000221",
+      "clientId": "cli_000221",
+      "clientName": "Martina Álvarez",
+      "cuit": "20-20028600-7",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.151,00 sin factura asociada.",
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5209372491,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4114
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000216",
+      "clientId": "cli_000216",
+      "clientName": "Martina Romero",
+      "cuit": "27-20027955-2",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.163,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5644355449,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4458
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000222",
+      "clientId": "cli_000222",
+      "clientName": "Mateo Rojas",
+      "cuit": "27-20028731-8",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 2.975,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5436824468,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4294
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -953,6 +647,228 @@
       "version": 1
     },
     {
+      "closingId": "clo_000223",
+      "clientId": "cli_000223",
+      "clientName": "Santiago Rojas",
+      "cuit": "27-20028862-4",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.286,00 sin factura asociada.",
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5113969783,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4039
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000220",
+      "clientId": "cli_000220",
+      "clientName": "Sofía Guzmán",
+      "cuit": "20-20028479-9",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.530,00 sin factura asociada.",
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5230143305,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4130
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000213",
+      "clientId": "cli_000213",
+      "clientName": "Sofía Molina",
+      "cuit": "20-20027562-5",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.096,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5538803060,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4374
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000224",
+      "clientId": "cli_000224",
+      "clientName": "Sofía Morales",
+      "cuit": "20-20028993-6",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.072,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5407840565,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4271
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000219",
+      "clientId": "cli_000219",
+      "clientName": "Sofía Rojas",
+      "cuit": "20-20028348-2",
+      "regime": "MONOTRIBUTO",
+      "category": "H",
+      "severity": "RED",
+      "primarySignal": {
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
+        "severity": "RED"
+      },
+      "description": "1 cobros por US$ 3.902,00 sin factura asociada.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 0,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5527205498,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4365
+      },
+      "toPay": {
+        "amount": {
+          "amount": 52270668,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
       "closingId": "clo_000297",
       "clientId": "cli_demo_12",
       "clientName": "Nicolás Peralta",
@@ -1006,58 +922,10 @@
       "version": 1
     },
     {
-      "closingId": "clo_000102",
-      "clientId": "cli_000102",
-      "clientName": "Agustín González",
-      "cuit": "20-20013131-3",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 87% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 604600,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 897105480,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11049578342,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 8727
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000070",
-      "clientId": "cli_000070",
-      "clientName": "Bautista Silva",
-      "cuit": "20-20008979-1",
+      "closingId": "clo_000047",
+      "clientId": "cli_000047",
+      "clientName": "Franco González",
+      "cuit": "27-20005986-2",
       "regime": "MONOTRIBUTO",
       "category": "K",
       "severity": "YELLOW",
@@ -1076,20 +944,20 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 657400,
+          "amount": 708400,
           "currency": "USD"
         },
         "ars": {
-          "amount": 975450120,
+          "amount": 1049707120,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 11325087561,
+          "amount": 11387967798,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 8944
+        "pctOfKCapBp": 8994
       },
       "toPay": {
         "amount": {
@@ -1102,10 +970,10 @@
       "version": 1
     },
     {
-      "closingId": "clo_000086",
-      "clientId": "cli_000086",
-      "clientName": "Carolina Martínez",
-      "cuit": "27-20011055-8",
+      "closingId": "clo_000046",
+      "clientId": "cli_000046",
+      "clientName": "Franco Herrera",
+      "cuit": "20-20005855-1",
       "regime": "MONOTRIBUTO",
       "category": "K",
       "severity": "YELLOW",
@@ -1114,7 +982,7 @@
         "label": "Cerca del tope K",
         "severity": "YELLOW"
       },
-      "description": "Acumulado 12 meses al 90% del tope de la categoría K.",
+      "description": "Acumulado 12 meses al 83% del tope de la categoría K.",
       "otherSignals": [
         {
           "code": "MONO_NEAR_CATEGORY_CAP",
@@ -1124,260 +992,20 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 676300,
+          "amount": 633300,
           "currency": "USD"
         },
         "ars": {
-          "amount": 1002141340,
+          "amount": 938423940,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 11423858409,
+          "amount": 10624351616,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 9022
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000098",
-      "clientId": "cli_000098",
-      "clientName": "Catalina Giménez",
-      "cuit": "20-20012617-4",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 92% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 763800,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1133326440,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11668952466,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9216
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000090",
-      "clientId": "cli_000090",
-      "clientName": "Florencia Ruiz",
-      "cuit": "27-20011579-7",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 90% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 572100,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 848881980,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11437874100,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9033
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000074",
-      "clientId": "cli_000074",
-      "clientName": "Florencia Silva",
-      "cuit": "20-20009493-0",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 91% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 590100,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 873265386,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11564860954,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9134
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000062",
-      "clientId": "cli_000062",
-      "clientName": "Franco Bustos",
-      "cuit": "20-20007931-1",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 90% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 738100,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1093974915,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11484258550,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9070
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000094",
-      "clientId": "cli_000094",
-      "clientName": "Ignacio Vázquez",
-      "cuit": "27-20012093-6",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 90% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 595900,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 884196420,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11442610461,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9037
+        "pctOfKCapBp": 8391
       },
       "toPay": {
         "amount": {
@@ -1438,106 +1066,10 @@
       "version": 1
     },
     {
-      "closingId": "clo_000066",
-      "clientId": "cli_000066",
-      "clientName": "Lucía García",
-      "cuit": "20-20008455-2",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 92% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 642900,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 957625266,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11718971458,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9255
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000078",
-      "clientId": "cli_000078",
-      "clientName": "Mariana Torres",
-      "cuit": "27-20010027-7",
-      "regime": "MONOTRIBUTO",
-      "category": "K",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado 12 meses al 91% del tope de la categoría K.",
-      "otherSignals": [
-        {
-          "code": "MONO_NEAR_CATEGORY_CAP",
-          "label": "Cerca del tope de su categoría",
-          "severity": "YELLOW"
-        }
-      ],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 765100,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 1138193364,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 11590296753,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 9154
-      },
-      "toPay": {
-        "amount": {
-          "amount": 161444604,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000082",
-      "clientId": "cli_000082",
-      "clientName": "Martina Mendoza",
-      "cuit": "20-20010531-2",
+      "closingId": "clo_000049",
+      "clientId": "cli_000049",
+      "clientName": "Martina Sánchez",
+      "cuit": "27-20006248-0",
       "regime": "MONOTRIBUTO",
       "category": "K",
       "severity": "YELLOW",
@@ -1556,24 +1088,162 @@
       ],
       "billedInPeriod": {
         "usd": {
-          "amount": 639600,
+          "amount": 604600,
           "currency": "USD"
         },
         "ars": {
-          "amount": 952876080,
+          "amount": 900733080,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 10979878109,
+          "amount": 11002531883,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 8672
+        "pctOfKCapBp": 8690
       },
       "toPay": {
         "amount": {
           "amount": 161444604,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000050",
+      "clientId": "cli_000050",
+      "clientName": "Valentina Bustos",
+      "cuit": "20-20006379-2",
+      "regime": "MONOTRIBUTO",
+      "category": "K",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_K_CAP",
+        "label": "Cerca del tope K",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado 12 meses al 91% del tope de la categoría K.",
+      "otherSignals": [
+        {
+          "code": "MONO_NEAR_CATEGORY_CAP",
+          "label": "Cerca del tope de su categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 593300,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 885666374,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 11541167283,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 9115
+      },
+      "toPay": {
+        "amount": {
+          "amount": 161444604,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000048",
+      "clientId": "cli_000048",
+      "clientName": "Valentina Sánchez",
+      "cuit": "27-20006117-4",
+      "regime": "MONOTRIBUTO",
+      "category": "K",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_K_CAP",
+        "label": "Cerca del tope K",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado 12 meses al 89% del tope de la categoría K.",
+      "otherSignals": [
+        {
+          "code": "MONO_NEAR_CATEGORY_CAP",
+          "label": "Cerca del tope de su categoría",
+          "severity": "YELLOW"
+        }
+      ],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 694600,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 1036093144,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 11291485900,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 8918
+      },
+      "toPay": {
+        "amount": {
+          "amount": 161444604,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000096",
+      "clientId": "cli_000096",
+      "clientName": "Bautista Sánchez",
+      "cuit": "20-20012355-8",
+      "regime": "MONOTRIBUTO",
+      "category": "I",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_CATEGORY_CHANGE_REQUIRED",
+        "label": "Debe recategorizar",
+        "severity": "YELLOW"
+      },
+      "description": "Facturó $ 92.590.630,99 en 12 meses: supera el tope de la I. Recategorizar a J.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 489500,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 725159985,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 9259063099,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 7313
+      },
+      "toPay": {
+        "amount": {
+          "amount": 96374786,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1624,48 +1294,6 @@
       "version": 1
     },
     {
-      "closingId": "clo_000060",
-      "clientId": "cli_000060",
-      "clientName": "Agustín Silva",
-      "cuit": "20-20007679-7",
-      "regime": "MONOTRIBUTO",
-      "category": "E",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_CATEGORY_CAP",
-        "label": "Cerca del tope de su categoría",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado al 87% del tope de la categoría E.",
-      "otherSignals": [],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 167900,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 248732097,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 3146333643,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 2485
-      },
-      "toPay": {
-        "amount": {
-          "amount": 11981100,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
       "closingId": "clo_000059",
       "clientId": "cli_000059",
       "clientName": "Agustín Álvarez",
@@ -1678,24 +1306,24 @@
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 88% del tope de la categoría D.",
+      "description": "Acumulado al 91% del tope de la categoría D.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 142800,
+          "amount": 148600,
           "currency": "USD"
         },
         "ars": {
-          "amount": 211886640,
+          "amount": 220492680,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 2700596901,
+          "amount": 2810096920,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2132
+        "pctOfKCapBp": 2219
       },
       "toPay": {
         "amount": {
@@ -1708,40 +1336,40 @@
       "version": 1
     },
     {
-      "closingId": "clo_000096",
-      "clientId": "cli_000096",
-      "clientName": "Bautista Sánchez",
-      "cuit": "20-20012355-8",
+      "closingId": "clo_000060",
+      "clientId": "cli_000060",
+      "clientName": "Agustín Silva",
+      "cuit": "20-20007679-7",
       "regime": "MONOTRIBUTO",
-      "category": "E",
+      "category": "D",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 96% del tope de la categoría E.",
+      "description": "Acumulado al 90% del tope de la categoría D.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 183200,
+          "amount": 147400,
           "currency": "USD"
         },
         "ars": {
-          "amount": 271397976,
+          "amount": 218362782,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 3464879487,
+          "amount": 2761913324,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2736
+        "pctOfKCapBp": 2181
       },
       "toPay": {
         "amount": {
-          "amount": 11981100,
+          "amount": 8461300,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1755,35 +1383,77 @@
       "clientName": "Bautista Álvarez",
       "cuit": "27-20009362-9",
       "regime": "MONOTRIBUTO",
-      "category": "G",
+      "category": "E",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 92% del tope de la categoría G.",
+      "description": "Acumulado al 97% del tope de la categoría E.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 302300,
+          "amount": 213800,
           "currency": "USD"
         },
         "ars": {
-          "amount": 447836289,
+          "amount": 316729734,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 4969779364,
+          "amount": 3515639824,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 3925
+        "pctOfKCapBp": 2776
       },
       "toPay": {
         "amount": {
-          "amount": 23031300,
+          "amount": 11981100,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000070",
+      "clientId": "cli_000070",
+      "clientName": "Bautista Silva",
+      "cuit": "20-20008979-1",
+      "regime": "MONOTRIBUTO",
+      "category": "E",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 92% del tope de la categoría E.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 193500,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 287115300,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 3333407261,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 2632
+      },
+      "toPay": {
+        "amount": {
+          "amount": 11981100,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1797,77 +1467,35 @@
       "clientName": "Benjamín Díaz",
       "cuit": "20-20010924-5",
       "regime": "MONOTRIBUTO",
-      "category": "G",
+      "category": "F",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 90% del tope de la categoría G.",
+      "description": "Acumulado al 96% del tope de la categoría F.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 274700,
+          "amount": 243800,
           "currency": "USD"
         },
         "ars": {
-          "amount": 407599860,
+          "amount": 361750440,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 4908506444,
+          "amount": 4356801466,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 3876
+        "pctOfKCapBp": 3441
       },
       "toPay": {
         "amount": {
-          "amount": 23031300,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000103",
-      "clientId": "cli_000103",
-      "clientName": "Benjamín Fernández",
-      "cuit": "20-20013272-7",
-      "regime": "MONOTRIBUTO",
-      "category": "D",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_CATEGORY_CAP",
-        "label": "Cerca del tope de su categoría",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado al 90% del tope de la categoría D.",
-      "otherSignals": [],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 172900,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 258713728,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 2779134428,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 2195
-      },
-      "toPay": {
-        "amount": {
-          "amount": 8461300,
+          "amount": 15078400,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1881,35 +1509,35 @@
       "clientName": "Carla Benítez",
       "cuit": "27-20009624-5",
       "regime": "MONOTRIBUTO",
-      "category": "D",
+      "category": "F",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 89% del tope de la categoría D.",
+      "description": "Acumulado al 92% del tope de la categoría F.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 182000,
+          "amount": 278900,
           "currency": "USD"
         },
         "ars": {
-          "amount": 269620260,
+          "amount": 413170827,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 2734722303,
+          "amount": 4191367818,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2159
+        "pctOfKCapBp": 3310
       },
       "toPay": {
         "amount": {
-          "amount": 8461300,
+          "amount": 15078400,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1923,35 +1551,35 @@
       "clientName": "Carla González",
       "cuit": "27-20010803-0",
       "regime": "MONOTRIBUTO",
-      "category": "E",
+      "category": "F",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 87% del tope de la categoría E.",
+      "description": "Acumulado al 90% del tope de la categoría F.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 176300,
+          "amount": 227500,
           "currency": "USD"
         },
         "ars": {
-          "amount": 261593940,
+          "amount": 337564500,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 3158754474,
+          "amount": 4075570392,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2494
+        "pctOfKCapBp": 3218
       },
       "toPay": {
         "amount": {
-          "amount": 11981100,
+          "amount": 15078400,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -1965,35 +1593,119 @@
       "clientName": "Carla Silva",
       "cuit": "20-20011196-7",
       "regime": "MONOTRIBUTO",
-      "category": "D",
+      "category": "G",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 89% del tope de la categoría D.",
+      "description": "Acumulado al 93% del tope de la categoría G.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 174900,
+          "amount": 321300,
           "currency": "USD"
         },
         "ars": {
-          "amount": 260188236,
+          "amount": 477978732,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 2733651625,
+          "amount": 5021810337,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2159
+        "pctOfKCapBp": 3966
       },
       "toPay": {
         "amount": {
-          "amount": 8461300,
+          "amount": 23031300,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000086",
+      "clientId": "cli_000086",
+      "clientName": "Carolina Martínez",
+      "cuit": "27-20011055-8",
+      "regime": "MONOTRIBUTO",
+      "category": "G",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 94% del tope de la categoría G.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 300500,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 445280900,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5075639043,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4008
+      },
+      "toPay": {
+        "amount": {
+          "amount": 23031300,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000098",
+      "clientId": "cli_000098",
+      "clientName": "Catalina Giménez",
+      "cuit": "20-20012617-4",
+      "regime": "MONOTRIBUTO",
+      "category": "J",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 96% del tope de la categoría J.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 660800,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 980495040,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 10094149234,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 7972
+      },
+      "toPay": {
+        "amount": {
+          "amount": 116729976,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -2014,70 +1726,28 @@
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 87% del tope de la categoría G.",
+      "description": "Acumulado al 92% del tope de la categoría G.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 295600,
+          "amount": 311900,
           "currency": "USD"
         },
         "ars": {
-          "amount": 438611280,
+          "amount": 462797220,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 4710776129,
+          "amount": 4970782817,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 3720
+        "pctOfKCapBp": 3926
       },
       "toPay": {
         "amount": {
           "amount": 23031300,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000100",
-      "clientId": "cli_000100",
-      "clientName": "Facundo Ruiz",
-      "cuit": "27-20012879-1",
-      "regime": "MONOTRIBUTO",
-      "category": "E",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_CATEGORY_CAP",
-        "label": "Cerca del tope de su categoría",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado al 92% del tope de la categoría E.",
-      "otherSignals": [],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 208300,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 309658780,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 3337409358,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 2635
-      },
-      "toPay": {
-        "amount": {
-          "amount": 11981100,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -2091,6 +1761,48 @@
       "clientName": "Felipe Suárez",
       "cuit": "27-20009100-6",
       "regime": "MONOTRIBUTO",
+      "category": "E",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 88% del tope de la categoría E.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 211000,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 313081800,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 3187370345,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 2517
+      },
+      "toPay": {
+        "amount": {
+          "amount": 11981100,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000052",
+      "clientId": "cli_000052",
+      "clientName": "Florencia Navarro",
+      "cuit": "27-20006631-1",
+      "regime": "MONOTRIBUTO",
       "category": "D",
       "severity": "YELLOW",
       "primarySignal": {
@@ -2098,28 +1810,112 @@
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 84% del tope de la categoría D.",
+      "description": "Acumulado al 92% del tope de la categoría D.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 172300,
+          "amount": 168400,
           "currency": "USD"
         },
         "ars": {
-          "amount": 255658740,
+          "amount": 249871920,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 2602776336,
+          "amount": 2828600052,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2055
+        "pctOfKCapBp": 2234
       },
       "toPay": {
         "amount": {
           "amount": 8461300,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000090",
+      "clientId": "cli_000090",
+      "clientName": "Florencia Ruiz",
+      "cuit": "27-20011579-7",
+      "regime": "MONOTRIBUTO",
+      "category": "G",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 93% del tope de la categoría G.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 251900,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 373769220,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5035377609,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 3977
+      },
+      "toPay": {
+        "amount": {
+          "amount": 23031300,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000074",
+      "clientId": "cli_000074",
+      "clientName": "Florencia Silva",
+      "cuit": "20-20009493-0",
+      "regime": "MONOTRIBUTO",
+      "category": "E",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 95% del tope de la categoría E.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 176000,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 260455360,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 3449501689,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 2724
+      },
+      "toPay": {
+        "amount": {
+          "amount": 11981100,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -2140,28 +1936,196 @@
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 92% del tope de la categoría E.",
+      "description": "Acumulado al 96% del tope de la categoría E.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 175000,
+          "amount": 181900,
           "currency": "USD"
         },
         "ars": {
-          "amount": 260069250,
+          "amount": 270323409,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 3332434607,
+          "amount": 3464156764,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2632
+        "pctOfKCapBp": 2736
       },
       "toPay": {
         "amount": {
           "amount": 11981100,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000062",
+      "clientId": "cli_000062",
+      "clientName": "Franco Bustos",
+      "cuit": "20-20007931-1",
+      "regime": "MONOTRIBUTO",
+      "category": "E",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 94% del tope de la categoría E.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 219200,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 324887280,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 3410737684,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 2693
+      },
+      "toPay": {
+        "amount": {
+          "amount": 11981100,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000194",
+      "clientId": "cli_000194",
+      "clientName": "Franco González",
+      "cuit": "20-20025093-2",
+      "regime": "MONOTRIBUTO",
+      "category": "C",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 81% del tope de la categoría C.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 120500,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 178323130,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 2010069214,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 1587
+      },
+      "toPay": {
+        "amount": {
+          "amount": 6602000,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000051",
+      "clientId": "cli_000051",
+      "clientName": "Ignacio Rojas",
+      "cuit": "27-20006500-5",
+      "regime": "MONOTRIBUTO",
+      "category": "D",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 92% del tope de la categoría D.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 187100,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 277618980,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 2818360521,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 2226
+      },
+      "toPay": {
+        "amount": {
+          "amount": 8461300,
+          "currency": "ARS"
+        },
+        "dueDate": "2026-11-20T00:00:00-03:00"
+      },
+      "status": "READY_FOR_REVIEW",
+      "version": 1
+    },
+    {
+      "closingId": "clo_000094",
+      "clientId": "cli_000094",
+      "clientName": "Ignacio Vázquez",
+      "cuit": "27-20012093-6",
+      "regime": "MONOTRIBUTO",
+      "category": "G",
+      "severity": "YELLOW",
+      "primarySignal": {
+        "code": "MONO_NEAR_CATEGORY_CAP",
+        "label": "Cerca del tope de su categoría",
+        "severity": "YELLOW"
+      },
+      "description": "Acumulado al 93% del tope de la categoría G.",
+      "otherSignals": [],
+      "billedInPeriod": {
+        "usd": {
+          "amount": 264000,
+          "currency": "USD"
+        },
+        "ars": {
+          "amount": 391723200,
+          "currency": "ARS"
+        }
+      },
+      "accumulated12m": {
+        "ars": {
+          "amount": 5069179359,
+          "currency": "ARS"
+        },
+        "pctOfKCapBp": 4003
+      },
+      "toPay": {
+        "amount": {
+          "amount": 23031300,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -2175,77 +2139,35 @@
       "clientName": "Lucas González",
       "cuit": "27-20008062-4",
       "regime": "MONOTRIBUTO",
-      "category": "D",
+      "category": "E",
       "severity": "YELLOW",
       "primarySignal": {
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 92% del tope de la categoría D.",
+      "description": "Acumulado al 96% del tope de la categoría E.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 161100,
+          "amount": 197400,
           "currency": "USD"
         },
         "ars": {
-          "amount": 239040180,
+          "amount": 292902120,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 2824570230,
+          "amount": 3461442415,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2230
+        "pctOfKCapBp": 2733
       },
       "toPay": {
         "amount": {
-          "amount": 8461300,
-          "currency": "ARS"
-        },
-        "dueDate": "2026-11-20T00:00:00-03:00"
-      },
-      "status": "READY_FOR_REVIEW",
-      "version": 1
-    },
-    {
-      "closingId": "clo_000101",
-      "clientId": "cli_000101",
-      "clientName": "Lucía Pérez",
-      "cuit": "20-20013000-7",
-      "regime": "MONOTRIBUTO",
-      "category": "G",
-      "severity": "YELLOW",
-      "primarySignal": {
-        "code": "MONO_NEAR_CATEGORY_CAP",
-        "label": "Cerca del tope de su categoría",
-        "severity": "YELLOW"
-      },
-      "description": "Acumulado al 86% del tope de la categoría G.",
-      "otherSignals": [],
-      "billedInPeriod": {
-        "usd": {
-          "amount": 250000,
-          "currency": "USD"
-        },
-        "ars": {
-          "amount": 370950000,
-          "currency": "ARS"
-        }
-      },
-      "accumulated12m": {
-        "ars": {
-          "amount": 4695748659,
-          "currency": "ARS"
-        },
-        "pctOfKCapBp": 3708
-      },
-      "toPay": {
-        "amount": {
-          "amount": 23031300,
+          "amount": 11981100,
           "currency": "ARS"
         },
         "dueDate": "2026-11-20T00:00:00-03:00"
@@ -2266,24 +2188,24 @@
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW"
       },
-      "description": "Acumulado al 87% del tope de la categoría E.",
+      "description": "Acumulado al 89% del tope de la categoría E.",
       "otherSignals": [],
       "billedInPeriod": {
         "usd": {
-          "amount": 172200,
+          "amount": 177100,
           "currency": "USD"
         },
         "ars": {
-          "amount": 256543560,
+          "amount": 263843580,
           "currency": "ARS"
         }
       },
       "accumulated12m": {
         "ars": {
-          "amount": 3144540020,
+          "amount": 3233400663,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 2483
+        "pctOfKCapBp": 2553
       },
       "toPay": {
         "amount": {

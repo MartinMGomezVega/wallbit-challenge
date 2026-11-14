@@ -130,7 +130,7 @@ func BuildClosingMessage(c closing.Closing, cl client.Client, clientNote ...stri
 	title := fmt.Sprintf("Tu cierre de %s está listo", monthLabel)
 
 	var note string
-	if len(clientNote) > 0 && strings.TrimSpace(clientNote[0]) != "" {
+	if len(clientNote) > 0 {
 		note = strings.TrimSpace(clientNote[0])
 	} else if len(c.Approvals) > 0 {
 		lastApproval := c.Approvals[len(c.Approvals)-1]

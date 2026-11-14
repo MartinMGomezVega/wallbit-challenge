@@ -34,12 +34,12 @@ Es una maqueta interactiva que funciona contra la **API real del cliente** (`/ap
    - `pctOfCategoryCapBp` y `categoryCapARS` (si es Monotributo);
    - `billed12mARS`.
    El cliente **solo** ve estos datos del snapshot, nunca el cálculo vigente. Es JSONB: no hace falta migración, pero los cierres publicados antes de esta feature no tienen los campos nuevos y el front los trata como opcionales.
-3. Seed: los cierres de **octubre** de `cli_demo_01` y `cli_demo_09` quedan **aprobados y notificados** (aprobación del 06/11/2026 con la nota "Cierre de octubre (dato semilla)"). El resto de los demos no cambia. Actualizar el e2e de 007 y la tabla del README.
+3. Seed: los cierres de **octubre** de `cli_demo_01` y `cli_demo_09` quedan **aprobados y notificados** (aprobación del 04/11/2026 10:00 con la nota interna "Cierre de octubre (dato semilla)"). El resto de los demos no cambia. Actualizar el e2e de 007 y la tabla del README.
 4. `GET /api/v1/me/closings` devuelve los períodos del cliente (octubre y septiembre) con `state` y `published`. Si hace falta, se completa la spec 011 (no se agregan endpoints).
 5. Fixtures reales para el front: `/me`, `/me/closings` (uno por cada estado), `/me/invoices`, `POST /me/invoices`, `POST /me/invoices/import`, `PUT external-income`, `POST confirm`, `POST paid`.
 
 ### Frontend: navegación
-6. Switch `Contador | Cliente (demo)` en el header (a la derecha, antes del período). "Cliente (demo)" lleva a `/cliente/:clientId` (default Paula Rojas). Arriba del marco de celular, un selector con los 5 clientes de la tabla.
+6. Switch `Contador | Cliente (demo)` en el header (a la derecha, antes del período). "Cliente (demo)" lleva a `/cliente/:clientId` (default Paula Rojas). Arriba del marco de celular, un selector con los 5 clientes de la tabla y a su derecha el badge de fecha simulada (`Hoy: dd/MM/yyyy · fecha simulada`).
 7. **Identidad por ruta, no global:** las llamadas de `features/client-demo` usan `X-Demo-User: client:<clientId>` (opción `as` en `apiFetch`). Todo lo demás sigue como `accountant`. **No** se reintroduce `roleStore` ni un estado de rol global.
 8. El período de la vista del cliente es siempre el último cerrado (octubre 2026). El selector de período del header se oculta en `/cliente/**`.
 
@@ -58,7 +58,7 @@ Es una maqueta interactiva que funciona contra la **API real del cliente** (`/ap
     - **Tu categoría:** Monotributo → "Categoría H · 65% del tope anual" con barra de progreso (mismos colores que el tablero); RI → "Responsable Inscripto";
     - **Qué tenés que pagar este mes:** cada concepto con monto y vencimiento, más el total;
     - el **cuerpo del mensaje publicado** (incluye los agregados, por ejemplo el de exclusión);
-    - badge **"✓ Validado por C.P. Mariana Quiroga · Matrícula de ejemplo · 06/11/2026"**;
+    - badge **"✓ Validado por C.P. Mariana Quiroga · Matrícula de ejemplo · 04/11/2026"**;
     - botón **"Ya pagué"** (`POST /me/closings/{id}/paid`) → badge "Pagado el dd/MM".
 12. Cliente sin cierre del período: estado vacío "Todavía no hay un cierre para este mes".
 

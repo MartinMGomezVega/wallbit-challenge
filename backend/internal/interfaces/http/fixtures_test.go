@@ -101,7 +101,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	if _, err := runUC.Execute(ctx, pSep); err != nil {
 		t.Fatalf("RunMonthlyClosing 2026-09: %v", err)
 	}
-	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42); err != nil {
+	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42, "C.P. Mariana Quiroga", "Matrícula de ejemplo"); err != nil {
 		t.Fatalf("SeedSeptemberClosings: %v", err)
 	}
 	octSeedApproveUC := &usecase.ApproveClosing{
@@ -109,7 +109,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		Clients:           clientRepo,
 		Notifications:     notifRepo,
 		Outbox:            outboxRepo,
-		Clock:             clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location())),
+		Clock:             clock.NewFixed(time.Date(2026, 11, 4, 10, 0, 0, 0, period.Location())),
 		IDGen:             idGen,
 		AccountantName:    "C.P. Mariana Quiroga",
 		AccountantLicense: "Matrícula de ejemplo",

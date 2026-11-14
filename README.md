@@ -28,6 +28,11 @@ El día 1 de cada mes, la herramienta arma sola el cierre de cada cliente y lo m
 
 ## Cómo correrlo
 
+> [!IMPORTANT]
+> El prototipo corre con fecha simulada al 05/11/2026 (APP_NOW). El cierre de
+> octubre 2026 ya está generado y estamos en el período de revisión del contador.
+> Para usar la fecha real del sistema, iniciá con APP_NOW=.
+
 **Con Docker (recomendado).** Solo necesitás Docker.
 
 ```bash

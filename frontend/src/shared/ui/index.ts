@@ -6,3 +6,4 @@ export * from './ProgressBar';
 export * from './StatusBadge';
 export * from './Pagination';
 export * from './Toast';
+export * from './SimulatedDateBadge';

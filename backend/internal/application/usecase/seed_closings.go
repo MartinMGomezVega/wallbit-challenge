@@ -20,6 +20,8 @@ func SeedSeptemberClosings(
 	clientsRepo ports.ClientRepository,
 	idGen ports.IDGenerator,
 	seed uint64,
+	accountantName string,
+	accountantLicense string,
 ) error {
 	pSep := period.MustParse("2026-09")
 	list, err := closingsRepo.ListByPeriod(ctx, pSep)
@@ -39,6 +41,10 @@ func SeedSeptemberClosings(
 	rng := rand.New(pcg)
 
 	for _, c := range list {
+		if c.Status == closing.StatusApproved || c.Status == closing.StatusNotified {
+			continue
+		}
+
 		cli, err := clientsRepo.Get(ctx, c.ClientID)
 		if err != nil {
 			return err
@@ -56,7 +62,7 @@ func SeedSeptemberClosings(
 		min := rng.IntN(60)
 		approvedAt := time.Date(2026, 10, day, hour, min, 0, 0, period.Location())
 
-		// Aprobación con approvedBy "accountant" y nota "Cierre de septiembre (dato semilla)"
+		// Aprobación con approvedBy "accountant" y nota interna "Cierre de septiembre (dato semilla)"
 		approval := closing.Approval{
 			ID:         idGen.New("apr"),
 			Version:    c.Version,
@@ -67,19 +73,19 @@ func SeedSeptemberClosings(
 			Batch:      rng.Float64() < 0.5,
 		}
 
-		// clientNote breve para rojos y amarillos
+		// clientNote breve para rojos y amarillos (verdes vacíos)
 		var clientNote string
 		switch c.Severity {
 		case signal.SeverityRed:
-			clientNote = "Cierre de septiembre: detectamos situaciones que requieren revisión antes del próximo vencimiento."
+			clientNote = "Detectamos algo que hay que resolver antes del próximo vencimiento. Te vamos a contactar."
 		case signal.SeverityYellow:
-			clientNote = "Cierre de septiembre: parámetros bajo seguimiento preventivo."
+			clientNote = "Todo en orden por ahora; lo seguimos de cerca el mes que viene."
 		default:
 			clientNote = ""
 		}
 
 		msg := notification.BuildClosingMessage(c, cli, clientNote)
-		pub := BuildPublished(c, cli, msg.Title, msg.Body, approvedAt, "C.P. Mariana Quiroga", "Matrícula de ejemplo")
+		pub := BuildPublished(c, cli, msg.Title, msg.Body, approvedAt, accountantName, accountantLicense)
 
 		_ = c.Approve(approval)
 		_ = c.Publish(pub)
@@ -124,7 +130,7 @@ func SeedSeptemberClosings(
 }
 
 // SeedOctoberApprovedClosings aprueba y notifica los cierres de octubre 2026 para cli_demo_01 y cli_demo_09
-// reutilizando ApproveClosing (no escribir estados a mano), con el reloj fijado en 2026-11-06 (spec 017 criterio 3).
+// reutilizando ApproveClosing (no escribir estados a mano), con el reloj fijado en 2026-11-04 10:00 (spec 017 criterio 3).
 func SeedOctoberApprovedClosings(
 	ctx context.Context,
 	apprUC *ApproveClosing,
@@ -147,7 +153,8 @@ func SeedOctoberApprovedClosings(
 		_, err = apprUC.Execute(ctx, ApproveClosingRequest{
 			ClosingID:  c.ID,
 			Version:    c.Version,
-			ClientNote: "Cierre de octubre (dato semilla)",
+			Note:       "Cierre de octubre (dato semilla)",
+			ClientNote: "",
 			Batch:      false,
 		})
 		if err != nil {

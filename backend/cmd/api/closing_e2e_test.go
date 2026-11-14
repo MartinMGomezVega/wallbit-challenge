@@ -115,7 +115,7 @@ func TestClosingE2E_SeedAndPerformance(t *testing.T) {
 	}
 
 	// Sembrar aprobaciones de octubre para clientes demo cli_demo_01 y cli_demo_09 (spec 017 criterio 3)
-	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 4, 10, 0, 0, 0, period.Location()))
 	octSeedApproveUC := &usecase.ApproveClosing{
 		Closings:          closingRepo,
 		Clients:           clientRepo,
@@ -129,6 +129,16 @@ func TestClosingE2E_SeedAndPerformance(t *testing.T) {
 	}
 	if err := usecase.SeedOctoberApprovedClosings(ctx, octSeedApproveUC, closingRepo); err != nil {
 		t.Fatalf("error sembrando aprobaciones de octubre: %v", err)
+	}
+
+	// Verificar que ningún Published del seed contiene "dato semilla"
+	listOct, _ := closingRepo.ListByPeriod(ctx, targetPeriod)
+	for _, c := range listOct {
+		if c.Published != nil {
+			if strings.Contains(c.Published.Title, "dato semilla") || strings.Contains(c.Published.Body, "dato semilla") {
+				t.Fatalf("Published para %s en %s contiene 'dato semilla': title=%q body=%q", c.ClientID, targetPeriod, c.Published.Title, c.Published.Body)
+			}
+		}
 	}
 
 	// Criterio 17: Para cada cli_demo_XX la señal principal y el estado coinciden con la tabla de 002/plan.md y spec 017
@@ -320,14 +330,14 @@ func setupTestApp(t *testing.T) (http.Handler, *memory.ClosingRepository, *memor
 	if _, err := runClosingUC.Execute(ctx, pSep); err != nil {
 		t.Fatalf("error ejecutando cierre de septiembre: %v", err)
 	}
-	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42); err != nil {
+	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42, "C.P. Mariana Quiroga", "Matrícula de ejemplo"); err != nil {
 		t.Fatalf("error sembrando septiembre: %v", err)
 	}
 	if _, err := runClosingUC.Execute(ctx, pOct); err != nil {
 		t.Fatalf("error ejecutando cierre de octubre: %v", err)
 	}
 
-	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 4, 10, 0, 0, 0, period.Location()))
 	octSeedApproveUC := &usecase.ApproveClosing{
 		Closings:          closingRepo,
 		Clients:           clientRepo,
@@ -341,6 +351,18 @@ func setupTestApp(t *testing.T) (http.Handler, *memory.ClosingRepository, *memor
 	}
 	if err := usecase.SeedOctoberApprovedClosings(ctx, octSeedApproveUC, closingRepo); err != nil {
 		t.Fatalf("error sembrando aprobaciones de octubre: %v", err)
+	}
+
+	// Verificar que ningún Published del seed contiene "dato semilla"
+	for _, p := range []period.Period{pSep, pOct} {
+		list, _ := closingRepo.ListByPeriod(ctx, p)
+		for _, c := range list {
+			if c.Published != nil {
+				if strings.Contains(c.Published.Title, "dato semilla") || strings.Contains(c.Published.Body, "dato semilla") {
+					t.Fatalf("Published para %s en %s contiene 'dato semilla': title=%q body=%q", c.ClientID, p, c.Published.Title, c.Published.Body)
+				}
+			}
+		}
 	}
 
 	notifier := &usecase.RecalcOnChange{
@@ -454,14 +476,39 @@ func TestAllClosingsDetail200(t *testing.T) {
 
 			var resp struct {
 				Closing struct {
-					ID string `json:"id"`
+					ID         string `json:"id"`
+					ClientID   string `json:"clientId"`
+					ClientName string `json:"clientName"`
+					Period     string `json:"period"`
+					Status     string `json:"status"`
+					Severity   string `json:"severity"`
+					Mono       any    `json:"mono"`
+					RI         any    `json:"ri"`
+					Published  any    `json:"published"`
 				} `json:"closing"`
+				Client struct {
+					Regime string `json:"regime"`
+				} `json:"client"`
 			}
 			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 				t.Fatalf("cuerpo inválido para %s: %v", c.ID, err)
 			}
 			if resp.Closing.ID != c.ID {
 				t.Fatalf("closing.id = %s, esperado %s", resp.Closing.ID, c.ID)
+			}
+			if resp.Client.Regime == "MONOTRIBUTO" {
+				if resp.Closing.Mono == nil || resp.Closing.RI != nil {
+					t.Fatalf("closing %s (%s) debe tener mono y no ri", c.ID, resp.Client.Regime)
+				}
+			} else if resp.Client.Regime == "RI" {
+				if resp.Closing.RI == nil || resp.Closing.Mono != nil {
+					t.Fatalf("closing %s (%s) debe tener ri y no mono", c.ID, resp.Client.Regime)
+				}
+			}
+			if pStr == "2026-09" {
+				if resp.Closing.Published == nil {
+					t.Fatalf("closing %s en septiembre debe estar publicado", c.ID)
+				}
 			}
 		}
 	}

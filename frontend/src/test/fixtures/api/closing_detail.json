@@ -68,16 +68,16 @@
         "version": 1,
         "resultHash": "8511daf740aad095968ef6cea3c878ced3c5565db26c71d0173f726e2df953b5",
         "approvedBy": "accountant",
-        "approvedAt": "2026-11-06T10:00:00-03:00",
+        "approvedAt": "2026-11-04T10:00:00-03:00",
         "note": "Cierre de octubre (dato semilla)",
         "batch": false
       }
     ],
-    "firstPublishedAt": "2026-11-06T10:00:00-03:00",
+    "firstPublishedAt": "2026-11-04T10:00:00-03:00",
     "published": {
       "version": 1,
       "title": "Tu cierre de octubre 2026 está listo",
-      "body": "Facturaste US$ 500,00 ($ 743.575,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/11/2026. Nota de tu contador: Cierre de octubre (dato semilla)",
+      "body": "Facturaste US$ 500,00 ($ 743.575,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/11/2026.",
       "figures": {
         "billedUSD": {
           "amount": 50000,
@@ -102,7 +102,7 @@
           "currency": "ARS"
         }
       },
-      "publishedAt": "2026-11-06T10:00:00-03:00",
+      "publishedAt": "2026-11-04T10:00:00-03:00",
       "validatedBy": {
         "name": "C.P. Mariana Quiroga",
         "license": "Matrícula de ejemplo"

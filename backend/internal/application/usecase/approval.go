@@ -23,6 +23,7 @@ type ApproveClosingRequest struct {
 	ClosingID  string `json:"closingId"`
 	Version    int    `json:"version"`
 	ClientNote string `json:"clientNote"`
+	Note       string `json:"note,omitempty"`
 	Batch      bool   `json:"batch"`
 }
 
@@ -120,13 +121,17 @@ func (uc *ApproveClosing) Execute(ctx context.Context, req ApproveClosingRequest
 		}
 
 		now := uc.Clock.Now()
+		apprNote := req.Note
+		if apprNote == "" {
+			apprNote = req.ClientNote
+		}
 		approval := closing.Approval{
 			ID:         uc.IDGen.New("appr"),
 			Version:    c.Version,
 			ResultHash: c.ResultHash,
 			ApprovedBy: "accountant",
 			ApprovedAt: now,
-			Note:       req.ClientNote,
+			Note:       apprNote,
 			Batch:      req.Batch,
 		}
 

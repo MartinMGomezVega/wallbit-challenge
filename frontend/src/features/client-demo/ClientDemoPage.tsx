@@ -16,6 +16,7 @@ import { ConfirmStep } from './CheckIn/ConfirmStep';
 import { InReview } from './InReview';
 import { ValidatedSummaryCard } from './ValidatedSummaryCard';
 import { ApiError } from '../../shared/api/http';
+import { SimulatedDateBadge } from '../../shared/ui';
 
 export function ClientDemoPage() {
   const { clientId = 'cli_demo_15' } = useParams<{ clientId: string }>();
@@ -109,9 +110,12 @@ export function ClientDemoPage() {
               Elegí un cliente para ver cómo vive el cierre dentro de la app móvil de Wallbit:
             </p>
           </div>
-          <span className="self-start rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/20">
-            API Real /api/v1/me/**
-          </span>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <SimulatedDateBadge />
+            <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/20">
+              API Real /api/v1/me/**
+            </span>
+          </div>
         </div>
 
         <nav aria-label="Clientes de demo" className="mt-3 flex flex-wrap gap-2">

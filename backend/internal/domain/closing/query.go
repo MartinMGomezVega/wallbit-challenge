@@ -7,6 +7,7 @@ import (
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/client"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/money"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/movement"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 )
@@ -193,7 +194,7 @@ func sortRows(rows []Row, s Sort) {
 	sort.Slice(rows, func(i, j int) bool {
 		switch by {
 		case "name":
-			cmp := strings.Compare(strings.ToLower(rows[i].ClientName), strings.ToLower(rows[j].ClientName))
+			cmp := strings.Compare(movement.NormalizeName(rows[i].ClientName), movement.NormalizeName(rows[j].ClientName))
 			if cmp != 0 {
 				if dir == "desc" {
 					return cmp > 0
@@ -297,7 +298,7 @@ func sortRows(rows []Row, s Sort) {
 			}
 
 			// Mismo prioridad: nombre asc
-			cmp := strings.Compare(strings.ToLower(rows[i].ClientName), strings.ToLower(rows[j].ClientName))
+			cmp := strings.Compare(movement.NormalizeName(rows[i].ClientName), movement.NormalizeName(rows[j].ClientName))
 			if cmp != 0 {
 				if dir == "asc" {
 					return cmp > 0

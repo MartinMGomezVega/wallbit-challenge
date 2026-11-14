@@ -92,11 +92,13 @@ func run(log *slog.Logger) error {
 
 	// Generación y carga de datos semilla determinísticos
 	idGen := idgen.NewSequential()
+	if cfg.Storage == "postgres" && r.pool != nil {
+		if err := postgres.InitIDGen(context.Background(), r.pool, idGen); err != nil {
+			log.Warn("no se pudo inicializar idgen desde postgres", "error", err)
+		}
+	}
 	if err := loadSeed(context.Background(), cfg, log, r, fxClient, idGen, clk); err != nil {
 		return err
-	}
-	if cfg.Storage == "postgres" && r.pool != nil {
-		_ = postgres.InitIDGen(context.Background(), r.pool, idGen)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -162,7 +164,7 @@ func run(log *slog.Logger) error {
 	if _, err := runClosingUC.Execute(context.Background(), pSep); err != nil {
 		return fmt.Errorf("error ejecutando cierre de septiembre: %w", err)
 	}
-	if err := usecase.SeedSeptemberClosings(context.Background(), closingRepo, clientRepo, idGen, uint64(cfg.Seed)); err != nil {
+	if err := usecase.SeedSeptemberClosings(context.Background(), closingRepo, clientRepo, idGen, uint64(cfg.Seed), cfg.AccountantDisplayName, cfg.AccountantLicense); err != nil {
 		return fmt.Errorf("error cerrando período de septiembre: %w", err)
 	}
 
@@ -173,7 +175,7 @@ func run(log *slog.Logger) error {
 	}
 
 	// Sembrar aprobaciones de octubre para clientes demo cli_demo_01 y cli_demo_09 (spec 017 criterio 3)
-	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 4, 10, 0, 0, 0, period.Location()))
 	octSeedApproveUC := &usecase.ApproveClosing{
 		Closings:          closingRepo,
 		Clients:           clientRepo,
@@ -189,9 +191,6 @@ func run(log *slog.Logger) error {
 	}
 	if err := usecase.SeedOctoberApprovedClosings(context.Background(), octSeedApproveUC, closingRepo); err != nil {
 		return fmt.Errorf("error aprobando clientes demo de octubre: %w", err)
-	}
-	if cfg.Storage == "postgres" && r.pool != nil {
-		_ = postgres.InitIDGen(context.Background(), r.pool, idGen)
 	}
 
 	log.Info("cierre inicial completado",

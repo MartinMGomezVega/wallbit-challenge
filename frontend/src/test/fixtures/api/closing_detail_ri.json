@@ -75,16 +75,16 @@
         "version": 1,
         "resultHash": "91d7a103db6c0e28df17466f23131b7cdae7fd5670a2aca1659649724ea12749",
         "approvedBy": "accountant",
-        "approvedAt": "2026-11-06T10:00:00-03:00",
+        "approvedAt": "2026-11-04T10:00:00-03:00",
         "note": "Cierre de octubre (dato semilla)",
         "batch": false
       }
     ],
-    "firstPublishedAt": "2026-11-06T10:00:00-03:00",
+    "firstPublishedAt": "2026-11-04T10:00:00-03:00",
     "published": {
       "version": 1,
       "title": "Tu cierre de octubre 2026 está listo",
-      "body": "Facturaste US$ 3.500,00 ($ 5.193.300,00). No tenés IVA a pagar; te queda un saldo a favor de $ 1.040.000,00. Aportes de autónomos: $ 55.000,00 (vence 11/11/2026). Total: $ 55.000,00. Nota de tu contador: Cierre de octubre (dato semilla)",
+      "body": "Facturaste US$ 3.500,00 ($ 5.193.300,00). No tenés IVA a pagar; te queda un saldo a favor de $ 1.040.000,00. Aportes de autónomos: $ 55.000,00 (vence 11/11/2026). Total: $ 55.000,00.",
       "figures": {
         "billedUSD": {
           "amount": 350000,
@@ -117,7 +117,7 @@
           "currency": "ARS"
         }
       },
-      "publishedAt": "2026-11-06T10:00:00-03:00",
+      "publishedAt": "2026-11-04T10:00:00-03:00",
       "validatedBy": {
         "name": "C.P. Mariana Quiroga",
         "license": "Matrícula de ejemplo"

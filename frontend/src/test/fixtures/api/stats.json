@@ -5,28 +5,28 @@
     "byStatus": {
       "APPROVED": 0,
       "NOTIFIED": 2,
-      "PENDING_CLIENT_INPUT": 20,
-      "READY_FOR_REVIEW": 278
+      "PENDING_CLIENT_INPUT": 19,
+      "READY_FOR_REVIEW": 279
     },
     "approvedPct": 66,
     "pendingReview": {
-      "GREEN": 218,
-      "RED": 21,
-      "YELLOW": 59
+      "GREEN": 216,
+      "RED": 20,
+      "YELLOW": 62
     },
-    "estimatedReviewMinutes": 1236
+    "estimatedReviewMinutes": 1252
   },
   "totals": {
     "billedUSD": {
-      "amount": 80907600,
+      "amount": 60960200,
       "currency": "USD"
     },
     "billedARS": {
-      "amount": 121011303087,
+      "amount": 91377695576,
       "currency": "ARS"
     },
     "toPayARS": {
-      "amount": 11799922618,
+      "amount": 7671305118,
       "currency": "ARS"
     },
     "toPayByDueDate": [
@@ -49,7 +49,7 @@
       {
         "date": "2026-11-20",
         "amount": {
-          "amount": 11377723818,
+          "amount": 7249106318,
           "currency": "ARS"
         },
         "clients": 255
@@ -58,28 +58,28 @@
   },
   "risk": {
     "bySeverity": {
-      "GREEN": 220,
-      "RED": 21,
-      "YELLOW": 59
+      "GREEN": 218,
+      "RED": 20,
+      "YELLOW": 62
     },
     "bySignal": [
       {
-        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
-        "label": "Excede tope K (pasa a RI)",
+        "code": "MISSING_INVOICES",
+        "label": "Faltan facturas",
         "severity": "RED",
-        "count": 17
+        "count": 15
       },
       {
         "code": "DEPOSITS_EXCEED_K_CAP",
         "label": "Depósitos sobre tope K",
         "severity": "RED",
-        "count": 16
+        "count": 4
       },
       {
-        "code": "MISSING_INVOICES",
-        "label": "Faltan facturas",
+        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
+        "label": "Excede tope K (pasa a RI)",
         "severity": "RED",
-        "count": 3
+        "count": 4
       },
       {
         "code": "POST_EXCLUSION_C_INVOICES",
@@ -91,13 +91,7 @@
         "code": "MONO_NEAR_CATEGORY_CAP",
         "label": "Cerca del tope de su categoría",
         "severity": "YELLOW",
-        "count": 49
-      },
-      {
-        "code": "MONO_NEAR_K_CAP",
-        "label": "Cerca del tope K",
-        "severity": "YELLOW",
-        "count": 12
+        "count": 56
       },
       {
         "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
@@ -106,8 +100,20 @@
         "count": 10
       },
       {
+        "code": "MONO_NEAR_K_CAP",
+        "label": "Cerca del tope K",
+        "severity": "YELLOW",
+        "count": 6
+      },
+      {
         "code": "INVOICE_WITHOUT_PAYMENT",
         "label": "Facturas sin cobro",
+        "severity": "YELLOW",
+        "count": 2
+      },
+      {
+        "code": "MONO_CATEGORY_CHANGE_REQUIRED",
+        "label": "Debe recategorizar",
         "severity": "YELLOW",
         "count": 2
       },
@@ -130,12 +136,6 @@
         "count": 1
       },
       {
-        "code": "MONO_CATEGORY_CHANGE_REQUIRED",
-        "label": "Debe recategorizar",
-        "severity": "YELLOW",
-        "count": 1
-      },
-      {
         "code": "UNCLASSIFIED_MOVEMENTS",
         "label": "Movimientos sin clasificar",
         "severity": "YELLOW",
@@ -145,58 +145,58 @@
     "byCategory": [
       {
         "category": "A",
-        "clients": 73
+        "clients": 61
       },
       {
         "category": "B",
-        "clients": 1
+        "clients": 28
       },
       {
         "category": "C",
-        "clients": 2
+        "clients": 29
       },
       {
         "category": "D",
-        "clients": 14
-      },
-      {
-        "category": "E",
         "clients": 13
       },
       {
-        "category": "F",
-        "clients": 1
+        "category": "E",
+        "clients": 14
       },
       {
-        "category": "G",
+        "category": "F",
         "clients": 12
       },
       {
+        "category": "G",
+        "clients": 10
+      },
+      {
         "category": "H",
-        "clients": 110
+        "clients": 74
       },
       {
         "category": "I",
-        "clients": 0
+        "clients": 2
       },
       {
         "category": "J",
-        "clients": 0
+        "clients": 2
       },
       {
         "category": "K",
-        "clients": 29
+        "clients": 10
       },
       {
         "category": "RI",
         "clients": 45
       }
     ],
-    "nearKCap": 29
+    "nearKCap": 10
   },
   "success": {
-    "greenPct": 7333,
-    "greenCount": 220,
+    "greenPct": 7266,
+    "greenCount": 218,
     "total": 300,
     "notifiedBeforeDay10Pct": 66,
     "notifiedBeforeDay10Count": 2,

@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/movement"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/seed"
@@ -76,7 +75,7 @@ func copyClients(ctx context.Context, tx pgx.Tx, ds *seed.Dataset) error {
 			}
 			return []any{
 				c.ID, c.Name, c.Email, string(c.CUIT), string(c.Regime), string(c.MonotributoCategory),
-				seCents, prevVatCents, strings.ToLower(c.Name), c.CreatedAt,
+				seCents, prevVatCents, movement.NormalizeName(c.Name), c.CreatedAt,
 			}, nil
 		}),
 	); err != nil {
