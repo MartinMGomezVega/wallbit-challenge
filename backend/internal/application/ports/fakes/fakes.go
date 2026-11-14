@@ -458,6 +458,28 @@ func (f *ClosingRepository) LatestExclusionDate(_ context.Context, clientID stri
 	return latest, nil
 }
 
+func (f *ClosingRepository) Periods(_ context.Context) ([]string, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	seen := make(map[string]bool)
+	var periods []string
+	for _, c := range f.ByID {
+		pStr := c.Period.String()
+		if !seen[pStr] {
+			seen[pStr] = true
+			periods = append(periods, pStr)
+		}
+	}
+	sort.Slice(periods, func(i, j int) bool {
+		return periods[i] > periods[j]
+	})
+	if periods == nil {
+		periods = []string{}
+	}
+	return periods, nil
+}
+
 // TaxScaleProvider fake para tests.
 type TaxScaleProvider struct {
 	Scale tax.Scale
@@ -744,4 +766,11 @@ func (f *ClosingQuery) Summary(ctx context.Context, p period.Period, filter clos
 		return closing.Summary{}, err
 	}
 	return closing.ComputeSummary(closing.Apply(rows, filter, closing.Sort{})), nil
+}
+
+func (f *ClosingQuery) Periods(ctx context.Context) ([]string, error) {
+	if f.Closings == nil {
+		return []string{}, nil
+	}
+	return f.Closings.Periods(ctx)
 }

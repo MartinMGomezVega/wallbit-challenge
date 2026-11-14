@@ -318,3 +318,27 @@ func (q *ClosingQuery) Summary(ctx context.Context, p period.Period, filter clos
 	}
 	return out, rows.Err()
 }
+
+func (q *ClosingQuery) Periods(ctx context.Context) ([]string, error) {
+	db := conn(ctx, q.pool)
+	rows, err := db.Query(ctx, `
+		SELECT DISTINCT period FROM closings ORDER BY period DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var periods []string
+	for rows.Next() {
+		var p string
+		if err := rows.Scan(&p); err != nil {
+			return nil, err
+		}
+		periods = append(periods, p)
+	}
+	if periods == nil {
+		periods = []string{}
+	}
+	return periods, rows.Err()
+}

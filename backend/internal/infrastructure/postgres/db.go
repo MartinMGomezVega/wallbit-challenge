@@ -4,8 +4,11 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/idgen"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -54,4 +57,36 @@ func conn(ctx context.Context, pool *pgxpool.Pool) DBTX {
 		return tx
 	}
 	return pool
+}
+
+// InitIDGen inicializa los contadores de Sequential con los IDs máximos existentes en Postgres.
+func InitIDGen(ctx context.Context, pool *pgxpool.Pool, gen *idgen.Sequential) error {
+	queries := []struct {
+		table  string
+		prefix string
+	}{
+		{"notifications", "notif"},
+		{"outbox", "outbox"},
+		{"closings", "clo"},
+		{"clients", "cli"},
+		{"movements", "mov"},
+		{"invoices", "inv"},
+		{"purchase_invoices", "pinv"},
+		{"approvals", "apr"},
+	}
+
+	for _, q := range queries {
+		var maxID string
+		err := pool.QueryRow(ctx, fmt.Sprintf("SELECT id FROM %s ORDER BY id DESC LIMIT 1", q.table)).Scan(&maxID)
+		if err != nil {
+			continue
+		}
+		prefix := q.prefix + "_"
+		if strings.HasPrefix(maxID, prefix) {
+			if num, err := strconv.Atoi(strings.TrimPrefix(maxID, prefix)); err == nil {
+				gen.SetMin(q.prefix, num)
+			}
+		}
+	}
+	return nil
 }

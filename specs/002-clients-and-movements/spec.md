@@ -26,6 +26,7 @@ Modelar clientes y movimientos de Wallbit, clasificar automáticamente cada movi
 10. Los **15 clientes de demo** existen con IDs fijos `cli_demo_01..15` y los datos que producen exactamente las señales de la tabla del plan (la verificación end-to-end está en 007).
 11. CUITs válidos (dígito verificador), terminaciones distribuidas 0–9.
 12. `FXRate` de cada movimiento = compra BNA del día (mock fx) — supuesto: Wallbit liquida a compra BNA.
+13. Al arrancar con datos semilla, el sistema procesa el cierre de 2026-09 y 2026-10 (en ese orden). El período 2026-09 queda como mes cerrado: todos los cierres aprobados y notificados, con pagos registrados para permitir métricas de éxito históricas.
 
 ## Fuera de alcance
 Facturas (003). Cálculo impositivo (004/005).

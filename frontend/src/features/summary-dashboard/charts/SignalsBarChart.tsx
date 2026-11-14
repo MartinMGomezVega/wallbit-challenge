@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { SignalStat } from '../schemas';
 import {
-  SEVERITY_ICON_COLORS,
+  SEVERITY_FILL_COLORS,
   TOOLTIP_CONTENT_STYLE,
   usePrefersReducedMotion,
 } from './chartUtils';
@@ -108,7 +108,7 @@ export function SignalsBarChart({
                 {topSignals.map((sig) => (
                   <Cell
                     key={sig.code}
-                    fill={SEVERITY_ICON_COLORS[sig.severity]}
+                    fill={SEVERITY_FILL_COLORS[sig.severity]}
                   />
                 ))}
               </Bar>

@@ -13,7 +13,7 @@ Calcular las obligaciones mensuales de un RI (`domain-context.md §7.2`) y model
 ### Transición
 5. `POST /api/v1/accountant/clients/{id}/regime-change` body `{ "to": "RI", "effectiveDate": "2026-10-14", "note": "..." }`:
    - solo si el cliente es MONO a esa fecha;
-   - `effectiveDate` no futura; si el último cierre tiene `ExclusionDate`, debe coincidir (si no → 422 `EFFECTIVE_DATE_MISMATCH`, el contador puede forzar con `"force": true` y queda en la nota);
+   - `effectiveDate` no futura; si el último cierre tiene `mono.exclusionDate` (ISO), debe coincidir con `effectiveDate` (si no → 422 `EFFECTIVE_DATE_MISMATCH`, el contador puede forzar con `"force": true` y queda en la nota);
    - cierra el tramo MONO en `effectiveDate − 1 día`, abre RI desde `effectiveDate`, `Reason: "EXCLUSION_K_CAP"`;
    - crea `RIProfile` vacío (autónomos 0) y emite `ClosingInputsChanged`.
 6. `PUT /api/v1/accountant/clients/{id}/ri-profile` body `{ selfEmployedMonthlyContribution, previousVatCredit, incomeTaxAdvances: [{period, amount, dueDate}] }` → valida montos ≥ 0, períodos válidos; emite `ClosingInputsChanged`.

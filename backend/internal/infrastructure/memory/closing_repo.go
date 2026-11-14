@@ -151,3 +151,26 @@ func (r *ClosingRepository) LatestExclusionDate(_ context.Context, clientID stri
 	}
 	return latest, nil
 }
+
+// Periods devuelve todos los períodos distintos registrados, ordenados descendente.
+func (r *ClosingRepository) Periods(_ context.Context) ([]string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	seen := make(map[string]bool)
+	var out []string
+	for _, c := range r.byID {
+		pStr := c.Period.String()
+		if !seen[pStr] {
+			seen[pStr] = true
+			out = append(out, pStr)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i] > out[j]
+	})
+	if out == nil {
+		out = []string{}
+	}
+	return out, nil
+}

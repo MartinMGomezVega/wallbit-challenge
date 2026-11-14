@@ -87,5 +87,33 @@ describe('ConfirmRegimeModal', () => {
     await user.click(screen.getByRole('button', { name: /cancelar/i }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it('soporta fecha ISO y envía formato YYYY-MM-DD', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    const onSuccess = vi.fn();
+    const spy = vi.spyOn(api, 'confirmRegimeTransition').mockResolvedValueOnce({
+      client: { id: 'cli_02', regime: 'RI' },
+    });
+
+    render(
+      <ConfirmRegimeModal
+        open={true}
+        onOpenChange={onOpenChange}
+        clientId="cli_02"
+        clientName="Catalina Giménez"
+        effectiveDate="2026-09-10T00:00:00Z"
+        onSuccess={onSuccess}
+      />
+    );
+
+    expect(screen.getByText('10/09/2026')).toBeInTheDocument();
+    const confirmBtn = screen.getByRole('button', { name: /confirmar pase a ri/i });
+    await user.click(confirmBtn);
+
+    expect(spy).toHaveBeenCalledWith('cli_02', '2026-09-10', false);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onSuccess).toHaveBeenCalled();
+  });
 });
 

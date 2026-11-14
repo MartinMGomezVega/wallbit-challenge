@@ -222,8 +222,9 @@ func checkMonoExclusionKCapExceeded(in Input) (Signal, bool) {
 		Priority: meta.Priority,
 		Message:  msg,
 		Data: map[string]string{
-			"exclusionDate": dateStr,
-			"excessARS":     formatCents(in.Mono.ExcessARS.Amount),
+			"exclusionDate":    dateStr,
+			"exclusionDateISO": in.Mono.ExclusionDate.Format("2006-01-02"),
+			"excessARS":        formatCents(in.Mono.ExcessARS.Amount),
 		},
 	}, true
 }

@@ -25,7 +25,7 @@ Orquestar todo lo anterior: el día 1 (o al arrancar el prototipo) se genera el 
 ### Job
 5. `usecase.RunMonthlyClosing.Execute(ctx, period)` procesa todos los clientes con un worker pool (`CLOSING_WORKERS`), devuelve `{processed, created, updated, unchanged, failed[]{clientId, error}}`. Un error en un cliente no frena al resto.
 6. Idempotente: correrlo dos veces seguidas → la segunda `created=0, updated=0`.
-7. Se ejecuta al arrancar para `clock.Now()` → mes anterior. También `POST /api/v1/accountant/periods/{period}/run` (devuelve el resumen).
+7. Se ejecuta al arrancar: para los datos semilla se procesan 2026-09 (cerrado, aprobado y notificado para habilitar métricas históricas) y 2026-10 (mes en curso para revisión). También `POST /api/v1/accountant/periods/{period}/run` (devuelve el resumen).
 8. Scheduler: goroutine que, cada minuto, si `clock.Now()` es día 1 y no corrió ese período, lo corre (con clock fijo nunca dispara de nuevo; test con fake clock).
 9. Test de carrera: `go test -race` corriendo el job mientras se hacen overrides concurrentes.
 10. Performance: 300 clientes en < 2 s en la máquina de dev (test con `testing.Short()` skip para CI lento).

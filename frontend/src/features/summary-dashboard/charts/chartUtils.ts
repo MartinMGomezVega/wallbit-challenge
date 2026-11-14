@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
 
-export const SEVERITY_ICON_COLORS = {
-  RED: '#DC2626',
-  YELLOW: '#D97706',
-  GREEN: '#059669',
+export const SEVERITY_FILL_COLORS = {
+  RED: 'var(--color-severity-red-icon)',
+  YELLOW: 'var(--color-severity-yellow-fill)',
+  GREEN: 'var(--color-severity-green-icon)',
 } as const;
 
-export const PRIMARY_COLOR = '#006FC0';
-export const WARNING_BORDER_COLOR = '#D97706';
+export const SEVERITY_ICON_COLORS = {
+  RED: 'var(--color-severity-red-icon)',
+  YELLOW: 'var(--color-severity-yellow-icon)',
+  GREEN: 'var(--color-severity-green-icon)',
+} as const;
+
+export const PRIMARY_COLOR = 'var(--color-primary)';
+export const WARNING_BORDER_COLOR = 'var(--color-severity-yellow-fill)';
 
 export function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() => {

@@ -27,4 +27,5 @@ type ClosingQuery interface {
 	Page(ctx context.Context, p period.Period, filter closing.Filter, sort closing.Sort, page PageRequest) (PageResult, error)
 	IDs(ctx context.Context, p period.Period, filter closing.Filter, sort closing.Sort) ([]string, error)
 	Summary(ctx context.Context, p period.Period, filter closing.Filter) (closing.Summary, error)
+	Periods(ctx context.Context) ([]string, error)
 }

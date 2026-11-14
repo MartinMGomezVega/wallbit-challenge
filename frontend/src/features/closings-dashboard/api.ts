@@ -7,6 +7,7 @@ import {
   ClosingsSummaryResponseSchema,
   SignalCatalogItem,
   SignalCatalogItemSchema,
+  PeriodsResponseSchema,
 } from './schemas';
 
 export async function listClosings(
@@ -42,5 +43,10 @@ export async function getClosingsSummary(
 
 export async function getSignalsCatalog(): Promise<SignalCatalogItem[]> {
   return apiFetch('/api/v1/accountant/signals/catalog', z.array(SignalCatalogItemSchema));
+}
+
+export async function getPeriods(): Promise<string[]> {
+  const res = await apiFetch('/api/v1/accountant/periods', PeriodsResponseSchema);
+  return res.periods;
 }
 

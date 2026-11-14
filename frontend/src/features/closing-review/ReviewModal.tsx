@@ -116,15 +116,12 @@ export function ReviewModal() {
   const currentIndex = queue?.index ?? 0;
   const filterLabel = queue?.label ?? 'Filtro actual';
 
-  const hasExclusionK = Boolean(
-    detail?.closing.signals?.some((s) => s.code === 'MONO_EXCLUSION_K_CAP_EXCEEDED')
-  );
+  const effectiveExclusionDate = detail?.closing.mono?.exclusionDate;
 
-  const effectiveExclusionDate =
-    detail?.closing.mono?.exclusionEffectiveDate ||
-    (detail?.closing.signals?.find((s) => s.code === 'MONO_EXCLUSION_K_CAP_EXCEEDED')?.data
-      ?.exclusionDate as string) ||
-    '2026-10-01';
+  const hasExclusionK = Boolean(
+    detail?.closing.signals?.some((s) => s.code === 'MONO_EXCLUSION_K_CAP_EXCEEDED') &&
+      effectiveExclusionDate
+  );
 
   const tabs: { key: ReviewTabKey; label: string; count?: number }[] = [
     { key: 'resumen', label: 'Resumen' },
@@ -410,7 +407,7 @@ export function ReviewModal() {
       </Dialog.Root>
 
       {/* Diálogo de confirmación de pase a RI (Criterio 12 y T009.10) */}
-      {detail && (
+      {detail && effectiveExclusionDate && (
         <ConfirmRegimeModal
           open={confirmRegimeOpen}
           onOpenChange={setConfirmRegimeOpen}

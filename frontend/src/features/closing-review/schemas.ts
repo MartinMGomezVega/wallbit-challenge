@@ -101,6 +101,7 @@ export const MonotributoAssessmentSchema = z.object({
   feeDueDate: z.string(),
   exclusionReason: z.string().optional(),
   exclusionEffectiveDate: z.string().optional(),
+  exclusionDate: z.string().optional(),
 });
 export type MonotributoAssessment = z.infer<typeof MonotributoAssessmentSchema>;
 

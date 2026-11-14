@@ -84,3 +84,9 @@ export const SignalCatalogItemSchema = z.object({
 });
 
 export type SignalCatalogItem = z.infer<typeof SignalCatalogItemSchema>;
+
+export const PeriodsResponseSchema = z.object({
+  periods: z.array(z.string()),
+});
+
+export type PeriodsResponse = z.infer<typeof PeriodsResponseSchema>;

@@ -848,3 +848,27 @@ func TestStatsEndpoint(t *testing.T) {
 		t.Fatalf("GET stats as client status = %d, want 403", recForb.Code)
 	}
 }
+
+func TestGetPeriods(t *testing.T) {
+	h, cr, clr := setupClosingsTestRouter(t)
+	ctx := context.Background()
+	_ = clr.Save(ctx, client.Client{ID: "cli_p1", Name: "Client P1", CUIT: "20-11111111-1", Regime: client.RegimeMonotributo})
+	pSep := period.MustParse("2026-09")
+	pOct := period.MustParse("2026-10")
+	_ = cr.Save(ctx, closing.NewClosing("clo_p1", "cli_p1", pSep, true, "h1", signal.SeverityGreen, nil, "d", nil, nil, closing.Reconciliation{}, testNow))
+	_ = cr.Save(ctx, closing.NewClosing("clo_p2", "cli_p1", pOct, true, "h2", signal.SeverityGreen, nil, "d", nil, nil, closing.Reconciliation{}, testNow))
+
+	rec := do(t, h, "GET", "/api/v1/accountant/periods", "accountant", nil)
+	if rec.Code != 200 {
+		t.Fatalf("status %d: %s", rec.Code, rec.Body.String())
+	}
+	var res struct {
+		Periods []string `json:"periods"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(res.Periods) != 2 || res.Periods[0] != "2026-10" || res.Periods[1] != "2026-09" {
+		t.Fatalf("unexpected periods: %v", res.Periods)
+	}
+}

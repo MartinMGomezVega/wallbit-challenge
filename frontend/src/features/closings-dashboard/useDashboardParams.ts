@@ -24,7 +24,7 @@ export const DEFAULT_FILTERS: DashboardFilters = {
   status: [],
   q: '',
   sort: 'severity',
-  dir: 'asc',
+  dir: 'desc',
   page: 1,
   pageSize: 50,
 };
@@ -56,8 +56,9 @@ export function parseFiltersFromSearchParams(
       ? sortRaw
       : 'severity';
 
+  const defaultDir = sort === 'name' ? 'asc' : 'desc';
   const dirRaw = searchParams.get('dir');
-  const dir = dirRaw === 'desc' ? 'desc' : 'asc';
+  const dir = dirRaw === 'asc' || dirRaw === 'desc' ? dirRaw : defaultDir;
 
   const pageRaw = searchParams.get('page');
   const page = pageRaw ? Math.max(1, parseInt(pageRaw, 10) || 1) : 1;
@@ -103,7 +104,8 @@ export function filtersToSearchParams(filters: Partial<DashboardFilters>): URLSe
   if (filters.sort && filters.sort !== 'severity') {
     sp.set('sort', filters.sort);
   }
-  if (filters.dir && filters.dir !== 'asc') {
+  const defaultDir = (filters.sort || 'severity') === 'name' ? 'asc' : 'desc';
+  if (filters.dir && filters.dir !== defaultDir) {
     sp.set('dir', filters.dir);
   }
   if (filters.page && filters.page > 1) {
@@ -206,7 +208,8 @@ export function useDashboardParams(defaultPeriod: string = DEFAULT_PERIOD) {
           const current = parseFiltersFromSearchParams(prev, defaultPeriod);
           let newDir = dir;
           if (!newDir) {
-            newDir = current.sort === sort && current.dir === 'asc' ? 'desc' : 'asc';
+            const defaultDir = sort === 'name' ? 'asc' : 'desc';
+            newDir = current.sort === sort ? (current.dir === 'asc' ? 'desc' : 'asc') : defaultDir;
           }
           return filtersToSearchParams({
             ...current,
@@ -243,7 +246,7 @@ export function useDashboardParams(defaultPeriod: string = DEFAULT_PERIOD) {
           status: [],
           q: '',
           sort: 'severity',
-          dir: 'asc',
+          dir: 'desc',
           page: 1,
           pageSize: current.pageSize,
         });

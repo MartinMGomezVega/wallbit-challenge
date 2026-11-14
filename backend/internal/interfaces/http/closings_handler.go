@@ -15,6 +15,7 @@ import (
 )
 
 type closingsHandler struct {
+	closingQuery      ports.ClosingQuery
 	runClosingUC      *usecase.RunMonthlyClosing
 	listClosingsUC    *usecase.ListClosings
 	listClosingIDsUC  *usecase.ListClosingIDs
@@ -25,6 +26,20 @@ type closingsHandler struct {
 	approveBatchUC    *usecase.ApproveBatch
 	sendRemindersUC   *usecase.SendPaymentReminders
 	clock             ports.Clock
+}
+
+// periods maneja GET /api/v1/accountant/periods
+func (h *closingsHandler) periods(w http.ResponseWriter, r *http.Request) {
+	if h.closingQuery == nil {
+		writeJSON(w, http.StatusOK, map[string][]string{"periods": {}})
+		return
+	}
+	periods, err := h.closingQuery.Periods(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string][]string{"periods": periods})
 }
 
 // parseClosingFilter parsea los filtros comunes desde la query string (reutilizable por spec 009).

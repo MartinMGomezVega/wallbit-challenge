@@ -193,6 +193,7 @@ func newRouter(deps Deps) *router {
 		}
 
 		closH := &closingsHandler{
+			closingQuery: deps.ClosingQuery,
 			runClosingUC: &usecase.RunMonthlyClosing{
 				Clients:       deps.ClientRepo,
 				Compute:       computeClosing,
@@ -226,6 +227,7 @@ func newRouter(deps Deps) *router {
 			sendRemindersUC: sendRemindersUC,
 			clock:           deps.Clock,
 		}
+		rt.accountant("GET /api/v1/accountant/periods", closH.periods)
 		rt.accountant("POST /api/v1/accountant/periods/{period}/run", closH.run)
 		rt.accountant("GET /api/v1/accountant/periods/{period}/closings/ids", closH.ids)
 		rt.accountant("GET /api/v1/accountant/periods/{period}/closings", closH.list)

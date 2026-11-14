@@ -34,14 +34,17 @@ Definidos como variables CSS en `src/shared/ui/tokens.css` y mapeados en `tailwi
 
 **Semáforo** (contraste verificado sobre blanco: ícono ≥ 3:1, texto ≥ 4.5:1):
 
-| Severidad | Ícono / punto | Texto | Fondo suave | Borde | Ícono (lucide) | Label |
+| Severidad | Formas / Fill | Ícono / Texto | Fondo suave | Borde | Ícono (lucide) | Label |
 |---|---|---|---|---|---|---|
 | RED | `#DC2626` | `#B91C1C` | `#FEF2F2` | `#FECACA` | `OctagonAlert` | "Requiere acción" |
-| YELLOW | `#D97706` | `#B45309` | `#FFFBEB` | `#FDE68A` | `TriangleAlert` | "Revisar" |
+| YELLOW | `#EAB308` | `#A16207` | `#FEFCE8` | `#FDE047` | `TriangleAlert` | "Revisar" |
 | GREEN | `#059669` | `#047857` | `#ECFDF5` | `#A7F3D0` | `CircleCheck` | "Todo ok" |
 
-> Nunca usar amarillo `#F59E0B` para texto o íconos sobre blanco (no llega a contraste).
-> Los elementos del semáforo (íconos, chips, textos) van **siempre sobre superficies blancas** (tabla, tarjetas, modal), no directamente sobre el fondo `#F1F1F1`, donde el amarillo pierde contraste.
+> Regla de aplicación para el amarillo:
+> - Usar **fill** (`#EAB308` / `--color-severity-yellow-fill`) en formas geométricas y rellenos: punto del semáforo en la tabla, borde izquierdo de tarjetas de severidad, barras del gráfico de situaciones, borde de alerta en distribución y tramo 80–99% de la barra de acumulado.
+> - Usar **icon / text** (`#A16207` / `--color-severity-yellow-icon`, `--color-severity-yellow-text`) en íconos vectoriales y textos (chips, labels, StatusBadge).
+> - Nunca usar amarillo `#F59E0B` para texto o íconos sobre blanco (no llega a contraste).
+> - Los elementos del semáforo (íconos, chips, textos) van **siempre sobre superficies blancas** (tabla, tarjetas, modal), no directamente sobre el fondo `#F1F1F1`, donde el amarillo pierde contraste.
 
 **Estados del cierre** (badges neutros, sin competir con el semáforo):
 
@@ -129,7 +132,7 @@ Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
 - Columna Semáforo: 40 px, punto de 10 px + ícono de 16 px; tooltip con el label.
 - Columna Situación: 2 líneas máximo (`line-clamp-2`), chip de la señal principal (fondo suave + texto de su severidad) y chip `+N` neutro.
 - Montos: USD en `text-sm` 500, ARS debajo en `text-xs` muted. Alineados a la derecha.
-- Acum. 12 meses: barra de 6 px de alto y 96 px de ancho, fondo `border`, relleno según umbral (verde < 80%, `#D97706` 80–99%, `#DC2626` ≥ 100%), porcentaje a la derecha.
+- Acum. 12 meses: barra de 6 px de alto y 96 px de ancho, fondo `border`, relleno según umbral (verde < 80%, `#EAB308` 80–99%, `#DC2626` ≥ 100%), porcentaje a la derecha.
 - Skeleton de carga: 8 filas grises con shimmer (desactivado con reduced-motion).
 
 ### 4.2 Chips de resumen
@@ -163,13 +166,13 @@ Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
 
 ### 4.7 Resumen (dashboard, 014)
 - Grilla de 12 columnas, gap 16 px, ordenada de arriba hacia abajo en 4 bloques:
-  1. **Estado de los clientes (`SeverityOverview`):** 3 tarjetas de 4 columnas (**Rojos · Amarillos · Verdes**) con borde izquierdo de 4 px del color de su severidad, ícono, cantidad grande, "% del total" y link "Ver en la tabla →" (`/contador?period=…&severity=…`).
+  1. **Estado de los clientes (`SeverityOverview`):** 3 tarjetas de 4 columnas (**Rojos · Amarillos · Verdes**) con borde izquierdo de 4 px del color fill de su severidad (`#EAB308` para amarillo), ícono, cantidad grande, "% del total" y link "Ver en la tabla →" (`/contador?period=…&severity=…`).
   2. **Indicadores del cierre:** 3 tarjetas de 4 columnas (Progreso del cierre, Facturado del mes, A pagar estimado con próximo vencimiento real). Sin KPI "Todo ok".
   3. **Gráficos (Recharts):** "Situaciones detectadas" 6 columnas, "Distribución por categoría" 6, "Vencimientos próximos" 12.
   4. **Sección separada "¿Está funcionando el servicio?" (`ServiceHealth`):** separador superior, título `text-lg`, subtítulo muted y 3 tarjetas de 4 columnas (% en verde, % avisados antes del día 10, % pagos en término), cada una con **"X de Y"** debajo.
 - **KPI:** tarjeta blanca, padding 20 px, label `text-xs` MAYÚSCULAS muted arriba, valor `text-2xl` `tabular-nums`, línea secundaria `text-sm` muted. Toda la tarjeta clickeable si tiene drill-down (cursor pointer, hover `surface-muted`, foco visible).
 - **Barra de avance apilada:** alto 8 px, radio completo, segmentos en este orden: Notificado `#047857`, Aprobado `#0369A1`, Para revisar `#006FC0` al 40% de opacidad, Esperando al cliente `#D4D4D4`.
-- **Gráficos (Recharts):** sin fondo propio (van dentro de una tarjeta blanca), grilla horizontal `#E5E5E5` punteada, sin grilla vertical, ejes `text-xs` `#6B6B6B` sin línea de eje, barras con radio 4 px en el extremo, ancho máximo de barra 28 px, tooltip con el estilo de §4.5. Colores: barras de situaciones con el color de **ícono** de su severidad; categorías y vencimientos en `--color-primary`. Nada de gradientes, 3D ni tortas.
+- **Gráficos (Recharts):** sin fondo propio (van dentro de una tarjeta blanca), grilla horizontal `#E5E5E5` punteada, sin grilla vertical, ejes `text-xs` `#6B6B6B` sin línea de eje, barras con radio 4 px en el extremo, ancho máximo de barra 28 px, tooltip con el estilo de §4.5. Colores: barras de situaciones con el color de **fill** de su severidad (`#EAB308` para amarillo); categorías y vencimientos en `--color-primary`. Nada de gradientes, 3D ni tortas.
 - Título de tarjeta de gráfico `text-lg`, subtítulo muted de una línea que explica qué mirar ("Click en una barra para ver esos clientes").
 
 ## 5. Estados vacíos, carga y error

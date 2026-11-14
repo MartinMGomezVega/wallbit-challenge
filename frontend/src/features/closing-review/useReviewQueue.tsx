@@ -28,7 +28,7 @@ export interface OpenQueueOptions {
   startId?: string;
   label?: string;
   period?: string;
-  filterParams?: Record<string, string | number | undefined>;
+  filterParams?: URLSearchParams | Record<string, string | number | undefined>;
 }
 
 export interface ReviewQueueContextValue {
@@ -125,8 +125,14 @@ export function ReviewQueueProvider({
         setSearchParams(
           (prevParams) => {
             const nextParams = new URLSearchParams(prevParams);
-            if (options.mode === 'chip' && options.filterParams?.severity) {
-              nextParams.set('severity', String(options.filterParams.severity));
+            if (options.mode === 'chip') {
+              const sev =
+                options.filterParams instanceof URLSearchParams
+                  ? options.filterParams.get('severity')
+                  : (options.filterParams as Record<string, unknown> | undefined)?.severity;
+              if (sev) {
+                nextParams.set('severity', String(sev));
+              }
             }
             nextParams.set('client', activeId);
             return nextParams;

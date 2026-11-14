@@ -17,15 +17,20 @@ export async function getClosingIds(
   period: string,
   params: URLSearchParams | Record<string, string | number | undefined> = {}
 ): Promise<ClosingIDsResponse> {
-  const search =
-    params instanceof URLSearchParams
-      ? params.toString()
-      : new URLSearchParams(
-          Object.entries(params)
-            .filter(([k, v]) => k !== 'page' && k !== 'pageSize' && v !== undefined && v !== '')
-            .map(([k, v]) => [k, String(v)])
-        ).toString();
+  let sp: URLSearchParams;
+  if (params instanceof URLSearchParams) {
+    sp = new URLSearchParams(params);
+    sp.delete('page');
+    sp.delete('pageSize');
+  } else {
+    sp = new URLSearchParams(
+      Object.entries(params)
+        .filter(([k, v]) => k !== 'page' && k !== 'pageSize' && v !== undefined && v !== '')
+        .map(([k, v]) => [k, String(v)])
+    );
+  }
 
+  const search = sp.toString();
   const qs = search ? `?${search}` : '';
   return apiFetch(
     `/api/v1/accountant/periods/${period}/closings/ids${qs}`,

@@ -5,7 +5,7 @@
     "period": "2026-10",
     "status": "READY_FOR_REVIEW",
     "version": 1,
-    "resultHash": "d130e9cfd2f02aeaad1423674944eb164518896792fe0f33e5064685d39e203e",
+    "resultHash": "b586afd62386601c1e8ed78f2e7c2fe902e8167ff8c5bbb510354cc6cc831e41",
     "severity": "RED",
     "signals": [
       {
@@ -15,7 +15,8 @@
         "message": "Superó el tope de la categoría K el 10/09/2026 por $ 2.372.599,37. Corresponde pase a Responsable Inscripto.",
         "data": {
           "excessARS": "2372599.37",
-          "exclusionDate": "10/09/2026"
+          "exclusionDate": "10/09/2026",
+          "exclusionDateISO": "2026-09-10"
         }
       },
       {

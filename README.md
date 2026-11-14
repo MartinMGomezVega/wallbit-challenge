@@ -112,7 +112,7 @@ La pestaña **Resumen** muestra, de arriba hacia abajo:
 - **Gráficos:** situaciones detectadas, clientes por categoría (y cerca del tope K) y vencimientos próximos;
 - **¿Está funcionando el servicio?:** sección separada con % de verdes, % avisados antes del día 10 y % de pagos en término (con su detalle `X de Y`).
 
-No es decorativo: cada número lleva a la tabla filtrada que lo explica.
+El selector de período permite alternar entre **octubre 2026** (el período en curso, con los cierres listos para revisar y la estimación de tiempo) y **septiembre 2026** (período cerrado y aprobado, donde se aprecian las métricas de éxito históricas de avisos y pagos en término). No es decorativo: cada número lleva a la tabla filtrada que lo explica.
 
 ### Aprobación: rápida pero auditada
 - **En lote, solo los verdes.** Los amarillos y rojos los firma el contador uno por uno.
@@ -256,7 +256,7 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 
 ## Datos de demo
 
-300 clientes generados con semilla fija (85% Monotributo, 15% RI, cobros de USD 800 a 9.000 por mes de empresas y plataformas del exterior) y **15 clientes armados a mano**, uno por cada situación. Los encontrás con el buscador del tablero:
+300 clientes generados con semilla fija (85% Monotributo, 15% RI, cobros de USD 800 a 9.000 por mes de empresas y plataformas del exterior) y **15 clientes armados a mano**, uno por cada situación. Los datos semilla cargan dos períodos: **septiembre 2026** como mes cerrado y aprobado (con notificaciones y pagos registrados para alimentar las métricas de éxito del servicio) y **octubre 2026** como mes en curso listo para revisar en el tablero. Los encontrás con el buscador del tablero:
 
 | Cliente | Situación |
 |---|---|

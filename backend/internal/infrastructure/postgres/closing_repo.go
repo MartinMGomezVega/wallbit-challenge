@@ -461,3 +461,26 @@ func (r *ClosingRepository) LatestExclusionDate(ctx context.Context, clientID st
 	}
 	return latest, rows.Err()
 }
+
+func (r *ClosingRepository) Periods(ctx context.Context) ([]string, error) {
+	rows, err := conn(ctx, r.pool).Query(ctx, `
+		SELECT DISTINCT period FROM closings ORDER BY period DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var periods []string
+	for rows.Next() {
+		var p string
+		if err := rows.Scan(&p); err != nil {
+			return nil, err
+		}
+		periods = append(periods, p)
+	}
+	if periods == nil {
+		periods = []string{}
+	}
+	return periods, rows.Err()
+}

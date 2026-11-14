@@ -126,3 +126,8 @@ func (q *ClosingQuery) Summary(ctx context.Context, p period.Period, filter clos
 	filtered := closing.Apply(rows, noSevFilter, closing.Sort{})
 	return closing.ComputeSummary(filtered), nil
 }
+
+// Periods devuelve todos los períodos disponibles en los cierres, ordenados descendente.
+func (q *ClosingQuery) Periods(ctx context.Context) ([]string, error) {
+	return q.closings.Periods(ctx)
+}

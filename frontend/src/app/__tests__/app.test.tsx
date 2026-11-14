@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { routes } from '../router';
 import { Providers, createQueryClient } from '../providers';
@@ -61,6 +61,9 @@ describe('App & Navigation', () => {
     expect(await screen.findByRole('heading', { name: 'Cierre de octubre 2026' })).toBeInTheDocument();
 
     const periodSelect = screen.getByLabelText('Período');
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'septiembre 2026' })).toBeInTheDocument();
+    });
     fireEvent.change(periodSelect, { target: { value: '2026-09' } });
 
     expect(await screen.findByRole('heading', { name: 'Cierre de septiembre 2026' })).toBeInTheDocument();

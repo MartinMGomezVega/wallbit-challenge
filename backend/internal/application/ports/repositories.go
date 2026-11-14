@@ -78,6 +78,7 @@ type ClosingRepository interface {
 	Save(ctx context.Context, c closing.Closing) error
 	SaveIfVersion(ctx context.Context, c closing.Closing, expectedVersion int) error
 	LatestExclusionDate(ctx context.Context, clientID string) (*time.Time, error)
+	Periods(ctx context.Context) ([]string, error)
 }
 
 // NotificationRepository define el acceso y persistencia de notificaciones in-app.

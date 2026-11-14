@@ -87,17 +87,24 @@ export function ClosingsTable({
                 key={headerGroup.id}
                 className="sticky top-0 z-10 h-10 border-b border-app-border bg-app-surface-muted"
               >
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-app-text-muted"
-                    style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const isSorted = sort === header.id;
+                  const ariaSort = isSorted
+                    ? (dir === 'asc' ? 'ascending' : 'descending')
+                    : undefined;
+                  return (
+                    <th
+                      key={header.id}
+                      aria-sort={ariaSort}
+                      className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-app-text-muted"
+                      style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>

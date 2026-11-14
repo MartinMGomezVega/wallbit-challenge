@@ -95,6 +95,9 @@ func run(log *slog.Logger) error {
 	if err := loadSeed(context.Background(), cfg, log, r, fxClient, idGen, clk); err != nil {
 		return err
 	}
+	if cfg.Storage == "postgres" && r.pool != nil {
+		_ = postgres.InitIDGen(context.Background(), r.pool, idGen)
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -146,8 +149,9 @@ func run(log *slog.Logger) error {
 		DispatchOutbox: dispatchOutbox,
 	}
 
-	// Ejecución inicial del cierre del mes anterior (criterio 7)
-	prevMonth := period.FromTime(clk.Now()).Prev()
+	// Ejecución inicial de cierres: 2026-09 (cerrado y notificado) y 2026-10 (en curso)
+	pSep := period.MustParse("2026-09")
+	pOct := period.MustParse("2026-10")
 	runClosingUC := &usecase.RunMonthlyClosing{
 		Clients:       clientRepo,
 		Compute:       computeClosing,
@@ -155,14 +159,24 @@ func run(log *slog.Logger) error {
 		ActionNotices: actionNotices,
 	}
 
+	if _, err := runClosingUC.Execute(context.Background(), pSep); err != nil {
+		return fmt.Errorf("error ejecutando cierre de septiembre: %w", err)
+	}
+	if err := usecase.SeedSeptemberClosings(context.Background(), closingRepo, clientRepo, idGen, uint64(cfg.Seed)); err != nil {
+		return fmt.Errorf("error cerrando período de septiembre: %w", err)
+	}
+
 	closingStart := time.Now()
-	summary, err := runClosingUC.Execute(context.Background(), prevMonth)
+	summary, err := runClosingUC.Execute(context.Background(), pOct)
 	if err != nil {
-		return fmt.Errorf("error ejecutando cierre del mes anterior: %w", err)
+		return fmt.Errorf("error ejecutando cierre de octubre: %w", err)
+	}
+	if cfg.Storage == "postgres" && r.pool != nil {
+		_ = postgres.InitIDGen(context.Background(), r.pool, idGen)
 	}
 
 	log.Info("cierre inicial completado",
-		"periodo", prevMonth.String(),
+		"periodo", pOct.String(),
 		"procesados", summary.Processed,
 		"creados", summary.Created,
 		"actualizados", summary.Updated,

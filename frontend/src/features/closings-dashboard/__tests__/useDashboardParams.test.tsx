@@ -27,7 +27,7 @@ describe('useDashboardParams', () => {
       expect(f.severity).toEqual([]);
       expect(f.regime).toBe('');
       expect(f.sort).toBe('severity');
-      expect(f.dir).toBe('asc');
+      expect(f.dir).toBe('desc');
       expect(f.page).toBe(1);
       expect(f.pageSize).toBe(50);
     });
@@ -121,13 +121,13 @@ describe('useDashboardParams', () => {
         result.current.setSort('billed');
       });
       expect(result.current.filters.sort).toBe('billed');
-      expect(result.current.filters.dir).toBe('asc');
+      expect(result.current.filters.dir).toBe('desc');
 
       act(() => {
         result.current.setSort('billed');
       });
       expect(result.current.filters.sort).toBe('billed');
-      expect(result.current.filters.dir).toBe('desc');
+      expect(result.current.filters.dir).toBe('asc');
     });
 
     it('clearFilters resetea todos los filtros de búsqueda preservando período', () => {

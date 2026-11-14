@@ -16,7 +16,7 @@ export function ProgressBar({ pctBp, arsAmount, className = '' }: ProgressBarPro
   if (pct >= 100) {
     fillColor = 'bg-severity-red-icon';
   } else if (pct >= 80) {
-    fillColor = 'bg-severity-yellow-icon';
+    fillColor = 'bg-severity-yellow-fill';
   }
 
   const tooltipText = arsAmount

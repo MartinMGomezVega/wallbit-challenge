@@ -25,10 +25,10 @@ La pantalla principal del contador: una tabla formal y moderna donde a simple vi
    8. **A pagar**: monto + "vence dd/MM";
    9. **Estado**: badge (`Esperando al cliente`, `Para revisar`, `Aprobado`, `Notificado`) + "Pagado" si `paidAt`;
    10. **Acción**: botón "Revisar".
-5. Orden por click en encabezados ordenables (Situación→`severity`, Cliente→`name`, Facturado→`billed`, Acum.→`pctKCap`, A pagar→`toPay`). Indicador `aria-sort`.
+5. Orden por click en encabezados ordenables (Situación→`severity`, Cliente→`name`, Facturado→`billed`, Acum.→`pctKCap`, A pagar→`toPay`). Dirección por defecto: `severity desc`, `name asc`, `billed/pctKCap/toPay desc`. Indicador `aria-sort` en el encabezado y en el botón refleja la dirección real.
 6. Paginación server-side (50/100/200 por página) con "Mostrando 1–50 de 400".
 7. Estados: skeleton de carga, vacío ("No hay clientes con estos filtros" + limpiar), error con "Reintentar".
-8. **Todo el estado de la vista vive en la URL**: `period, severity, signal, regime, status, q, sort, dir, page, pageSize` (y `client` en 009). Cambiar un filtro resetea `page=1`.
+8. **Todo el estado de la vista vive en la URL**: `period, severity, signal, regime, status, q, sort, dir, page, pageSize` (y `client` en 009). Una única función `filtersToSearchParams` construye los parámetros de consulta compartidos de forma coherente entre el listado de cierres, el resumen y la cola de IDs de revisión. Cambiar un filtro resetea `page=1`.
 9. Selección: checkbox por fila y en el encabezado (página actual). Barra flotante: "N seleccionados" + botón "Aprobar verdes (k)" (deshabilitado con tooltip si `k = 0`; la acción la conecta 010) + "Revisar seleccionados" (009).
 10. Click en una fila (fuera del checkbox) = "Revisar" de esa fila (009).
 

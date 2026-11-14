@@ -25,6 +25,15 @@ func (s *Sequential) New(prefix string) string {
 	return fmt.Sprintf("%s_%06d", prefix, s.next[prefix])
 }
 
+// SetMin actualiza el contador de un prefijo si min es mayor al valor actual.
+func (s *Sequential) SetMin(prefix string, min int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if min > s.next[prefix] {
+		s.next[prefix] = min
+	}
+}
+
 // Random genera IDs aleatorios con crypto/rand.
 type Random struct{}
 

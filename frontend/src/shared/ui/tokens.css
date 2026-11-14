@@ -19,10 +19,11 @@
   --color-severity-red-bg: #FEF2F2;
   --color-severity-red-border: #FECACA;
 
-  --color-severity-yellow-icon: #D97706;
-  --color-severity-yellow-text: #B45309;
-  --color-severity-yellow-bg: #FFFBEB;
-  --color-severity-yellow-border: #FDE68A;
+  --color-severity-yellow-fill: #EAB308;
+  --color-severity-yellow-icon: #A16207;
+  --color-severity-yellow-text: #A16207;
+  --color-severity-yellow-bg: #FEFCE8;
+  --color-severity-yellow-border: #FDE047;
 
   --color-severity-green-icon: #059669;
   --color-severity-green-text: #047857;

@@ -252,6 +252,10 @@ export const handlers = [
     HttpResponse.json({ status: 'ok', now: '2026-11-05T09:00:00-03:00' })
   ),
 
+  http.get('/api/v1/accountant/periods', () =>
+    HttpResponse.json({ periods: ['2026-10', '2026-09'] })
+  ),
+
   http.get('/api/v1/accountant/signals/catalog', () =>
     HttpResponse.json(mockCatalog)
   ),
@@ -541,6 +545,7 @@ export const handlers = [
               feeDueDate: row.toPay.dueDate,
               exclusionReason: isExclusion ? 'K_CAP_EXCEEDED' : undefined,
               exclusionEffectiveDate: isExclusion ? '2026-10-14' : undefined,
+              exclusionDate: isExclusion ? '2026-10-14T00:00:00Z' : undefined,
             }
           : null,
         ri: !isMono

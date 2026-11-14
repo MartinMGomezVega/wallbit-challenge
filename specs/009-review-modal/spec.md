@@ -16,7 +16,7 @@ Que el contador revise clientes uno tras otro sin volver a la tabla, recorriendo
 
 ### Cola
 2. La cola es una **foto** tomada al abrir el modal (IDs congelados). Si un cierre cambia de color o deja de cumplir el filtro, **sigue en la cola**; se muestra con un aviso "Ahora 🟢 Verde" (o el color nuevo).
-3. Encabezado del modal: `← Anterior` · **"Cliente 3 de 47"** · descripción del filtro ("Rojos · RI · 'Faltan facturas'") · `Siguiente →` · `✕`.
+3. Encabezado del modal: `← Anterior` · **"Cliente 3 de 47"** · descripción del filtro ("Rojos · RI · 'Faltan facturas'") · `Siguiente →` · `✕`. La cola preserva el orden exacto del listado de la tabla (abrir la primera fila muestra "Cliente 1 de N").
 4. En el primero, "Anterior" queda `aria-disabled` con tooltip "Es el primer cliente del filtro". En el último, "Siguiente" igual con "Es el último cliente del filtro".
 5. Atajos: `←` / `→` navegan, `A` aprueba (lo conecta 010), `Esc` cierra. No se disparan mientras el foco está en un input/textarea.
 6. La URL refleja el cliente abierto (`&client=clo_123`) además del filtro. Recargar la página con `client=` reabre el modal en ese cliente reconstruyendo la cola con el filtro de la URL; si el cierre ya no está en la cola, se agrega al principio y se muestra el aviso "Este cliente ya no cumple el filtro".
@@ -33,6 +33,6 @@ Que el contador revise clientes uno tras otro sin volver a la tabla, recorriendo
     - **Facturas y conciliación**: facturas con TC usado y ARS, pares conciliados, cobros sin factura, facturas sin cobro.
     - **Aviso al cliente**: borrador (lo agrega 010) y, si fue notificado, lo publicado (`Published`) con fecha.
     - **Historial**: versiones y aprobaciones.
-12. Pie: "Aprobar y siguiente" (primario), "Aprobar" , "Confirmar pase a RI" (solo si hay `MONO_EXCLUSION_K_CAP_EXCEEDED`; abre confirmación con la fecha de exclusión; usa 005). Los botones de aprobar los conecta 010.
+12. Pie: "Aprobar y siguiente" (primario), "Aprobar" , "Confirmar pase a RI" (solo si hay `MONO_EXCLUSION_K_CAP_EXCEEDED` y fecha en `mono.exclusionDate`; abre confirmación con la fecha de exclusión en formato ISO formateada y envía `YYYY-MM-DD`; usa 005). Los botones de aprobar los conecta 010.
 13. Accesibilidad: Radix Dialog (foco atrapado, `aria-labelledby`), navegación completa por teclado.
 14. Tests: armado de cola en los 3 modos, límites (primero/último), atajos, URL ↔ modal, reapertura desde URL, cola congelada ante cambio de color, prefetch llamado, scroll/resaltado al cerrar.

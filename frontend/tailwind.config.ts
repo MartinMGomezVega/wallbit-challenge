@@ -28,6 +28,7 @@ export default {
             border: 'var(--color-severity-red-border)',
           },
           yellow: {
+            fill: 'var(--color-severity-yellow-fill)',
             icon: 'var(--color-severity-yellow-icon)',
             text: 'var(--color-severity-yellow-text)',
             bg: 'var(--color-severity-yellow-bg)',

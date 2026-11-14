@@ -363,7 +363,7 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 		}
 	}
 
-	// 10 combinaciones de filtro y orden
+	// Combinaciones de filtro y orden (incluye verificación de defaults cuando Dir es "")
 	cases := []struct {
 		name    string
 		filter  closing.Filter
@@ -371,11 +371,16 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 		wantIDs []string
 	}{
 		{"01_default_severity_desc", closing.Filter{}, closing.Sort{By: "severity", Dir: "desc"}, []string{"cqc_1", "cqc_2", "cqc_3", "cqc_4"}},
+		{"01b_default_sort_empty_dir", closing.Filter{}, closing.Sort{By: "severity"}, []string{"cqc_1", "cqc_2", "cqc_3", "cqc_4"}},
+		{"01c_default_empty_sort", closing.Filter{}, closing.Sort{}, []string{"cqc_1", "cqc_2", "cqc_3", "cqc_4"}},
 		{"02_severity_asc", closing.Filter{}, closing.Sort{By: "severity", Dir: "asc"}, []string{"cqc_4", "cqc_3", "cqc_2", "cqc_1"}},
 		{"03_name_asc", closing.Filter{}, closing.Sort{By: "name", Dir: "asc"}, []string{"cqc_1", "cqc_2", "cqc_3", "cqc_4"}},
+		{"03b_name_empty_dir", closing.Filter{}, closing.Sort{By: "name"}, []string{"cqc_1", "cqc_2", "cqc_3", "cqc_4"}},
 		{"04_name_desc", closing.Filter{}, closing.Sort{By: "name", Dir: "desc"}, []string{"cqc_4", "cqc_3", "cqc_2", "cqc_1"}},
 		{"05_toPay_desc", closing.Filter{}, closing.Sort{By: "toPay", Dir: "desc"}, []string{"cqc_3", "cqc_1", "cqc_2", "cqc_4"}},
+		{"05b_toPay_empty_dir", closing.Filter{}, closing.Sort{By: "toPay"}, []string{"cqc_3", "cqc_1", "cqc_2", "cqc_4"}},
 		{"06_pctKCap_desc", closing.Filter{}, closing.Sort{By: "pctKCap", Dir: "desc"}, []string{"cqc_1", "cqc_2", "cqc_4", "cqc_3"}},
+		{"06b_pctKCap_empty_dir", closing.Filter{}, closing.Sort{By: "pctKCap"}, []string{"cqc_1", "cqc_2", "cqc_4", "cqc_3"}},
 		{"07_filter_severity_red_yellow", closing.Filter{Severities: []signal.Severity{signal.SeverityRed, signal.SeverityYellow}}, closing.Sort{By: "severity", Dir: "desc"}, []string{"cqc_1", "cqc_2"}},
 		{"08_filter_regime_RI", closing.Filter{Regime: client.RegimeRI}, closing.Sort{}, []string{"cqc_3"}},
 		{"09_filter_status_pending_input", closing.Filter{Statuses: []closing.Status{closing.StatusPendingClientInput}}, closing.Sort{}, []string{"cqc_2"}},
@@ -434,6 +439,14 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 	if sum.ByStatus[closing.StatusReadyForReview] != 3 || sum.ByStatus[closing.StatusPendingClientInput] != 1 {
 		t.Fatalf("unexpected Summary.ByStatus: %+v", sum.ByStatus)
 	}
+
+	periods, err := b.ClosingQuery.Periods(ctx)
+	if err != nil {
+		t.Fatalf("Periods failed: %v", err)
+	}
+	if len(periods) == 0 || periods[0] != p.String() {
+		t.Fatalf("unexpected Periods: got %v, want at least %s", periods, p.String())
+	}
 }
 
 // CompareClosingQueries verifica que dos implementaciones de ClosingQuery devuelvan
@@ -486,6 +499,18 @@ func CompareClosingQueries(t *testing.T, memQ, pgQ ports.ClosingQuery, p period.
 				t.Fatalf("Summary mismatch\nmem: %+v\npg:  %+v", memSum, pgSum)
 			}
 		})
+	}
+
+	memPeriods, err := memQ.Periods(ctx)
+	if err != nil {
+		t.Fatalf("mem Periods: %v", err)
+	}
+	pgPeriods, err := pgQ.Periods(ctx)
+	if err != nil {
+		t.Fatalf("pg Periods: %v", err)
+	}
+	if !reflect.DeepEqual(memPeriods, pgPeriods) {
+		t.Fatalf("Periods mismatch\nmem: %v\npg:  %v", memPeriods, pgPeriods)
 	}
 }
 

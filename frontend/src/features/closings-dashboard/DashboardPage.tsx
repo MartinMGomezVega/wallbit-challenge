@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { RowSelectionState } from '@tanstack/react-table';
 import { AlertCircle, RotateCcw } from 'lucide-react';
-import { useDashboardParams, DashboardFilters } from './useDashboardParams';
+import { useDashboardParams, DashboardFilters, filtersToSearchParams } from './useDashboardParams';
 import {
   useClosingsList,
   useClosingsSummary,
@@ -111,15 +111,7 @@ function DashboardContent({
         mode: 'row',
         startId: row.closingId,
         period: filters.period,
-        filterParams: {
-          severity: filters.severity.length ? filters.severity.join(',') : undefined,
-          signal: filters.signal.length ? filters.signal.join(',') : undefined,
-          regime: filters.regime,
-          status: filters.status.length ? filters.status.join(',') : undefined,
-          q: filters.q,
-          sort: filters.sort,
-          dir: filters.dir,
-        },
+        filterParams: filtersToSearchParams(filters),
         label: formatFilterLabel(filters),
       });
     },
@@ -132,15 +124,10 @@ function DashboardContent({
       openQueue({
         mode: 'chip',
         period: filters.period,
-        filterParams: {
-          severity: sev,
-          signal: filters.signal.length ? filters.signal.join(',') : undefined,
-          regime: filters.regime,
-          status: filters.status.length ? filters.status.join(',') : undefined,
-          q: filters.q,
-          sort: filters.sort,
-          dir: filters.dir,
-        },
+        filterParams: filtersToSearchParams({
+          ...filters,
+          severity: [sev],
+        }),
         label: `${
           sev === 'RED' ? 'Rojos' : sev === 'YELLOW' ? 'Amarillos' : 'Verdes'
         } · ${formatPeriodName(filters.period)}`,

@@ -173,7 +173,7 @@ func (uc *ApproveClosing) Execute(ctx context.Context, req ApproveClosingRequest
 			Version:     c.Version,
 			Title:       msg.Title,
 			Body:        msg.Body,
-			Figures:     buildPublishedFigures(c),
+			Figures:     BuildPublishedFigures(c),
 			PublishedAt: now,
 		}
 		if err := c.Publish(pub); err != nil {
@@ -197,8 +197,8 @@ func (uc *ApproveClosing) Execute(ctx context.Context, req ApproveClosingRequest
 	}, nil
 }
 
-// buildPublishedFigures extrae los importes oficiales que el cliente visualiza.
-func buildPublishedFigures(c closing.Closing) closing.PublishedFigures {
+// BuildPublishedFigures extrae los importes oficiales que el cliente visualiza.
+func BuildPublishedFigures(c closing.Closing) closing.PublishedFigures {
 	var figures closing.PublishedFigures
 	if c.Mono != nil {
 		figures.BilledUSD = c.Mono.BilledInPeriodUSD

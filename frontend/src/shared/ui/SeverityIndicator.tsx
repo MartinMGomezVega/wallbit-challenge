@@ -81,7 +81,7 @@ export function SeverityIndicator({
       norm === 'RED'
         ? 'bg-severity-red-icon'
         : norm === 'YELLOW'
-        ? 'bg-severity-yellow-icon'
+        ? 'bg-severity-yellow-fill'
         : 'bg-severity-green-icon';
     return <span className={`h-2.5 w-2.5 rounded-full ${dotColor}`} aria-hidden="true" />;
   };

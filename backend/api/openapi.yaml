@@ -149,6 +149,25 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/periods:
+    get:
+      summary: Lista los períodos con cierres disponibles
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Períodos disponibles ordenados de más reciente a más antiguo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [periods]
+                properties:
+                  periods:
+                    type: array
+                    items:
+                      type: string
+                      example: "2026-10"
   /api/v1/accountant/periods/{period}/run:
     post:
       summary: Ejecuta el cálculo masivo de cierres para un período
