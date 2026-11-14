@@ -22,9 +22,9 @@
   },
   "byStatus": {
     "APPROVED": 0,
-    "NOTIFIED": 0,
+    "NOTIFIED": 2,
     "PENDING_CLIENT_INPUT": 20,
-    "READY_FOR_REVIEW": 280
+    "READY_FOR_REVIEW": 278
   }
 }
 

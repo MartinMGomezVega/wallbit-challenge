@@ -1,5 +1,14 @@
 import { http, HttpResponse } from 'msw';
 import { SignalCatalogItem } from '../features/closings-dashboard/schemas';
+import meProfileFixture from '../test/fixtures/api/me_profile.json';
+import meClosingsActionRequiredFixture from '../test/fixtures/api/me_closings_action_required.json';
+import meClosingsInReviewFixture from '../test/fixtures/api/me_closings_in_review.json';
+import meClosingsReadyMonoFixture from '../test/fixtures/api/me_closings_ready_mono.json';
+import meClosingsReadyRIFixture from '../test/fixtures/api/me_closings_ready_ri.json';
+import meInvoicesFixture from '../test/fixtures/api/me_invoices.json';
+import meInvoicesPostResponseFixture from '../test/fixtures/api/me_invoices_post_response.json';
+import meExternalIncomeResponseFixture from '../test/fixtures/api/me_external_income_response.json';
+import meConfirmResponseFixture from '../test/fixtures/api/me_confirm_response.json';
 
 export interface MockClosingRow {
   closingId: string;
@@ -246,6 +255,8 @@ export const mockClosings: MockClosingRow[] = [
     paidAt: null,
   },
 ];
+
+const mockPaidClosings = new Set<string>();
 
 export const handlers = [
   http.get('/api/v1/health', () =>
@@ -953,5 +964,93 @@ export const handlers = [
         paidOnTimeCount: 38,
       },
     });
+  }),
+
+  // Client Portal Demo (/api/v1/me/**)
+  http.get('/api/v1/me', ({ request }) => {
+    const user = request.headers.get('X-Demo-User') ?? '';
+    if (user.includes('cli_demo_01')) {
+      return HttpResponse.json({
+        id: 'cli_demo_01',
+        name: 'Lucía Fernández',
+        cuitMasked: '27-****1111-0',
+        regime: 'MONOTRIBUTO',
+        category: 'A',
+      });
+    }
+    if (user.includes('cli_demo_09')) {
+      return HttpResponse.json({
+        id: 'cli_demo_09',
+        name: 'Camila Torres',
+        cuitMasked: '27-****9999-6',
+        regime: 'RI',
+      });
+    }
+    if (user.includes('cli_demo_02')) {
+      return HttpResponse.json({
+        id: 'cli_demo_02',
+        name: 'Ignacio Sosa',
+        cuitMasked: '20-****2221-1',
+        regime: 'MONOTRIBUTO',
+        category: 'K',
+      });
+    }
+    if (user.includes('cli_demo_03')) {
+      return HttpResponse.json({
+        id: 'cli_demo_03',
+        name: 'Carla Benítez',
+        cuitMasked: '27-****3332-2',
+        regime: 'MONOTRIBUTO',
+        category: 'E',
+      });
+    }
+    return HttpResponse.json(meProfileFixture);
+  }),
+
+  http.get('/api/v1/me/closings', ({ request }) => {
+    const user = request.headers.get('X-Demo-User') ?? '';
+    const applyPaid = <T extends { closingId: string; paidAt?: string | null }>(items: T[]): T[] =>
+      items.map(c =>
+        mockPaidClosings.has(c.closingId)
+          ? ({ ...c, paidAt: '2026-11-05T09:00:00-03:00' } as T)
+          : c,
+      );
+
+    if (user.includes('cli_demo_01')) {
+      return HttpResponse.json(applyPaid(meClosingsReadyMonoFixture));
+    }
+    if (user.includes('cli_demo_09')) {
+      return HttpResponse.json(applyPaid(meClosingsReadyRIFixture));
+    }
+    if (user.includes('cli_demo_02') || user.includes('cli_demo_03')) {
+      return HttpResponse.json(applyPaid(meClosingsInReviewFixture));
+    }
+    return HttpResponse.json(applyPaid(meClosingsActionRequiredFixture));
+  }),
+
+  http.get('/api/v1/me/invoices', () => {
+    return HttpResponse.json(meInvoicesFixture);
+  }),
+
+  http.post('/api/v1/me/invoices', () => {
+    return HttpResponse.json(meInvoicesPostResponseFixture, { status: 201 });
+  }),
+
+  http.post('/api/v1/me/invoices/import', () => {
+    return HttpResponse.json({ imported: 2, skippedDuplicates: 0 });
+  }),
+
+  http.put('/api/v1/me/periods/:period/external-income', () => {
+    return HttpResponse.json(meExternalIncomeResponseFixture);
+  }),
+
+  http.post('/api/v1/me/periods/:period/confirm', () => {
+    return HttpResponse.json(meConfirmResponseFixture);
+  }),
+
+  http.post('/api/v1/me/closings/:id/paid', ({ params }) => {
+    const id = params.id as string;
+    if (id) mockPaidClosings.add(id);
+    return HttpResponse.json({ closingId: id, paidAt: '2026-11-05T09:00:00-03:00' });
   }),
 ];

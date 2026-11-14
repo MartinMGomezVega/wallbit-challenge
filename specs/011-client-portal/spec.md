@@ -1,7 +1,7 @@
 # 011 — API del cliente
 
 ## Objetivo
-Exponer la API `/api/v1/me/**` que consumiría la app de Wallbit para que el usuario vea qué tiene que hacer (acción requerida) y, una vez aprobado por el contador, cuánto facturó, cuánto paga y hasta cuándo.
+Exponer la API `/api/v1/me/**` que consumiría la app de Wallbit y que consume la vista demo del cliente (017) para que el usuario vea qué tiene que hacer (acción requerida) y, una vez aprobado por el contador, cuánto facturó, cuánto paga y hasta cuándo.
 
 ## Criterios de aceptación
 ### Backend

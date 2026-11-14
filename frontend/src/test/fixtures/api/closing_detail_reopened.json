@@ -55,6 +55,10 @@
         "amount": 12661083875,
         "currency": "ARS"
       },
+      "categoryCapARS": {
+        "amount": 4515165900,
+        "currency": "ARS"
+      },
       "scaleValidFrom": "2026-07-31T21:00:00-03:00"
     },
     "reconciliation": {
@@ -73,7 +77,7 @@
       {
         "id": "apr_000301",
         "version": 1,
-        "resultHash": "9a465b0ecab3b0596b3e5f5339daf019d45a6e9fee904e9dbbda6a2673fe288f",
+        "resultHash": "574119b5c9c79d26d9c3035fc96b4fff1ee68835bb06169b7246c52256e76108",
         "approvedBy": "accountant",
         "approvedAt": "2026-11-05T07:00:00-03:00",
         "note": "Primera aprobación antes de nuevo comprobante",

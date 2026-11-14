@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/client"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/money"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
@@ -72,13 +73,25 @@ type PublishedFigures struct {
 	Total     money.Money           `json:"total"`
 }
 
-// Published contiene la información oficial congelada que el cliente ve una vez notificado el cierre (011 §3).
+// ValidatedBy identifica al profesional matriculado que aprobó el cierre (spec 017).
+type ValidatedBy struct {
+	Name    string `json:"name"`
+	License string `json:"license"`
+}
+
+// Published contiene la información oficial congelada que el cliente ve una vez notificado el cierre (011 §3, 017 §2).
 type Published struct {
-	Version     int              `json:"version"`
-	Title       string           `json:"title"`
-	Body        string           `json:"body"`
-	Figures     PublishedFigures `json:"figures"`
-	PublishedAt time.Time        `json:"publishedAt"`
+	Version            int              `json:"version"`
+	Title              string           `json:"title"`
+	Body               string           `json:"body"`
+	Figures            PublishedFigures `json:"figures"`
+	PublishedAt        time.Time        `json:"publishedAt"`
+	ValidatedBy        *ValidatedBy     `json:"validatedBy,omitempty"`
+	Regime             client.Regime    `json:"regime,omitempty"`
+	Category           *tax.Category    `json:"category,omitempty"`
+	PctOfCategoryCapBp *int64           `json:"pctOfCategoryCapBp,omitempty"`
+	CategoryCapARS     *money.Money     `json:"categoryCapARS,omitempty"`
+	Billed12mARS       *money.Money     `json:"billed12mARS,omitempty"`
 }
 
 // Closing es la entidad raíz que agrupa toda la información de un cierre contable mensual.

@@ -166,6 +166,99 @@ components:
           type: string
           description: Evidencia o justificación de la confirmación por el contador
         updatedAt: { type: string }
+    ValidatedBy:
+      type: object
+      required: [name, license]
+      properties:
+        name:
+          type: string
+        license:
+          type: string
+    PublishedFigureItem:
+      type: object
+      required: [concept, amount, dueDate]
+      properties:
+        concept:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        dueDate:
+          type: string
+          format: date-time
+    PublishedFigures:
+      type: object
+      required: [billedUSD, billedARS, items, total]
+      properties:
+        billedUSD:
+          $ref: '#/components/schemas/Money'
+        billedARS:
+          $ref: '#/components/schemas/Money'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublishedFigureItem'
+        total:
+          $ref: '#/components/schemas/Money'
+    Published:
+      type: object
+      required: [version, title, body, figures, publishedAt]
+      properties:
+        version:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        figures:
+          $ref: '#/components/schemas/PublishedFigures'
+        publishedAt:
+          type: string
+          format: date-time
+        validatedBy:
+          $ref: '#/components/schemas/ValidatedBy'
+        regime:
+          type: string
+          enum: [MONOTRIBUTO, RESPONSABLE_INSCRIPTO]
+        category:
+          type: string
+          nullable: true
+        pctOfCategoryCapBp:
+          type: integer
+          format: int64
+          nullable: true
+        categoryCapARS:
+          $ref: '#/components/schemas/Money'
+        billed12mARS:
+          $ref: '#/components/schemas/Money'
+    ClientClosing:
+      type: object
+      required: [closingId, period, state, updating, input]
+      properties:
+        closingId:
+          type: string
+        period:
+          type: string
+        state:
+          type: string
+          enum: [ACTION_REQUIRED, IN_REVIEW, READY]
+        updating:
+          type: boolean
+        published:
+          $ref: '#/components/schemas/Published'
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        input:
+          type: object
+          required: [answered, confirmed, invoicesCount]
+          properties:
+            answered:
+              type: boolean
+            confirmed:
+              type: boolean
+            invoicesCount:
+              type: integer
 paths:
   /api/v1/health:
     get:
@@ -611,6 +704,12 @@ paths:
       responses:
         '200':
           description: Cierres del cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientClosing'
   /api/v1/me/closings/{id}/paid:
     post:
       summary: Marca un cierre publicado como pagado por el cliente

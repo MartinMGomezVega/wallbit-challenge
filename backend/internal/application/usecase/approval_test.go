@@ -125,6 +125,9 @@ func TestApproveClosing_IndividualSuccess(t *testing.T) {
 			BilledInPeriodUSD: money.New(150000, money.USD),
 			BilledInPeriodARS: money.New(225000000, money.ARS),
 			CurrentCategory:   tax.CatK,
+			Billed12mARS:      money.New(120000000, money.ARS),
+			PctOfCurrentCapBp: 7500,
+			CategoryCapARS:    money.New(160000000, money.ARS),
 			Fee:               money.New(16144460, money.ARS),
 			FeeDueDate:        feeDue,
 		},
@@ -153,6 +156,24 @@ func TestApproveClosing_IndividualSuccess(t *testing.T) {
 	if res.Closing.Published == nil {
 		t.Fatalf("expected Published to be set")
 	}
+	if res.Closing.Published.ValidatedBy == nil || res.Closing.Published.ValidatedBy.Name != "C.P. Mariana Quiroga" {
+		t.Errorf("validatedBy name = %v, want C.P. Mariana Quiroga", res.Closing.Published.ValidatedBy)
+	}
+	if res.Closing.Published.Regime != client.RegimeMonotributo {
+		t.Errorf("published regime = %v, want MONOTRIBUTO", res.Closing.Published.Regime)
+	}
+	if res.Closing.Published.Category == nil || *res.Closing.Published.Category != tax.CatK {
+		t.Errorf("published category = %v, want K", res.Closing.Published.Category)
+	}
+	if res.Closing.Published.Billed12mARS == nil || res.Closing.Published.Billed12mARS.Amount != 120000000 {
+		t.Errorf("published billed12m = %v, want 120000000", res.Closing.Published.Billed12mARS)
+	}
+	if res.Closing.Published.PctOfCategoryCapBp == nil || *res.Closing.Published.PctOfCategoryCapBp != 7500 {
+		t.Errorf("published pct = %v, want 7500", res.Closing.Published.PctOfCategoryCapBp)
+	}
+	if res.Closing.Published.CategoryCapARS == nil || res.Closing.Published.CategoryCapARS.Amount != 160000000 {
+		t.Errorf("published cap = %v, want 160000000", res.Closing.Published.CategoryCapARS)
+	}
 
 	// Verify in-app notification
 	notifs, _ := notifRepo.ByClient(ctx, "cli_01")
@@ -170,6 +191,40 @@ func TestApproveClosing_IndividualSuccess(t *testing.T) {
 	pending, _ := outboxRepo.Pending(ctx, 10)
 	if len(pending) != 0 {
 		t.Errorf("expected outbox to be dispatched, but %d remain pending", len(pending))
+	}
+}
+
+func TestApproveClosing_CustomAccountant(t *testing.T) {
+	ctx := context.Background()
+	apprUC, _, _, _, _, closingsRepo, _, _, _, _, clk := setupApprovalSuite(t)
+	apprUC.AccountantName = "C.P. Lucas Varela"
+	apprUC.AccountantLicense = "Mat. CPCECABA 998877"
+
+	p := period.New(2026, time.October)
+	c := closing.NewClosing(
+		"clo_custom_acc", "cli_01", p, true, "hash_cust", signal.SeverityGreen,
+		nil, "Todo ok",
+		&tax.MonotributoAssessment{
+			CurrentCategory: tax.CatA,
+			Fee:             money.New(100000, money.ARS),
+			FeeDueDate:      clk.Now().AddDate(0, 0, 10),
+		},
+		nil, closing.Reconciliation{}, clk.Now(),
+	)
+	_ = closingsRepo.Save(ctx, c)
+
+	res, err := apprUC.Execute(ctx, usecase.ApproveClosingRequest{
+		ClosingID: "clo_custom_acc",
+		Version:   1,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if res.Closing.Published == nil || res.Closing.Published.ValidatedBy == nil {
+		t.Fatalf("expected Published.ValidatedBy to be set")
+	}
+	if res.Closing.Published.ValidatedBy.Name != "C.P. Lucas Varela" || res.Closing.Published.ValidatedBy.License != "Mat. CPCECABA 998877" {
+		t.Errorf("validatedBy = %+v, want Lucas Varela", res.Closing.Published.ValidatedBy)
 	}
 }
 

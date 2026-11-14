@@ -79,13 +79,7 @@ func SeedSeptemberClosings(
 		}
 
 		msg := notification.BuildClosingMessage(c, cli, clientNote)
-		pub := closing.Published{
-			Version:     c.Version,
-			Title:       msg.Title,
-			Body:        msg.Body,
-			Figures:     BuildPublishedFigures(c),
-			PublishedAt: approvedAt,
-		}
+		pub := BuildPublished(c, cli, msg.Title, msg.Body, approvedAt, "C.P. Mariana Quiroga", "Matrícula de ejemplo")
 
 		_ = c.Approve(approval)
 		_ = c.Publish(pub)
@@ -126,5 +120,39 @@ func SeedSeptemberClosings(
 		}
 	}
 
+	return nil
+}
+
+// SeedOctoberApprovedClosings aprueba y notifica los cierres de octubre 2026 para cli_demo_01 y cli_demo_09
+// reutilizando ApproveClosing (no escribir estados a mano), con el reloj fijado en 2026-11-06 (spec 017 criterio 3).
+func SeedOctoberApprovedClosings(
+	ctx context.Context,
+	apprUC *ApproveClosing,
+	closingsRepo ports.ClosingRepository,
+) error {
+	pOct := period.MustParse("2026-10")
+	clientIDs := []string{"cli_demo_01", "cli_demo_09"}
+
+	for _, cid := range clientIDs {
+		c, found, err := closingsRepo.ByClientPeriod(ctx, cid, pOct)
+		if err != nil {
+			return err
+		}
+		if !found {
+			continue
+		}
+		if c.Status == closing.StatusApproved || c.Status == closing.StatusNotified {
+			continue
+		}
+		_, err = apprUC.Execute(ctx, ApproveClosingRequest{
+			ClosingID:  c.ID,
+			Version:    c.Version,
+			ClientNote: "Cierre de octubre (dato semilla)",
+			Batch:      false,
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

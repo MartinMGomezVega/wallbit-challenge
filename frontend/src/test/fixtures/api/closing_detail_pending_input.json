@@ -5,7 +5,7 @@
     "period": "2026-10",
     "status": "PENDING_CLIENT_INPUT",
     "version": 1,
-    "resultHash": "8de118d53fe8bbbc45df29df7fd60ba0eb7dd3c7d59936c0f13d975c7665b0e2",
+    "resultHash": "261a18cd6158277e09767820849f716c477a1ddadc389e1301d609792a65a4f2",
     "severity": "RED",
     "signals": [
       {
@@ -62,6 +62,10 @@
       },
       "kCapARS": {
         "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "categoryCapARS": {
+        "amount": 1759518300,
         "currency": "ARS"
       },
       "scaleValidFrom": "2026-07-31T21:00:00-03:00"

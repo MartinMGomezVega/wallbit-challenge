@@ -41,13 +41,23 @@ async function readJson(res: Response): Promise<unknown> {
   }
 }
 
+export interface ApiFetchOptions {
+  as?: string;
+}
+
 /**
- * fetch a la API: agrega X-Demo-User fijo (contador), valida la respuesta con zod
- * y convierte errores al formato estándar.
+ * fetch a la API: agrega X-Demo-User (contador por defecto, o client:<id> si viene `as`),
+ * valida la respuesta con zod y convierte errores al formato estándar.
  */
-export async function apiFetch<T>(path: string, schema: ZodType<T, ZodTypeDef, unknown>, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  schema: ZodType<T, ZodTypeDef, unknown>,
+  init: RequestInit = {},
+  options?: ApiFetchOptions,
+): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set('X-Demo-User', DEMO_ACCOUNTANT_USER);
+  const user = options?.as ? `client:${options.as}` : DEMO_ACCOUNTANT_USER;
+  headers.set('X-Demo-User', user);
   if (init.body && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

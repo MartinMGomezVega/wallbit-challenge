@@ -9,10 +9,13 @@ import (
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/client"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/closing"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/money"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/notification"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 )
 
 // ApproveClosingRequest contiene los parámetros para aprobar individualmente un cierre.
@@ -69,15 +72,17 @@ func (uc *DispatchOutbox) Execute(ctx context.Context, limit int) (int, error) {
 
 // ApproveClosing gestiona la aprobación individual de un cierre y el envío de notificaciones.
 type ApproveClosing struct {
-	Closings       ports.ClosingRepository
-	Clients        ports.ClientRepository
-	Notifications  ports.NotificationRepository
-	Outbox         ports.OutboxRepository
-	Sender         ports.NotificationSender
-	Clock          ports.Clock
-	IDGen          ports.IDGenerator
-	DispatchOutbox *DispatchOutbox
-	Tx             ports.TxManager
+	Closings          ports.ClosingRepository
+	Clients           ports.ClientRepository
+	Notifications     ports.NotificationRepository
+	Outbox            ports.OutboxRepository
+	Sender            ports.NotificationSender
+	Clock             ports.Clock
+	IDGen             ports.IDGenerator
+	DispatchOutbox    *DispatchOutbox
+	Tx                ports.TxManager
+	AccountantName    string
+	AccountantLicense string
 }
 
 // Execute ejecuta la aprobación individual de un cierre según los criterios 1 y 2 de la spec 010.
@@ -143,39 +148,37 @@ func (uc *ApproveClosing) Execute(ctx context.Context, req ApproveClosingRequest
 		msg := notification.BuildClosingMessage(c, cli, req.ClientNote)
 
 		// Guardar notificación in-app
-		inApp := notification.Notification{
-			ID:        uc.IDGen.New("notif"),
-			ClientID:  c.ClientID,
-			ClosingID: c.ID,
-			Kind:      kind,
-			Title:     msg.Title,
-			Body:      msg.Body,
-			Key:       string(kind),
-			CreatedAt: now,
-		}
-		if err := uc.Notifications.Save(ctx, inApp); err != nil {
-			return err
-		}
-
-		// Encolar mensajes salientes (email + push)
-		monthLabel := notification.FormatPeriodLabel(c.Period)
-		outboundMsgs := notification.OutboundFor(c.ClientID, c.ID, kind, monthLabel, now)
-		for _, om := range outboundMsgs {
-			om.ID = uc.IDGen.New("outbox")
-			om.CreatedAt = now
-			if err := uc.Outbox.Enqueue(ctx, om); err != nil {
+		if uc.Notifications != nil {
+			inApp := notification.Notification{
+				ID:        uc.IDGen.New("notif"),
+				ClientID:  c.ClientID,
+				ClosingID: c.ID,
+				Kind:      kind,
+				Title:     msg.Title,
+				Body:      msg.Body,
+				Key:       string(kind),
+				CreatedAt: now,
+			}
+			if err := uc.Notifications.Save(ctx, inApp); err != nil {
 				return err
 			}
 		}
 
-		// Congelar Published y marcar cierre como NOTIFIED
-		pub := closing.Published{
-			Version:     c.Version,
-			Title:       msg.Title,
-			Body:        msg.Body,
-			Figures:     BuildPublishedFigures(c),
-			PublishedAt: now,
+		// Encolar mensajes salientes (email + push)
+		if uc.Outbox != nil {
+			monthLabel := notification.FormatPeriodLabel(c.Period)
+			outboundMsgs := notification.OutboundFor(c.ClientID, c.ID, kind, monthLabel, now)
+			for _, om := range outboundMsgs {
+				om.ID = uc.IDGen.New("outbox")
+				om.CreatedAt = now
+				if err := uc.Outbox.Enqueue(ctx, om); err != nil {
+					return err
+				}
+			}
 		}
+
+		// Congelar Published y marcar cierre como NOTIFIED
+		pub := BuildPublished(c, cli, msg.Title, msg.Body, now, uc.AccountantName, uc.AccountantLicense)
 		if err := c.Publish(pub); err != nil {
 			return err
 		}
@@ -240,6 +243,51 @@ func BuildPublishedFigures(c closing.Closing) closing.PublishedFigures {
 		}
 	}
 	return figures
+}
+
+// BuildPublished construye el snapshot oficial completo que el cliente ve una vez notificado el cierre (spec 017).
+func BuildPublished(c closing.Closing, cl client.Client, title, body string, now time.Time, accName, accLicense string) closing.Published {
+	if accName == "" {
+		accName = "C.P. Mariana Quiroga"
+	}
+	if accLicense == "" {
+		accLicense = "Matrícula de ejemplo"
+	}
+
+	var category *tax.Category
+	var pctOfCap *int64
+	var categoryCapARS *money.Money
+	var billed12mARS *money.Money
+
+	if c.Mono != nil {
+		cat := c.Mono.CurrentCategory
+		category = &cat
+		pct := c.Mono.PctOfCurrentCapBp
+		pctOfCap = &pct
+		if c.Mono.CategoryCapARS.IsPositive() {
+			capARS := c.Mono.CategoryCapARS
+			categoryCapARS = &capARS
+		}
+		b12 := c.Mono.Billed12mARS
+		billed12mARS = &b12
+	} else if c.RI != nil {
+		bPeriod := c.RI.BilledInPeriodARS
+		billed12mARS = &bPeriod
+	}
+
+	return closing.Published{
+		Version:            c.Version,
+		Title:              title,
+		Body:               body,
+		Figures:            BuildPublishedFigures(c),
+		PublishedAt:        now,
+		ValidatedBy:        &closing.ValidatedBy{Name: accName, License: accLicense},
+		Regime:             cl.Regime,
+		Category:           category,
+		PctOfCategoryCapBp: pctOfCap,
+		CategoryCapARS:     categoryCapARS,
+		Billed12mARS:       billed12mARS,
+	}
 }
 
 // ApproveBatchItemRequest representa un ítem individual en la solicitud de aprobación por lote.

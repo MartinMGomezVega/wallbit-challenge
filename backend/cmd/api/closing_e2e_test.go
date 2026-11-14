@@ -114,13 +114,30 @@ func TestClosingE2E_SeedAndPerformance(t *testing.T) {
 		t.Errorf("performance: tardó %v, esperado < 2s", duration)
 	}
 
-	// Criterio 17: Para cada cli_demo_XX la señal principal y el estado coinciden con la tabla de 002/plan.md
+	// Sembrar aprobaciones de octubre para clientes demo cli_demo_01 y cli_demo_09 (spec 017 criterio 3)
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedApproveUC := &usecase.ApproveClosing{
+		Closings:          closingRepo,
+		Clients:           clientRepo,
+		Notifications:     memory.NewNotificationRepository(),
+		Outbox:            memory.NewOutboxRepository(),
+		Sender:            notifylog.NewSender(slog.Default()),
+		Clock:             octSeedClk,
+		IDGen:             idGen,
+		AccountantName:    "C.P. Mariana Quiroga",
+		AccountantLicense: "Matrícula de ejemplo",
+	}
+	if err := usecase.SeedOctoberApprovedClosings(ctx, octSeedApproveUC, closingRepo); err != nil {
+		t.Fatalf("error sembrando aprobaciones de octubre: %v", err)
+	}
+
+	// Criterio 17: Para cada cli_demo_XX la señal principal y el estado coinciden con la tabla de 002/plan.md y spec 017
 	expectedDemo := map[string]struct {
 		Severity      signal.Severity
 		Status        closing.Status
 		PrimarySignal *signal.Code
 	}{
-		"cli_demo_01": {Severity: signal.SeverityGreen, Status: closing.StatusReadyForReview, PrimarySignal: nil},
+		"cli_demo_01": {Severity: signal.SeverityGreen, Status: closing.StatusNotified, PrimarySignal: nil},
 		"cli_demo_02": {Severity: signal.SeverityRed, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeMonoExclusionKCapExceeded)},
 		"cli_demo_03": {Severity: signal.SeverityRed, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeMissingInvoices)},
 		"cli_demo_04": {Severity: signal.SeverityYellow, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeMonoCategoryChangeRequired)},
@@ -128,7 +145,7 @@ func TestClosingE2E_SeedAndPerformance(t *testing.T) {
 		"cli_demo_06": {Severity: signal.SeverityYellow, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeAtypicalIncome)},
 		"cli_demo_07": {Severity: signal.SeverityYellow, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeUnclassifiedMovements)},
 		"cli_demo_08": {Severity: signal.SeverityYellow, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeMonoNearKCap)},
-		"cli_demo_09": {Severity: signal.SeverityGreen, Status: closing.StatusReadyForReview, PrimarySignal: nil},
+		"cli_demo_09": {Severity: signal.SeverityGreen, Status: closing.StatusNotified, PrimarySignal: nil},
 		"cli_demo_10": {Severity: signal.SeverityYellow, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeInvoiceWithoutPayment)},
 		"cli_demo_11": {Severity: signal.SeverityRed, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodePostExclusionCInvoices)},
 		"cli_demo_12": {Severity: signal.SeverityRed, Status: closing.StatusReadyForReview, PrimarySignal: codePtr(signal.CodeDepositsExceedKCap)},
@@ -308,6 +325,22 @@ func setupTestApp(t *testing.T) (http.Handler, *memory.ClosingRepository, *memor
 	}
 	if _, err := runClosingUC.Execute(ctx, pOct); err != nil {
 		t.Fatalf("error ejecutando cierre de octubre: %v", err)
+	}
+
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedApproveUC := &usecase.ApproveClosing{
+		Closings:          closingRepo,
+		Clients:           clientRepo,
+		Notifications:     notifRepo,
+		Outbox:            outboxRepo,
+		Sender:            notifSender,
+		Clock:             octSeedClk,
+		IDGen:             idGen,
+		AccountantName:    "C.P. Mariana Quiroga",
+		AccountantLicense: "Matrícula de ejemplo",
+	}
+	if err := usecase.SeedOctoberApprovedClosings(ctx, octSeedApproveUC, closingRepo); err != nil {
+		t.Fatalf("error sembrando aprobaciones de octubre: %v", err)
 	}
 
 	notifier := &usecase.RecalcOnChange{
@@ -603,5 +636,222 @@ func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
 	}
 	if cApproved.Published == nil {
 		t.Errorf("cierre notificado debe contener snapshot publicado (published != nil)")
+	}
+}
+
+// TestPaulaCircuitE2E_ClientDemo cubre el criterio 13 de la spec 017:
+// 1) Cliente (Paula): carga comprobante, declara no ingresos externos, confirma -> "En revisión"
+// 2) Contador: busca a Paula (verde, Para revisar) -> Aprueba
+// 3) Cliente (Paula): ve tarjeta validada con el badge del contador y registra el pago
+func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
+	ctx := context.Background()
+	handler, closingRepo, _ := setupTestApp(t)
+
+	pOct := period.MustParse("2026-10")
+
+	// Paso 1: Cliente (Paula) verifica que su cierre inicial está en ACTION_REQUIRED
+	reqClosingsInit := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsInit.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recClosingsInit := httptest.NewRecorder()
+	handler.ServeHTTP(recClosingsInit, reqClosingsInit)
+
+	if recClosingsInit.Code != http.StatusOK {
+		t.Fatalf("GET /me/closings inicial devolvió %d: %s", recClosingsInit.Code, recClosingsInit.Body.String())
+	}
+	var closingsInit []struct {
+		ClosingID string `json:"closingId"`
+		Period    string `json:"period"`
+		State     string `json:"state"`
+	}
+	_ = json.Unmarshal(recClosingsInit.Body.Bytes(), &closingsInit)
+	var paulaOctInitState string
+	var paulaClosingID string
+	for _, c := range closingsInit {
+		if c.Period == "2026-10" {
+			paulaOctInitState = c.State
+			paulaClosingID = c.ClosingID
+			break
+		}
+	}
+	if paulaOctInitState != "ACTION_REQUIRED" {
+		t.Fatalf("estado inicial de Paula en /me/closings = %s, esperado ACTION_REQUIRED", paulaOctInitState)
+	}
+
+	// 1a. Paula carga un comprobante con "Alta de comprobante" (POST /me/invoices)
+	invBody, _ := json.Marshal(map[string]any{
+		"type":         "E",
+		"pointOfSale":  1,
+		"number":       1,
+		"issueDate":    "2026-10-12",
+		"currency":     "USD",
+		"netAmount":    map[string]any{"amount": "850.00", "currency": "USD"},
+		"vatAmount":    map[string]any{"amount": "0.00", "currency": "USD"},
+		"totalAmount":  map[string]any{"amount": "850.00", "currency": "USD"},
+		"fxRate":       "1482.15",
+		"receiverName": "Brightloop GmbH",
+		"receiverDoc":  "DE329182391",
+	})
+	reqInv := httptest.NewRequest("POST", "/api/v1/me/invoices", bytes.NewReader(invBody))
+	reqInv.Header.Set("Content-Type", "application/json")
+	reqInv.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recInv := httptest.NewRecorder()
+	handler.ServeHTTP(recInv, reqInv)
+
+	if recInv.Code != http.StatusCreated {
+		t.Fatalf("POST /me/invoices devolvió %d: %s", recInv.Code, recInv.Body.String())
+	}
+
+	// 1b. Paula responde "No" a cobros fuera de Wallbit (PUT /me/periods/2026-10/external-income)
+	extBody, _ := json.Marshal(map[string]any{
+		"items": []any{},
+		"none":  true,
+	})
+	reqExt := httptest.NewRequest("PUT", "/api/v1/me/periods/2026-10/external-income", bytes.NewReader(extBody))
+	reqExt.Header.Set("Content-Type", "application/json")
+	reqExt.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recExt := httptest.NewRecorder()
+	handler.ServeHTTP(recExt, reqExt)
+
+	if recExt.Code != http.StatusOK {
+		t.Fatalf("PUT /me/periods/2026-10/external-income devolvió %d: %s", recExt.Code, recExt.Body.String())
+	}
+
+	// 1c. Paula confirma la carga con "Listo, ya cargué todo" (POST /me/periods/2026-10/confirm)
+	reqConf := httptest.NewRequest("POST", "/api/v1/me/periods/2026-10/confirm", nil)
+	reqConf.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recConf := httptest.NewRecorder()
+	handler.ServeHTTP(recConf, reqConf)
+
+	if recConf.Code != http.StatusOK {
+		t.Fatalf("POST /me/periods/2026-10/confirm devolvió %d: %s", recConf.Code, recConf.Body.String())
+	}
+
+	// Paula verifica que ahora su estado es "IN_REVIEW"
+	reqClosingsReview := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsReview.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recClosingsReview := httptest.NewRecorder()
+	handler.ServeHTTP(recClosingsReview, reqClosingsReview)
+
+	var closingsReview []struct {
+		Period string `json:"period"`
+		State  string `json:"state"`
+	}
+	_ = json.Unmarshal(recClosingsReview.Body.Bytes(), &closingsReview)
+	for _, c := range closingsReview {
+		if c.Period == "2026-10" && c.State != "IN_REVIEW" {
+			t.Fatalf("estado tras confirmar = %s, esperado IN_REVIEW", c.State)
+		}
+	}
+
+	// Paso 2: Contador busca a Paula en el tablero: verde y Para revisar
+	cAfterClientInput, found, err := closingRepo.ByClientPeriod(ctx, "cli_demo_15", pOct)
+	if err != nil || !found {
+		t.Fatalf("cierre no encontrado en repo: %v", err)
+	}
+	if cAfterClientInput.Severity != signal.SeverityGreen {
+		t.Errorf("severidad esperada GREEN, obtenida %v", cAfterClientInput.Severity)
+	}
+	if cAfterClientInput.Status != closing.StatusReadyForReview {
+		t.Errorf("estado esperado READY_FOR_REVIEW, obtenido %v", cAfterClientInput.Status)
+	}
+
+	// Contador aprueba el cierre de Paula
+	approveBody := []byte(fmt.Sprintf(`{"version": %d, "clientNote": "Revisado y aprobado ok"}`, cAfterClientInput.Version))
+	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/accountant/closings/%s/approve", paulaClosingID), bytes.NewReader(approveBody))
+	reqApprove.Header.Set("Content-Type", "application/json")
+	reqApprove.Header.Set("X-Demo-User", "accountant")
+	recApprove := httptest.NewRecorder()
+	handler.ServeHTTP(recApprove, reqApprove)
+
+	if recApprove.Code != http.StatusOK {
+		t.Fatalf("POST /accountant/closings/{id}/approve devolvió %d: %s", recApprove.Code, recApprove.Body.String())
+	}
+
+	// Paso 3: Cliente (Paula) consulta su cierre: estado READY con tarjeta validada
+	reqClosingsReady := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsReady.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recClosingsReady := httptest.NewRecorder()
+	handler.ServeHTTP(recClosingsReady, reqClosingsReady)
+
+	if recClosingsReady.Code != http.StatusOK {
+		t.Fatalf("GET /me/closings tras aprobación devolvió %d: %s", recClosingsReady.Code, recClosingsReady.Body.String())
+	}
+
+	var closingsReady []struct {
+		ClosingID string     `json:"closingId"`
+		Period    string     `json:"period"`
+		State     string     `json:"state"`
+		PaidAt    *time.Time `json:"paidAt"`
+		Published *struct {
+			ValidatedBy struct {
+				Name    string `json:"name"`
+				License string `json:"license"`
+			} `json:"validatedBy"`
+			Regime             string `json:"regime"`
+			Category           string `json:"category"`
+			PctOfCategoryCapBp *int64 `json:"pctOfCategoryCapBp"`
+		} `json:"published"`
+	}
+	if err := json.Unmarshal(recClosingsReady.Body.Bytes(), &closingsReady); err != nil {
+		t.Fatalf("unmarshal closingsReady: %v", err)
+	}
+
+	var paulaReadyClosing struct {
+		ClosingID string     `json:"closingId"`
+		Period    string     `json:"period"`
+		State     string     `json:"state"`
+		PaidAt    *time.Time `json:"paidAt"`
+		Published *struct {
+			ValidatedBy struct {
+				Name    string `json:"name"`
+				License string `json:"license"`
+			} `json:"validatedBy"`
+			Regime             string `json:"regime"`
+			Category           string `json:"category"`
+			PctOfCategoryCapBp *int64 `json:"pctOfCategoryCapBp"`
+		} `json:"published"`
+	}
+	for _, c := range closingsReady {
+		if c.Period == "2026-10" {
+			paulaReadyClosing = c
+			break
+		}
+	}
+
+	if paulaReadyClosing.State != "READY" {
+		t.Fatalf("estado esperado READY, obtenido %s", paulaReadyClosing.State)
+	}
+	if paulaReadyClosing.Published == nil {
+		t.Fatal("published es nil, esperado snapshot publicado")
+	}
+	if paulaReadyClosing.Published.ValidatedBy.Name != "C.P. Mariana Quiroga" || paulaReadyClosing.Published.ValidatedBy.License != "Matrícula de ejemplo" {
+		t.Errorf("validatedBy mismatch: %+v", paulaReadyClosing.Published.ValidatedBy)
+	}
+	if paulaReadyClosing.Published.Regime != "MONOTRIBUTO" {
+		t.Errorf("regime mismatch: %s", paulaReadyClosing.Published.Regime)
+	}
+	if paulaReadyClosing.Published.PctOfCategoryCapBp == nil {
+		t.Errorf("pctOfCategoryCapBp debería estar poblado")
+	}
+
+	// 3b. Paula marca su cierre como pagado (POST /me/closings/{id}/paid)
+	reqPaid := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/me/closings/%s/paid", paulaClosingID), nil)
+	reqPaid.Header.Set("X-Demo-User", "client:cli_demo_15")
+	recPaid := httptest.NewRecorder()
+	handler.ServeHTTP(recPaid, reqPaid)
+
+	if recPaid.Code != http.StatusOK {
+		t.Fatalf("POST /me/closings/{id}/paid devolvió %d: %s", recPaid.Code, recPaid.Body.String())
+	}
+
+	var paidResp struct {
+		ClosingID string     `json:"closingId"`
+		PaidAt    *time.Time `json:"paidAt"`
+	}
+	if err := json.Unmarshal(recPaid.Body.Bytes(), &paidResp); err != nil {
+		t.Fatalf("unmarshal paid response: %v", err)
+	}
+	if paidResp.PaidAt == nil {
+		t.Errorf("paidAt es nil tras marcar como pagado")
 	}
 }

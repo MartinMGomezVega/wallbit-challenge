@@ -38,6 +38,8 @@ type Deps struct {
 	NotificationRepo          ports.NotificationRepository
 	OutboxRepo                ports.OutboxRepository
 	NotificationSender        ports.NotificationSender
+	AccountantDisplayName     string
+	AccountantLicense         string
 	// RealNow es el reloj real para medir duraciones en el log. Default: Clock.Now.
 	RealNow func() time.Time
 }
@@ -163,15 +165,17 @@ func newRouter(deps Deps) *router {
 
 		if deps.NotificationRepo != nil && deps.OutboxRepo != nil && deps.IDGen != nil && deps.Clock != nil {
 			approveUC = &usecase.ApproveClosing{
-				Closings:       deps.ClosingRepo,
-				Clients:        deps.ClientRepo,
-				Notifications:  deps.NotificationRepo,
-				Outbox:         deps.OutboxRepo,
-				Sender:         deps.NotificationSender,
-				Clock:          deps.Clock,
-				IDGen:          deps.IDGen,
-				DispatchOutbox: dispatchOutbox,
-				Tx:             deps.TxManager,
+				Closings:          deps.ClosingRepo,
+				Clients:           deps.ClientRepo,
+				Notifications:     deps.NotificationRepo,
+				Outbox:            deps.OutboxRepo,
+				Sender:            deps.NotificationSender,
+				Clock:             deps.Clock,
+				IDGen:             deps.IDGen,
+				DispatchOutbox:    dispatchOutbox,
+				Tx:                deps.TxManager,
+				AccountantName:    deps.AccountantDisplayName,
+				AccountantLicense: deps.AccountantLicense,
 			}
 
 			approveBatchUC = &usecase.ApproveBatch{

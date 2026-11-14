@@ -3,9 +3,9 @@
     "id": "clo_000286",
     "clientId": "cli_demo_01",
     "period": "2026-10",
-    "status": "READY_FOR_REVIEW",
+    "status": "NOTIFIED",
     "version": 1,
-    "resultHash": "d10e313c089dd4dcbf163382306ce5ba5e8293e2152cf3d3274228ffd0c0808b",
+    "resultHash": "8511daf740aad095968ef6cea3c878ced3c5565db26c71d0173f726e2df953b5",
     "severity": "GREEN",
     "signals": [],
     "description": "Facturó US$ 500,00 · cuota $ 49.527,18 · todo conciliado.",
@@ -44,6 +44,10 @@
         "amount": 12661083875,
         "currency": "ARS"
       },
+      "categoryCapARS": {
+        "amount": 1200941045,
+        "currency": "ARS"
+      },
       "scaleValidFrom": "2026-07-31T21:00:00-03:00"
     },
     "reconciliation": {
@@ -58,7 +62,63 @@
       "unmatchedInvoiceIds": []
     },
     "computedAt": "2026-11-05T09:00:00-03:00",
-    "approvals": []
+    "approvals": [
+      {
+        "id": "appr_000001",
+        "version": 1,
+        "resultHash": "8511daf740aad095968ef6cea3c878ced3c5565db26c71d0173f726e2df953b5",
+        "approvedBy": "accountant",
+        "approvedAt": "2026-11-06T10:00:00-03:00",
+        "note": "Cierre de octubre (dato semilla)",
+        "batch": false
+      }
+    ],
+    "firstPublishedAt": "2026-11-06T10:00:00-03:00",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de octubre 2026 está listo",
+      "body": "Facturaste US$ 500,00 ($ 743.575,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/11/2026. Nota de tu contador: Cierre de octubre (dato semilla)",
+      "figures": {
+        "billedUSD": {
+          "amount": 50000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 74357500,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "Cuota Monotributo",
+            "amount": {
+              "amount": 4952718,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-11-20T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 4952718,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-11-06T10:00:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "MONOTRIBUTO",
+      "category": "A",
+      "pctOfCategoryCapBp": 7119,
+      "categoryCapARS": {
+        "amount": 1200941045,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 855053000,
+        "currency": "ARS"
+      }
+    }
   },
   "client": {
     "id": "cli_demo_01",
@@ -251,7 +311,7 @@
   },
   "draftMessage": {
     "title": "Tu cierre de octubre 2026 está listo",
-    "body": "Facturaste US$ 500,00 ($ 743.575,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/11/2026."
+    "body": "Facturaste US$ 500,00 ($ 743.575,00). Cuota de Monotributo categoría A: $ 49.527,18, vence el 20/11/2026. Nota de tu contador: Cierre de octubre (dato semilla)"
   }
 }
 

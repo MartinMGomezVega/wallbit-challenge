@@ -171,6 +171,25 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("error ejecutando cierre de octubre: %w", err)
 	}
+
+	// Sembrar aprobaciones de octubre para clientes demo cli_demo_01 y cli_demo_09 (spec 017 criterio 3)
+	octSeedClk := clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location()))
+	octSeedApproveUC := &usecase.ApproveClosing{
+		Closings:          closingRepo,
+		Clients:           clientRepo,
+		Notifications:     notifRepo,
+		Outbox:            outboxRepo,
+		Sender:            notifSender,
+		Clock:             octSeedClk,
+		IDGen:             idGen,
+		DispatchOutbox:    dispatchOutbox,
+		Tx:                txManager,
+		AccountantName:    cfg.AccountantDisplayName,
+		AccountantLicense: cfg.AccountantLicense,
+	}
+	if err := usecase.SeedOctoberApprovedClosings(context.Background(), octSeedApproveUC, closingRepo); err != nil {
+		return fmt.Errorf("error aprobando clientes demo de octubre: %w", err)
+	}
 	if cfg.Storage == "postgres" && r.pool != nil {
 		_ = postgres.InitIDGen(context.Background(), r.pool, idGen)
 	}
@@ -215,6 +234,8 @@ func run(log *slog.Logger) error {
 		NotificationRepo:          notifRepo,
 		OutboxRepo:                outboxRepo,
 		NotificationSender:        notifSender,
+		AccountantDisplayName:     cfg.AccountantDisplayName,
+		AccountantLicense:         cfg.AccountantLicense,
 		RealNow:                   clock.Real{}.Now,
 	})
 

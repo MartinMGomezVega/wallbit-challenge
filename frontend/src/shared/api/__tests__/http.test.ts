@@ -22,6 +22,18 @@ describe('apiFetch', () => {
     expect(res).toEqual({ status: 'ok', count: 42 });
   });
 
+  it('usa client:<id> cuando se pasa la opción as', async () => {
+    server.use(
+      http.get('/api/v1/test-client-as', ({ request }) => {
+        expect(request.headers.get('X-Demo-User')).toBe('client:cli_demo_15');
+        return HttpResponse.json({ status: 'ok', count: 10 });
+      }),
+    );
+
+    const res = await apiFetch('/api/v1/test-client-as', schema, {}, { as: 'cli_demo_15' });
+    expect(res).toEqual({ status: 'ok', count: 10 });
+  });
+
   it('agrega Content-Type application/json automáticamente si hay body string sin header', async () => {
     server.use(
       http.post('/api/v1/test-body', async ({ request }) => {

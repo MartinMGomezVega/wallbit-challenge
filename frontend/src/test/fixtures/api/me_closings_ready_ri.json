@@ -1,0 +1,117 @@
+[
+  {
+    "closingId": "clo_000294",
+    "period": "2026-10",
+    "state": "READY",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de octubre 2026 está listo",
+      "body": "Facturaste US$ 3.500,00 ($ 5.193.300,00). No tenés IVA a pagar; te queda un saldo a favor de $ 1.040.000,00. Aportes de autónomos: $ 55.000,00 (vence 11/11/2026). Total: $ 55.000,00. Nota de tu contador: Cierre de octubre (dato semilla)",
+      "figures": {
+        "billedUSD": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 519330000,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "IVA",
+            "amount": {
+              "amount": 0,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-11-25T00:00:00-03:00"
+          },
+          {
+            "concept": "Autónomos",
+            "amount": {
+              "amount": 5500000,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-11-11T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 5500000,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-11-06T10:00:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "RI",
+      "billed12mARS": {
+        "amount": 519330000,
+        "currency": "ARS"
+      }
+    },
+    "input": {
+      "answered": true,
+      "confirmed": true,
+      "invoicesCount": 1
+    }
+  },
+  {
+    "closingId": "clo_000594",
+    "period": "2026-09",
+    "state": "ACTION_REQUIRED",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de septiembre 2026 está listo",
+      "body": "Facturaste US$ 3.500,00 ($ 5.181.050,00). No tenés IVA a pagar; te queda un saldo a favor de $ 200.000,00. Aportes de autónomos: $ 55.000,00 (vence 09/10/2026). Total: $ 55.000,00.",
+      "figures": {
+        "billedUSD": {
+          "amount": 350000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 518105000,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "IVA",
+            "amount": {
+              "amount": 0,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-10-22T00:00:00-03:00"
+          },
+          {
+            "concept": "Autónomos",
+            "amount": {
+              "amount": 5500000,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-10-09T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 5500000,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-10-08T13:11:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "RI",
+      "billed12mARS": {
+        "amount": 518105000,
+        "currency": "ARS"
+      }
+    },
+    "input": {
+      "answered": false,
+      "confirmed": false,
+      "invoicesCount": 1
+    }
+  }
+]
+

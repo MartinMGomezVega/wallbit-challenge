@@ -126,7 +126,7 @@ Vive dentro de la app de Wallbit. Así la pensé:
 3. **Espera:** "Tu contador está revisando tu cierre".
 4. **Con la firma:** "Facturaste US$ X. Pagás $ Y antes del 20/11", con "Ya pagué" y un recordatorio antes del vencimiento.
 
-Email y push nunca llevan montos ni CUIT, y nada impositivo sale sin la firma del contador. En el prototipo, esta experiencia es la API `/api/v1/me/**` (se puede probar desde Swagger), y el contador ve en el modal el aviso exacto que recibe el cliente. A futuro, la factura se emite desde Wallbit y el paso 2 desaparece.
+Email y push nunca llevan montos ni CUIT, y nada impositivo sale sin la firma del contador. En el prototipo, esta experiencia es la API `/api/v1/me/**` (se puede probar desde Swagger), y el contador ve en el modal el aviso exacto que recibe el cliente. A futuro, la factura se emite desde Wallbit y el paso 2 desaparece. Para la demo, el switch **Cliente (demo)** muestra esta experiencia con 5 clientes de ejemplo.
 
 ### Monotributo y Responsable Inscripto
 Incluí RI porque **es a donde va el freelancer que crece**: si factura más que el tope de la categoría K, queda excluido del Monotributo desde ese día. La herramienta calcula el acumulado de 12 meses día por día y detecta **la fecha exacta** en que se cruzó el tope. Esa fecha importa: desde ahí debería haber facturado como RI. El contador confirma el pase y la herramienta empieza a calcular IVA, autónomos y anticipos.
@@ -261,21 +261,21 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 
 | Cliente | Situación |
 |---|---|
-| Lucía Fernández | 🟢 Todo ok (Monotributo D) |
-| Ignacio Sosa | 🔴 Superó el tope K el 14/10 → pase a RI |
-| Carla Benítez | 🔴 Cobros sin factura |
+| Lucía Fernández (demo) | 🟢 Octubre aprobado y validado (Monotributo A) |
+| Ignacio Sosa (demo) | 🔴 Superó el tope K el 14/10 → pase a RI |
+| Carla Benítez (demo) | 🔴 Cobros sin factura |
 | Diego Romero | 🟡 Tiene que recategorizar (C → E) |
 | Valentina Ruiz | 🟡 Cerca del tope de su categoría |
 | Tomás Álvarez | 🟡 Cobro fuera de lo habitual |
 | Sofía Medina | 🟡 Movimiento sin clasificar |
 | Joaquín Herrera | 🟡 Cerca del tope K |
-| Camila Torres | 🟢 RI exportadora con saldo a favor de IVA |
+| Camila Torres (demo) | 🟢 Octubre aprobado y validado (RI exportadora con saldo a favor de IVA) |
 | Federico Díaz | 🟡 RI con factura sin cobro + IVA a pagar |
 | Agustina Castro | 🔴 Facturas C después de pasar a RI |
 | Nicolás Peralta | 🔴 Depósitos por encima del tope K |
 | Julieta Molina | 🟡 Declaró cobros fuera de Wallbit |
 | Bruno Acosta | 🟡 Podría bajar de categoría |
-| Paula Rojas | Esperando sus facturas: en el modal → Facturas → Importar, con el CSV de ejemplo, y después 'Confirmar en nombre del cliente'. |
+| Paula Rojas (demo) | Esperando sus facturas: check-in en la vista del cliente o en el modal → Facturas → Importar. |
 
 Todos los nombres, CUITs y empresas son inventados.
 

@@ -16,7 +16,8 @@ func TestDefaults(t *testing.T) {
 		t.Fatal(err)
 	}
 	if c.Port != "8080" || c.SeedClients != 300 || c.Seed != 42 || c.ClosingWorkers != runtime.NumCPU() ||
-		c.ARCAClient != "mock" || c.FXClient != "mock" || c.MockLatency != 0 || c.CORSOrigin != "http://localhost:5173" {
+		c.ARCAClient != "mock" || c.FXClient != "mock" || c.MockLatency != 0 || c.CORSOrigin != "http://localhost:5173" ||
+		c.AccountantDisplayName != "C.P. Mariana Quiroga" || c.AccountantLicense != "Matrícula de ejemplo" {
 		t.Fatalf("defaults inesperados: %+v", c)
 	}
 	want, _ := time.Parse(time.RFC3339, DefaultAppNow)
@@ -29,12 +30,14 @@ func TestOverride(t *testing.T) {
 	c, err := LoadFrom(env(map[string]string{
 		"PORT": "9090", "APP_NOW": "2026-12-01T10:00:00-03:00", "SEED_CLIENTS": "10", "SEED": "7",
 		"CLOSING_WORKERS": "3", "MOCK_LATENCY_MS": "25", "CORS_ORIGIN": "http://x",
+		"ACCOUNTANT_DISPLAY_NAME": "C.P. Juan Pérez", "ACCOUNTANT_LICENSE": "Mat. 12345",
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if c.Port != "9090" || c.SeedClients != 10 || c.Seed != 7 || c.ClosingWorkers != 3 ||
-		c.MockLatency != 25*time.Millisecond || c.CORSOrigin != "http://x" || c.AppNow.Day() != 1 {
+		c.MockLatency != 25*time.Millisecond || c.CORSOrigin != "http://x" || c.AppNow.Day() != 1 ||
+		c.AccountantDisplayName != "C.P. Juan Pérez" || c.AccountantLicense != "Mat. 12345" {
 		t.Fatalf("override inesperado: %+v", c)
 	}
 }

@@ -4,17 +4,17 @@
     "total": 300,
     "byStatus": {
       "APPROVED": 0,
-      "NOTIFIED": 0,
+      "NOTIFIED": 2,
       "PENDING_CLIENT_INPUT": 20,
-      "READY_FOR_REVIEW": 280
+      "READY_FOR_REVIEW": 278
     },
-    "approvedPct": 0,
+    "approvedPct": 66,
     "pendingReview": {
-      "GREEN": 220,
+      "GREEN": 218,
       "RED": 21,
       "YELLOW": 59
     },
-    "estimatedReviewMinutes": 1240
+    "estimatedReviewMinutes": 1236
   },
   "totals": {
     "billedUSD": {
@@ -198,9 +198,9 @@
     "greenPct": 7333,
     "greenCount": 220,
     "total": 300,
-    "notifiedBeforeDay10Pct": 0,
-    "notifiedBeforeDay10Count": 0,
-    "notifiedCount": 0,
+    "notifiedBeforeDay10Pct": 66,
+    "notifiedBeforeDay10Count": 2,
+    "notifiedCount": 2,
     "paidOnTimePct": 0,
     "paidOnTimeCount": 0
   }

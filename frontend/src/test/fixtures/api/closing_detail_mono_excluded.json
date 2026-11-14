@@ -5,7 +5,7 @@
     "period": "2026-10",
     "status": "READY_FOR_REVIEW",
     "version": 1,
-    "resultHash": "5478f966fa8ccd972e3894d0b67f89a9b1d55738abb367c46be68273149853ee",
+    "resultHash": "d7c58684f6f087b6c3e29420e66418c2d915859b65a687a1abeb6d6910d57610",
     "severity": "RED",
     "signals": [
       {
@@ -59,6 +59,10 @@
         "currency": "ARS"
       },
       "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "categoryCapARS": {
         "amount": 12661083875,
         "currency": "ARS"
       },

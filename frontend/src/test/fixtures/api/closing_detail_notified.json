@@ -5,7 +5,7 @@
     "period": "2026-09",
     "status": "NOTIFIED",
     "version": 1,
-    "resultHash": "94b1ed5bf2fc37afb7622e6ffebc7a6c74a12d9c39438931594fac37139ff173",
+    "resultHash": "1acc2e46dcda7988e5cc43b25de03b40a613a8ee9f7f3e907ace7e8a2dea327f",
     "severity": "GREEN",
     "signals": [],
     "description": "Facturó US$ 500,00 · cuota $ 49.527,18 · todo conciliado.",
@@ -44,6 +44,10 @@
         "amount": 12661083875,
         "currency": "ARS"
       },
+      "categoryCapARS": {
+        "amount": 1200941045,
+        "currency": "ARS"
+      },
       "scaleValidFrom": "2026-07-31T21:00:00-03:00"
     },
     "reconciliation": {
@@ -62,7 +66,7 @@
       {
         "id": "apr_000286",
         "version": 1,
-        "resultHash": "94b1ed5bf2fc37afb7622e6ffebc7a6c74a12d9c39438931594fac37139ff173",
+        "resultHash": "1acc2e46dcda7988e5cc43b25de03b40a613a8ee9f7f3e907ace7e8a2dea327f",
         "approvedBy": "accountant",
         "approvedAt": "2026-10-03T16:11:00-03:00",
         "note": "Cierre de septiembre (dato semilla)",
@@ -99,7 +103,22 @@
           "currency": "ARS"
         }
       },
-      "publishedAt": "2026-10-03T16:11:00-03:00"
+      "publishedAt": "2026-10-03T16:11:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "MONOTRIBUTO",
+      "category": "A",
+      "pctOfCategoryCapBp": 7084,
+      "categoryCapARS": {
+        "amount": 1200941045,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 850831500,
+        "currency": "ARS"
+      }
     }
   },
   "client": {

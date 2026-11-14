@@ -1,11 +1,14 @@
-import { Link, NavLink, Outlet, useSearchParams } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { WallbitLogo } from '../shared/ui/WallbitLogo';
 import { PeriodSelect } from './PeriodSelect';
+import { ViewSwitch } from './ViewSwitch';
 
 export function Layout() {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const periodParam = searchParams.get('period');
   const periodQuery = periodParam ? `?period=${encodeURIComponent(periodParam)}` : '';
+  const isClient = location.pathname.startsWith('/cliente');
 
   return (
     <div className="min-h-screen bg-app-bg text-app-text">
@@ -54,17 +57,20 @@ export function Layout() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <PeriodSelect />
-            <div
-              className="flex items-center gap-2 rounded-md px-2 py-1"
-              title="Sesión de demo"
-              data-testid="accountant-identity"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#262626] text-xs font-semibold text-white">
-                C
-              </span>
-              <span className="text-sm text-[#D4D4D4]">Contador</span>
-            </div>
+            <ViewSwitch />
+            {!isClient && <PeriodSelect />}
+            {!isClient && (
+              <div
+                className="flex items-center gap-2 rounded-md px-2 py-1"
+                title="Sesión de demo"
+                data-testid="accountant-identity"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#262626] text-xs font-semibold text-white">
+                  C
+                </span>
+                <span className="text-sm text-[#D4D4D4]">Contador</span>
+              </div>
+            )}
           </div>
         </div>
       </header>

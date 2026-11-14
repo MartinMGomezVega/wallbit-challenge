@@ -5,7 +5,7 @@
     "period": "2026-10",
     "status": "NOTIFIED",
     "version": 1,
-    "resultHash": "1980c5932accf381a9b08e9e3e75232de1a14d4a1431968088a3f88339545558",
+    "resultHash": "bdbd966fbbcd4319beacd0c4bcb9bc077caa230f520c8f22a4114ac8fbc30b88",
     "severity": "YELLOW",
     "signals": [
       {
@@ -56,6 +56,10 @@
         "amount": 12661083875,
         "currency": "ARS"
       },
+      "categoryCapARS": {
+        "amount": 2467049400,
+        "currency": "ARS"
+      },
       "scaleValidFrom": "2026-07-31T21:00:00-03:00"
     },
     "reconciliation": {
@@ -72,9 +76,9 @@
     "computedAt": "2026-11-05T09:00:00-03:00",
     "approvals": [
       {
-        "id": "appr_000001",
+        "id": "appr_000003",
         "version": 1,
-        "resultHash": "1980c5932accf381a9b08e9e3e75232de1a14d4a1431968088a3f88339545558",
+        "resultHash": "bdbd966fbbcd4319beacd0c4bcb9bc077caa230f520c8f22a4114ac8fbc30b88",
         "approvedBy": "accountant",
         "approvedAt": "2026-11-05T09:00:00-03:00",
         "batch": false
@@ -109,7 +113,22 @@
           "currency": "ARS"
         }
       },
-      "publishedAt": "2026-11-05T09:00:00-03:00"
+      "publishedAt": "2026-11-05T09:00:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "MONOTRIBUTO",
+      "category": "C",
+      "pctOfCategoryCapBp": 13088,
+      "categoryCapARS": {
+        "amount": 2467049400,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 3229059500,
+        "currency": "ARS"
+      }
     }
   },
   "client": {

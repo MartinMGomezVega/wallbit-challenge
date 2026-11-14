@@ -1,0 +1,29 @@
+[
+  {
+    "id": "inv_demo_00181",
+    "clientId": "cli_demo_01",
+    "type": "E",
+    "pointOfSale": 1,
+    "number": 13,
+    "issueDate": "2026-10-06",
+    "currency": "USD",
+    "netAmount": {
+      "amount": "500.00",
+      "currency": "USD"
+    },
+    "vatAmount": {
+      "amount": "0.00",
+      "currency": "USD"
+    },
+    "totalAmount": {
+      "amount": "500.00",
+      "currency": "USD"
+    },
+    "fxRate": "1487.1500",
+    "receiverName": "Brightloop GmbH",
+    "source": "SEED",
+    "uploadedBy": "SEED",
+    "createdAt": "2026-10-06T10:00:00-03:00"
+  }
+]
+

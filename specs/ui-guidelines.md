@@ -126,7 +126,7 @@ Reglas:
 - Barra de selección: flotante, centrada abajo, `shadow-xl`, aparece con ≥ 1 seleccionado.
 
 ### 3.2 Cliente
-Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
+Vista demo integrada dentro de un marco de celular (390×780 px, radio 36 px) sobre fondo neutro, accesible desde el switch `Contador | Cliente (demo)` del header. Permite experimentar el check-in (carga de comprobantes y cobros externos), el estado 'En revisión' y el resumen con la tarjeta validada por el contador.
 
 ## 4. Componentes
 
@@ -168,8 +168,12 @@ Altura: 32 px. Foco visible siempre (anillo `--color-focus`).
 - Toast (`@radix-ui/react-toast`): abajo a la derecha, 4 s, variantes success / error.
 - Diálogos de confirmación: 440 px de ancho, título + 1 párrafo + 2 botones.
 
-### 4.6 Vista del cliente (011)
-Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
+### 4.6 Vista del cliente (demo, 017)
+- Marco de celular centrado (390×780 px, radio 36 px) con leyenda inferior "Así se vería dentro de la app de Wallbit".
+- Selector superior con 5 clientes demo representativos de cada estado del flujo.
+- Tarjeta de check-in (`ACTION_REQUIRED`): tabla de comprobantes emitidos, botón "Alta de comprobante" con modal de carga, link "Importar CSV de Mis Comprobantes", selector de cobros fuera de Wallbit (No/Sí con renglones de monto US$ y descripción) y botón "Listo, ya cargué todo".
+- Estado "En revisión" (`IN_REVIEW`): aviso de revisión en curso con resumen de datos enviados y tarjeta validada del mes anterior si existe.
+- Tarjeta validada (`READY`): facturación del mes (US$ grande y $ chico pesificado), situación impositiva (categoría con barra de progreso o Responsable Inscripto), conceptos a pagar con fecha de vencimiento y total, cuerpo del mensaje, badge "✓ Validado por [Nombre] · [Matrícula] · [Fecha]" y botón "Ya pagué" que transiciona a badge de pago.
 
 ### 4.7 Resumen (dashboard, 014)
 - Grilla de 12 columnas, gap 16 px, ordenada de arriba hacia abajo en 4 bloques:

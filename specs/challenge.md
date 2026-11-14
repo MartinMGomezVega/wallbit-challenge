@@ -56,7 +56,7 @@
 - **Cierre listo** (solo después de aprobación): cuánto facturó, cuánto tiene que pagar y hasta cuándo, y si tiene que hacer algo.
 - **Recordatorio** antes del vencimiento si no marcó "Ya pagué".
 - Email/push **sin montos** ("Tenés novedades"); el detalle solo dentro de Wallbit.
-- La experiencia del cliente vive en la app de Wallbit. El prototipo expone la API `/api/v1/me/**` que esa app consumiría (se puede probar desde Swagger) y el contador ve en el modal el aviso que recibirá el cliente.
+- La experiencia del cliente vive en la app de Wallbit. El prototipo expone la API `/api/v1/me/**` que esa app consumiría (se puede probar desde Swagger), el contador ve en el modal el aviso que recibirá el cliente, y se incluye una vista **demo** del cliente (marco de celular) contra la API real.
 
 ### 4.5 Alcance de regímenes
 - **Monotributo** (actividad: prestación de servicios) — incluido.

@@ -84,6 +84,7 @@ type MonotributoAssessment struct {
 	Inbound12mARS     money.Money  `json:"inbound12mARS"`
 	CardSpend12mARS   money.Money  `json:"cardSpend12mARS"`
 	KCapARS           money.Money  `json:"kCapARS"`
+	CategoryCapARS    money.Money  `json:"categoryCapARS"`
 	ScaleValidFrom    time.Time    `json:"scaleValidFrom"`
 }
 
@@ -277,7 +278,9 @@ func AssessMonotributo(in MonotributoInput) (MonotributoAssessment, error) {
 
 	// 5. Porcentajes de topes en puntos básicos (redondeo hacia abajo)
 	pctOfCurrentCapBp := int64(0)
+	categoryCapARS := money.Zero(money.ARS)
 	if row, ok := scaleAtPeriodEnd.Row(in.CurrentCategory); ok && row.CapARS.Amount > 0 {
+		categoryCapARS = row.CapARS
 		pctOfCurrentCapBp = billed12mARS.Amount * 10000 / row.CapARS.Amount
 	}
 
@@ -319,6 +322,7 @@ func AssessMonotributo(in MonotributoInput) (MonotributoAssessment, error) {
 		Inbound12mARS:     inbound12mARS,
 		CardSpend12mARS:   cardSpend12mARS,
 		KCapARS:           maxCap,
+		CategoryCapARS:    categoryCapARS,
 		ScaleValidFrom:    scaleAtPeriodEnd.ValidFrom,
 	}, nil
 }

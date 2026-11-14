@@ -1,0 +1,69 @@
+[
+  {
+    "closingId": "clo_000300",
+    "period": "2026-10",
+    "state": "ACTION_REQUIRED",
+    "input": {
+      "answered": false,
+      "confirmed": false,
+      "invoicesCount": 0
+    }
+  },
+  {
+    "closingId": "clo_000600",
+    "period": "2026-09",
+    "state": "ACTION_REQUIRED",
+    "published": {
+      "version": 1,
+      "title": "Tu cierre de septiembre 2026 está listo",
+      "body": "Facturaste US$ 700,00 ($ 1.036.210,00). Cuota de Monotributo categoría B: $ 56.379,08, vence el 20/10/2026. Buenas noticias: en la próxima recategorización podrías bajar a la categoría A. Nota de tu contador: Cierre de septiembre: parámetros bajo seguimiento preventivo.",
+      "figures": {
+        "billedUSD": {
+          "amount": 70000,
+          "currency": "USD"
+        },
+        "billedARS": {
+          "amount": 103621000,
+          "currency": "ARS"
+        },
+        "items": [
+          {
+            "concept": "Cuota Monotributo",
+            "amount": {
+              "amount": 5637908,
+              "currency": "ARS"
+            },
+            "dueDate": "2026-10-20T00:00:00-03:00"
+          }
+        ],
+        "total": {
+          "amount": 5637908,
+          "currency": "ARS"
+        }
+      },
+      "publishedAt": "2026-10-01T13:00:00-03:00",
+      "validatedBy": {
+        "name": "C.P. Mariana Quiroga",
+        "license": "Matrícula de ejemplo"
+      },
+      "regime": "MONOTRIBUTO",
+      "category": "B",
+      "pctOfCategoryCapBp": 6729,
+      "categoryCapARS": {
+        "amount": 1759518300,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 1184035300,
+        "currency": "ARS"
+      }
+    },
+    "paidAt": "2026-10-15T13:09:00-03:00",
+    "input": {
+      "answered": false,
+      "confirmed": false,
+      "invoicesCount": 1
+    }
+  }
+]
+

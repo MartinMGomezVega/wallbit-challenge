@@ -104,6 +104,19 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	if err := usecase.SeedSeptemberClosings(ctx, closingRepo, clientRepo, idGen, 42); err != nil {
 		t.Fatalf("SeedSeptemberClosings: %v", err)
 	}
+	octSeedApproveUC := &usecase.ApproveClosing{
+		Closings:          closingRepo,
+		Clients:           clientRepo,
+		Notifications:     notifRepo,
+		Outbox:            outboxRepo,
+		Clock:             clock.NewFixed(time.Date(2026, 11, 6, 10, 0, 0, 0, period.Location())),
+		IDGen:             idGen,
+		AccountantName:    "C.P. Mariana Quiroga",
+		AccountantLicense: "Matrícula de ejemplo",
+	}
+	if err := usecase.SeedOctoberApprovedClosings(ctx, octSeedApproveUC, closingRepo); err != nil {
+		t.Fatalf("SeedOctoberApprovedClosings: %v", err)
+	}
 
 	h := NewRouter(Deps{
 		Clock:                     clk,
@@ -134,8 +147,8 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		t.Fatalf("mkdir fixtures: %v", err)
 	}
 
-	writeFixture := func(name, path string) []byte {
-		rec := do(t, h, "GET", path, "accountant", nil)
+	writeFixtureWithUser := func(name, path, user string) []byte {
+		rec := do(t, h, "GET", path, user, nil)
 		if rec.Code != 200 {
 			t.Fatalf("GET %s status %d: %s", path, rec.Code, rec.Body.String())
 		}
@@ -150,6 +163,10 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		return buf.Bytes()
 	}
 
+	writeFixture := func(name, path string) []byte {
+		return writeFixtureWithUser(name, path, "accountant")
+	}
+
 	writePostFixture := func(name, path, user string, body io.Reader, contentType string) []byte {
 		req := httptest.NewRequest("POST", path, body)
 		if user != "" {
@@ -160,8 +177,32 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		}
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
-		if rec.Code != 200 {
+		if rec.Code != 200 && rec.Code != 201 {
 			t.Fatalf("POST %s status %d: %s", path, rec.Code, rec.Body.String())
+		}
+		var buf bytes.Buffer
+		if err := json.Indent(&buf, rec.Body.Bytes(), "", "  "); err != nil {
+			t.Fatalf("indent %s: %v", name, err)
+		}
+		buf.WriteByte('\n')
+		if err := os.WriteFile(filepath.Join(outDir, name), buf.Bytes(), 0o644); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+		return buf.Bytes()
+	}
+
+	writePutFixture := func(name, path, user string, body io.Reader, contentType string) []byte {
+		req := httptest.NewRequest("PUT", path, body)
+		if user != "" {
+			req.Header.Set("X-Demo-User", user)
+		}
+		if contentType != "" {
+			req.Header.Set("Content-Type", contentType)
+		}
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code != 200 && rec.Code != 201 {
+			t.Fatalf("PUT %s status %d: %s", path, rec.Code, rec.Body.String())
 		}
 		var buf bytes.Buffer
 		if err := json.Indent(&buf, rec.Body.Bytes(), "", "  "); err != nil {
@@ -295,7 +336,48 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	_ = mpAccWriter.Close()
 	writePostFixture("invoices_import_accountant_response.json", "/api/v1/accountant/clients/cli_demo_03/invoices/import", "accountant", bodyAccBuf, mpAccWriter.FormDataContentType())
 
-	// 12. Endpoint de escritura: confirm_input_response.json (cli_demo_15 - Paula Rojas)
+	// 12. Client portal fixtures (/api/v1/me/**)
+	writeFixtureWithUser("me_profile.json", "/api/v1/me", "client:cli_demo_15")
+	writeFixtureWithUser("me_closings_action_required.json", "/api/v1/me/closings", "client:cli_demo_15")
+	writeFixtureWithUser("me_closings_in_review.json", "/api/v1/me/closings", "client:cli_demo_02")
+	writeFixtureWithUser("me_closings_ready_mono.json", "/api/v1/me/closings", "client:cli_demo_01")
+	writeFixtureWithUser("me_closings_ready_ri.json", "/api/v1/me/closings", "client:cli_demo_09")
+	writeFixtureWithUser("me_invoices.json", "/api/v1/me/invoices?period=2026-10", "client:cli_demo_01")
+
+	invBody, _ := json.Marshal(map[string]any{
+		"type":         "E",
+		"pointOfSale":  1,
+		"number":       99,
+		"issueDate":    "2026-10-20",
+		"currency":     "USD",
+		"netAmount":    map[string]any{"amount": "1500.00", "currency": "USD"},
+		"vatAmount":    map[string]any{"amount": "0.00", "currency": "USD"},
+		"totalAmount":  map[string]any{"amount": "1500.00", "currency": "USD"},
+		"fxRate":       "1482.15",
+		"receiverName": "Global Corp LLC",
+		"receiverDoc":  "US12345678",
+	})
+	writePostFixture("me_invoices_post_response.json", "/api/v1/me/invoices", "client:cli_demo_15", bytes.NewReader(invBody), "application/json")
+
+	extIncomeBody, _ := json.Marshal(map[string]any{
+		"items": []map[string]any{
+			{
+				"amount":      map[string]any{"amount": "500.00", "currency": "USD"},
+				"description": "Consultoría directa cliente USA",
+			},
+		},
+		"none": false,
+	})
+	writePutFixture("me_external_income_response.json", "/api/v1/me/periods/2026-10/external-income", "client:cli_demo_15", bytes.NewReader(extIncomeBody), "application/json")
+
+	writePostFixture("me_confirm_response.json", "/api/v1/me/periods/2026-10/confirm", "client:cli_demo_15", nil, "")
+
+	// Reset Paula's input so accountant can confirm on behalf
+	inputPaula, _ := inputRepo.Get(ctx, "cli_demo_15", p)
+	inputPaula.ConfirmedAt = nil
+	_ = inputRepo.Save(ctx, inputPaula)
+
+	// 13. Endpoint de escritura: confirm_input_response.json (cli_demo_15 - Paula Rojas)
 	confirmBody, _ := json.Marshal(map[string]any{
 		"externalIncome": map[string]any{
 			"none": true,
@@ -303,6 +385,8 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		"note": "Me lo confirmó por mail el 06/11",
 	})
 	writePostFixture("confirm_input_response.json", "/api/v1/accountant/clients/cli_demo_15/periods/2026-10/confirm-input", "accountant", bytes.NewReader(confirmBody), "application/json")
+
+	writePostFixture("me_paid_response.json", "/api/v1/me/closings/"+cloMono.ID+"/paid", "client:cli_demo_01", nil, "")
 
 	_ = closingsBytes
 }

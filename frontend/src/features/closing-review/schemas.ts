@@ -181,18 +181,36 @@ export const PublishedFiguresSchema = z.object({
 });
 export type PublishedFigures = z.infer<typeof PublishedFiguresSchema>;
 
+export const ValidatedBySchema = z.object({
+  name: z.string(),
+  license: z.string(),
+});
+export type ValidatedByDTO = z.infer<typeof ValidatedBySchema>;
+
 export const PublishedSchema = z.object({
   version: z.number(),
   title: z.string(),
   body: z.string(),
   figures: PublishedFiguresSchema.optional(),
   publishedAt: z.string(),
+  validatedBy: ValidatedBySchema.optional(),
+  regime: z.string().optional(),
+  category: z.string().nullable().optional(),
+  pctOfCategoryCapBp: z.number().nullable().optional(),
+  categoryCapARS: MoneySchema.nullable().optional(),
+  billed12mARS: MoneySchema.nullable().optional(),
 });
 export type PublishedDTO = z.infer<typeof PublishedSchema>;
 
 // Client Period Input
 export const ExternalIncomeItemSchema = z.object({
-  amount: MoneySchema,
+  amount: z.union([
+    MoneySchema,
+    z.object({
+      amount: z.string(),
+      currency: z.string(),
+    }),
+  ]),
   description: z.string(),
 });
 export type ExternalIncomeItem = z.infer<typeof ExternalIncomeItemSchema>;

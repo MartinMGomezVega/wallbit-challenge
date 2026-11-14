@@ -16,6 +16,13 @@ import {
 } from '../features/closing-review/schemas';
 import { PeriodStatsSchema } from '../features/summary-dashboard/schemas';
 import { ParametersDTOSchema } from '../features/parameters/schemas';
+import {
+  ClientProfileSchema,
+  ClientClosingsResponseSchema,
+  ClientInvoicesResponseSchema,
+  ClientInvoiceSchema,
+  MarkPaidResponseSchema,
+} from '../features/client-demo/schemas';
 
 import closingsFixture from './fixtures/api/closings.json';
 import closingsSummaryFixture from './fixtures/api/closings_summary.json';
@@ -36,6 +43,16 @@ import regimeChangeResponseFixture from './fixtures/api/regime_change_response.j
 import invoicesImportClientResponseFixture from './fixtures/api/invoices_import_client_response.json';
 import invoicesImportAccountantResponseFixture from './fixtures/api/invoices_import_accountant_response.json';
 import confirmInputResponseFixture from './fixtures/api/confirm_input_response.json';
+import meProfileFixture from './fixtures/api/me_profile.json';
+import meClosingsActionRequiredFixture from './fixtures/api/me_closings_action_required.json';
+import meClosingsInReviewFixture from './fixtures/api/me_closings_in_review.json';
+import meClosingsReadyMonoFixture from './fixtures/api/me_closings_ready_mono.json';
+import meClosingsReadyRIFixture from './fixtures/api/me_closings_ready_ri.json';
+import meInvoicesFixture from './fixtures/api/me_invoices.json';
+import meInvoicesPostResponseFixture from './fixtures/api/me_invoices_post_response.json';
+import meExternalIncomeResponseFixture from './fixtures/api/me_external_income_response.json';
+import meConfirmResponseFixture from './fixtures/api/me_confirm_response.json';
+import mePaidResponseFixture from './fixtures/api/me_paid_response.json';
 
 describe('API contract fixtures (backend -> Zod)', () => {
   it('valida closings.json con ClosingsListResponseSchema', () => {
@@ -158,6 +175,84 @@ describe('API contract fixtures (backend -> Zod)', () => {
   it('valida parameters.json con ParametersDTOSchema', () => {
     const parsed = ParametersDTOSchema.parse(parametersFixture);
     expect(parsed.fxRule).toBeTruthy();
+  });
+
+  it('valida me_profile.json con ClientProfileSchema', () => {
+    const parsed = ClientProfileSchema.parse(meProfileFixture);
+    expect(parsed.id).toBe('cli_demo_15');
+    expect(parsed.name).toBe('Paula Rojas');
+    expect(parsed.regime).toBe('MONOTRIBUTO');
+  });
+
+  it('valida me_closings_action_required.json con ClientClosingsResponseSchema', () => {
+    const parsed = ClientClosingsResponseSchema.parse(meClosingsActionRequiredFixture);
+    expect(parsed.length).toBeGreaterThan(0);
+    const oct = parsed.find(c => c.period === '2026-10');
+    expect(oct).toBeDefined();
+    expect(oct?.state).toBe('ACTION_REQUIRED');
+  });
+
+  it('valida me_closings_in_review.json con ClientClosingsResponseSchema', () => {
+    const parsed = ClientClosingsResponseSchema.parse(meClosingsInReviewFixture);
+    expect(parsed.length).toBeGreaterThan(0);
+    const oct = parsed.find(c => c.period === '2026-10');
+    expect(oct).toBeDefined();
+    expect(oct?.state).toBe('IN_REVIEW');
+  });
+
+  it('valida me_closings_ready_mono.json (Monotributo: READY, validatedBy, régimen, categoría, tope)', () => {
+    const parsed = ClientClosingsResponseSchema.parse(meClosingsReadyMonoFixture);
+    const oct = parsed.find(c => c.period === '2026-10');
+    expect(oct).toBeDefined();
+    expect(oct?.state).toBe('READY');
+    expect(oct?.published).toBeDefined();
+    expect(oct?.published?.validatedBy?.name).toBe('C.P. Mariana Quiroga');
+    expect(oct?.published?.regime).toBe('MONOTRIBUTO');
+    expect(oct?.published?.category).toBe('A');
+    expect(oct?.published?.categoryCapARS).toBeDefined();
+    expect(oct?.published?.pctOfCategoryCapBp).toBeDefined();
+  });
+
+  it('valida me_closings_ready_ri.json (RI: READY, validatedBy, régimen RI)', () => {
+    const parsed = ClientClosingsResponseSchema.parse(meClosingsReadyRIFixture);
+    const oct = parsed.find(c => c.period === '2026-10');
+    expect(oct).toBeDefined();
+    expect(oct?.state).toBe('READY');
+    expect(oct?.published).toBeDefined();
+    expect(oct?.published?.validatedBy?.name).toBe('C.P. Mariana Quiroga');
+    expect(oct?.published?.regime).toBe('RI');
+  });
+
+  it('valida me_invoices.json con ClientInvoicesResponseSchema', () => {
+    const parsed = ClientInvoicesResponseSchema.parse(meInvoicesFixture);
+    expect(parsed.length).toBeGreaterThan(0);
+    expect(parsed[0]?.type).toBe('E');
+  });
+
+  it('valida me_invoices_post_response.json con ClientInvoiceSchema', () => {
+    const parsed = ClientInvoiceSchema.parse(meInvoicesPostResponseFixture);
+    expect(parsed.clientId).toBe('cli_demo_15');
+    expect(parsed.number).toBe(99);
+    expect(parsed.receiverName).toBe('Global Corp LLC');
+  });
+
+  it('valida me_external_income_response.json con ClientPeriodInputDTOSchema', () => {
+    const parsed = ClientPeriodInputDTOSchema.parse(meExternalIncomeResponseFixture);
+    expect(parsed.clientId).toBe('cli_demo_15');
+    expect(parsed.externalIncome?.length).toBe(1);
+    expect(parsed.declaredNoExternalIncome).toBe(false);
+  });
+
+  it('valida me_confirm_response.json con ClientPeriodInputDTOSchema (confirmedBy CLIENT)', () => {
+    const parsed = ClientPeriodInputDTOSchema.parse(meConfirmResponseFixture);
+    expect(parsed.clientId).toBe('cli_demo_15');
+    expect(parsed.confirmedBy).toBe('CLIENT');
+  });
+
+  it('valida me_paid_response.json con MarkPaidResponseSchema', () => {
+    const parsed = MarkPaidResponseSchema.parse(mePaidResponseFixture);
+    expect(parsed.closingId).toBeTruthy();
+    expect(parsed.paidAt).toBeTruthy();
   });
 
   it('ningún fixture devuelve null en campos que deben ser array u objeto', () => {

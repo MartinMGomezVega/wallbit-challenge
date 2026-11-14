@@ -75,7 +75,41 @@ describe('App & Navigation', () => {
     expect(screen.getByRole('link', { name: 'Resumen' }).className).toContain('border-[#0D99FF]');
   });
 
-  it('redirige rutas desconocidas (como /cliente) a /contador', async () => {
+  it('muestra el switch de vistas en el header con Contador activo por defecto', async () => {
+    const qc = createQueryClient();
+    const router = createMemoryRouter(routes, { initialEntries: ['/contador'] });
+
+    render(
+      <Providers client={qc}>
+        <RouterProvider router={router} />
+      </Providers>,
+    );
+
+    const switchEl = await screen.findByTestId('view-switch');
+    expect(switchEl).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Contador' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Cliente (demo)' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByLabelText('Período')).toBeInTheDocument();
+  });
+
+  it('oculta el selector de período en /cliente y activa la opción Cliente (demo)', async () => {
+    const qc = createQueryClient();
+    const router = createMemoryRouter(routes, { initialEntries: ['/cliente/cli_demo_15'] });
+
+    render(
+      <Providers client={qc}>
+        <RouterProvider router={router} />
+      </Providers>,
+    );
+
+    const switchEl = await screen.findByTestId('view-switch');
+    expect(switchEl).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Cliente (demo)' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByLabelText('Período')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('accountant-identity')).not.toBeInTheDocument();
+  });
+
+  it('redirige /cliente a /cliente/cli_demo_15', async () => {
     const qc = createQueryClient();
     const router = createMemoryRouter(routes, { initialEntries: ['/cliente'] });
 
@@ -85,6 +119,22 @@ describe('App & Navigation', () => {
       </Providers>,
     );
 
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/cliente/cli_demo_15');
+    });
+  });
+
+  it('redirige rutas desconocidas a /contador', async () => {
+    const qc = createQueryClient();
+    const router = createMemoryRouter(routes, { initialEntries: ['/ruta-inexistente'] });
+
+    render(
+      <Providers client={qc}>
+        <RouterProvider router={router} />
+      </Providers>,
+    );
+
     expect(await screen.findByRole('heading', { name: 'Cierre de octubre 2026' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/contador');
   });
 });
