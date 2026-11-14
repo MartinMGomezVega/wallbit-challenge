@@ -17,6 +17,6 @@
 - [x] **T000.9** Frontend: scaffold Vite + TS strict + Tailwind + ESLint + Vitest + coverage thresholds.
   - Listo cuando: `npm run build`, `npm run test -- --coverage` corren.
 - [x] **T000.10** `shared/api/http.ts` + `ApiError` + tests con MSW (éxito, error estándar, error de red, schema inválido).
-- [x] **T000.11** `roleStore` + `RoleSwitcher` + router + layout. Tests: cambiar rol cambia el header enviado; localStorage que tira excepción no rompe.
+- [x] **T000.11** `router`, `Layout`, `PeriodSelect` global, `WallbitLogo` (SVG oficiales), favicons en `index.html` y `useDocumentTitle`. Tests: `/` redirige a `/contador`, pestaña activa, cambio de período actualiza URL y `<title>`.
 - [x] **T000.12** `Makefile` (`dev`, `test`, `coverage`, `lint`).
   - Listo cuando: `make test` y `make coverage` pasan con ≥ 90% en ambos lados.

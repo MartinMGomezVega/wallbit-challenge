@@ -101,8 +101,13 @@ components:
           type: object
           properties:
             greenPct: { type: integer, description: BasisPoints }
+            greenCount: { type: integer }
+            total: { type: integer }
             notifiedBeforeDay10Pct: { type: integer, description: BasisPoints }
+            notifiedBeforeDay10Count: { type: integer }
+            notifiedCount: { type: integer }
             paidOnTimePct: { type: integer, description: BasisPoints }
+            paidOnTimeCount: { type: integer }
 paths:
   /api/v1/health:
     get:
@@ -111,13 +116,6 @@ paths:
       responses:
         '200':
           description: Servicio operativo
-  /api/v1/demo/clients:
-    get:
-      summary: Lista los clientes disponibles para el selector de demo
-      tags: [Demo]
-      responses:
-        '200':
-          description: Lista de clientes de demo
   /api/v1/accountant/signals/catalog:
     get:
       summary: Catálogo de señales impositivas

@@ -3,7 +3,7 @@
 ## Punto de partida (estado real del repo)
 - `closing.Closing` ya tiene `Published *Published` y `Publish(...)`. Agregar `FirstPublishedAt *time.Time` que se setea **solo** la primera vez que se publica.
 - `closing.ComputeSummary` ya calcula conteos: reutilizarlo dentro de `ComputeStats` donde aplique.
-- Frontend: hoy hay `src/features/{closings-dashboard, closing-review, parameters, client-portal}` y rutas en `src/app/router.tsx`; la navegación del header está en `src/app/Layout.tsx`. Hay que agregar la dependencia `recharts` (no está instalada).
+- Frontend: hoy hay `src/features/{closings-dashboard, closing-review, parameters}` y rutas en `src/app/router.tsx`; la navegación del header está en `src/app/Layout.tsx`. Hay que agregar la dependencia `recharts` (no está instalada).
 
 ## Backend
 - `application/ports/stats.go`: `type PeriodStats struct{...}` (tipos de dominio, Money/bp) y `StatsQuery` interface.
@@ -16,9 +16,10 @@
 features/summary-dashboard/
 ├── index.ts, api.ts, schemas.ts, useStats.ts
 ├── SummaryPage.tsx
+├── SeverityOverview.tsx
 ├── KpiCard.tsx, ProgressKpi.tsx
 ├── charts/SignalsBarChart.tsx, CategoryBarChart.tsx, DueDatesBarChart.tsx
-├── SuccessMetrics.tsx
+├── ServiceHealth.tsx
 └── __tests__/
 ```
 - Gráficos con **Recharts** (`recharts`): sin animaciones si `prefers-reduced-motion`; `isAnimationActive={false}` en tests.

@@ -42,6 +42,6 @@ Implementar la "firma" del contador (individual y en lote, auditada) y todo lo q
 11. `PAYMENT_REMINDER`: proceso `SendPaymentReminders(now)` — para cierres `NOTIFIED` sin `paidAt` con algún vencimiento en `[now, now + reminder_days_before_due]` y sin recordatorio previo para ese vencimiento → notificación + saliente. Lo corre el scheduler diario y `POST /api/v1/accountant/reminders/run` (demo).
 
 ### Frontend (contador)
-12. Modal: "Aprobar y siguiente" (primario), "Aprobar", atajo `A`; campo opcional "Nota para el cliente"; sección "Aviso al cliente" con el `draftMessage` en vivo. `409 VERSION_CONFLICT` → banner "El cierre cambió mientras lo revisabas" + botón "Ver cambios" (refresca).
+12. Modal: "Aprobar y siguiente" (primario), "Aprobar", atajo `A`; campo opcional "Nota para el cliente"; sección "Aviso al cliente" con el `draftMessage` en vivo y, si el cierre fue notificado, lo publicado (`Published`) con versión, fecha y total. `409 VERSION_CONFLICT` → banner "El cierre cambió mientras lo revisabas" + botón "Ver cambios" (refresca).
 13. Tablero: "Aprobar verdes (k)" en la barra de selección → diálogo de confirmación "Vas a aprobar y notificar k clientes verdes" → resultado con fallidos listados.
 14. Tests: backend (todos los códigos de error, lote parcial, outbox con reintentos, sin montos en salientes, recordatorios en bordes de fecha) y frontend (botones, atajo, conflicto, lote).

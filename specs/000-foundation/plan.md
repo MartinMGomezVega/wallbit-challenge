@@ -19,10 +19,9 @@
 - Deps: `@tanstack/react-query @tanstack/react-table react-router-dom zod @radix-ui/react-dialog @radix-ui/react-tooltip @radix-ui/react-checkbox @radix-ui/react-dropdown-menu clsx`.
 - Dev deps: `tailwindcss postcss autoprefixer vitest @vitest/coverage-v8 @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom msw eslint typescript-eslint`.
 - `vite.config.ts`: proxy `/api` → `http://localhost:8080`; bloque `test` con `environment: 'jsdom'`, `setupFiles: ['src/test/setup.ts']`, coverage thresholds 90 en las cuatro métricas y excludes de `architecture.md §3.1`.
-- `src/shared/api/http.ts`: `apiFetch<T>(path, schema: ZodType<T>, init?)` → agrega `X-Demo-User` desde `roleStore`, parsea error estándar a `ApiError {code, message, fields}`.
-- `src/app/roleStore.ts`: `getRole()/setRole()` con `localStorage` en try/catch y fallback en memoria; evento para re-render (`useSyncExternalStore`).
-- `src/app/RoleSwitcher.tsx`: dropdown "Ver como: Contador | Cliente…". La lista de clientes se completa en la feature 011; por ahora solo Contador y un input libre de `clientId`.
-- `src/app/router.tsx`: `/` → redirect según rol; `/contador`; `/contador/parametros`; `/cliente`.
+- `src/shared/api/http.ts`: `apiFetch<T>(path, schema: ZodType<T>, init?)` → agrega `X-Demo-User: accountant` fijo, parsea error estándar a `ApiError {code, message, fields}`.
+- `src/app/Layout.tsx` + `PeriodSelect.tsx`: header oscuro con logo SVG oficial de Wallbit, pestañas (`Cierres`, `Resumen`, `Parámetros`), selector global de período en URL e identidad `(C) Contador`.
+- `src/app/router.tsx`: `/` → `/contador`; `/contador`; `/contador/resumen`; `/contador/parametros`; `*` → `/contador`.
 
 ## Raíz
 - `Makefile` con targets de `architecture.md §4`. `make dev` usa `trap 'kill 0' EXIT` y corre ambos con `&`.

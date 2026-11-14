@@ -89,7 +89,8 @@ backend/
 - Endpoints `/api/v1/accountant/**` requieren `accountant`. Endpoints `/api/v1/me/**` requieren `client:*`.
 
 ### 2.6 API
-- Prefijo `/api/v1`. JSON camelCase. Fechas ISO-8601. Dinero como `{ "amount": "1234.56", "currency": "ARS" }` (string decimal para no perder precisión en JS).
+- Prefijo `/api/v1`. JSON camelCase. Fechas ISO-8601. Dinero como `{ "amount": <entero en centavos>, "currency": "ARS" }`.
+- Ningún endpoint devuelve `null` donde va un array u objeto (los slices vacíos se serializan como `[]` y los mapas como `{}`).
 - Error: `{ "error": { "code": "VALIDATION_ERROR", "message": "...", "fields": {"x": "..."} } }`.
 - Listados: `?page=1&pageSize=50` → `{ "items": [...], "total": 300, "page": 1, "pageSize": 50 }`.
 - El endpoint de IDs para la cola de revisión y el listado comparten **el mismo caso de uso de filtrado/orden** (garantía de mismo orden).
@@ -100,6 +101,7 @@ backend/
 - Tests de integración (`//go:build integration`) contra el Postgres del compose: `make test-integration`. Las suites de contrato de `ports/repotest` corren contra memoria (unitarios) y contra Postgres (integración) para garantizar el mismo comportamiento.
 - Tests de handlers con `httptest`.
 - Test de concurrencia del job con `-race`.
+- Fixtures de contrato: `make fixtures` genera respuestas reales del backend en `frontend/src/test/fixtures/api/` para que el frontend las valide con Zod.
 
 ## 3. Frontend (React + TS)
 
@@ -108,24 +110,23 @@ backend/
 - **TanStack Query** (data fetching, cache, prefetch), **TanStack Table** (tabla), **React Router** (estado en URL).
 - **Tailwind CSS** para estilos, con los tokens de **`ui-guidelines.md`** (fuente de verdad de colores, tipografía, componentes y redacción). **Radix UI** (`@radix-ui/react-dialog`, `@radix-ui/react-tooltip`, `@radix-ui/react-checkbox`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-tabs`, `@radix-ui/react-toast`) para primitivas accesibles. **lucide-react** para íconos. **@fontsource-variable/inter** para la tipografía (self-hosted).
 - **Zod** para validar respuestas de la API.
-- Tests: **Vitest + Testing Library + MSW** (MSW solo en tests). Coverage `v8` **≥ 90%** líneas/branches/functions/statements (excluye `main.tsx`, `*.d.ts`, `src/test/**`, `src/mocks/**`).
+- Tests: **Vitest + Testing Library + MSW** (MSW solo en tests) y validación con Zod de fixtures reales generados por el backend (`make fixtures`). Coverage `v8` **≥ 90%** líneas/branches/functions/statements (excluye `main.tsx`, `*.d.ts`, `src/test/**`, `src/mocks/**`).
 
 ### 3.2 Estructura (por feature)
 
 ```
 frontend/src/
-├── app/                 # router, providers (QueryClient), layout, RoleSwitcher
+├── app/                 # router, providers (QueryClient), layout, PeriodSelect
 ├── shared/
 │   ├── api/             # http client (fetch + X-Demo-User + zod), schemas comunes (Money)
-│   ├── ui/              # Button, ComingSoonButton, Tooltip, Badge, SeverityIndicator, Dialog, Table primitives, EmptyState
+│   ├── ui/              # Button, Tooltip, Badge, SeverityIndicator, Dialog, Table primitives, EmptyState
 │   ├── format/          # money, date, percent (es-AR)
 │   └── hooks/
 ├── features/
 │   ├── closings-dashboard/   # tabla, filtros, chips de resumen, aprobación en lote
 │   ├── closing-review/       # modal de revisión con cola Anterior/Siguiente
-│   ├── summary-dashboard/    # Resumen: avance, totales, riesgo, métricas de éxito (014)
-│   ├── parameters/           # pantalla de parámetros del contador
-│   └── client-portal/        # vista del cliente
+│   ├── summary-dashboard/    # Resumen: estado, indicadores, gráficos, salud del servicio (014)
+│   └── parameters/           # pantalla de parámetros del contador
 ├── mocks/               # handlers MSW (solo tests)
 └── test/                # setup de Vitest
 ```
@@ -145,7 +146,8 @@ frontend/src/
 | `make install` | `cd frontend && npm ci`. |
 | `make dev` | Postgres en Docker + backend local (`go run ./cmd/api`) + frontend (`npm run dev`). |
 | `make dev-memory` | Backend en memoria + frontend, sin Docker. |
-| `make test` | Tests unitarios backend (`-race`) y frontend. No requiere Docker. |
+| `make test` | Regenera `make fixtures` y corre tests unitarios backend (`-race`) y frontend. No requiere Docker. |
+| `make fixtures` | Genera fixtures reales del backend en `frontend/src/test/fixtures/api/`. |
 | `make coverage` | Coverage de ambos; falla si alguno < 90%. |
 | `make test-integration` | Tests de integración contra Postgres. |
 | `make reset-db` | Borra el volumen de Postgres. |

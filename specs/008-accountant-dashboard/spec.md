@@ -11,7 +11,7 @@ La pantalla principal del contador: una tabla formal y moderna donde a simple vi
 
 ## Criterios de aceptación
 ### Layout
-1. Ruta `/contador`. Encabezado: "Cierre de octubre 2026" (período desde la query `period`, default = último cerrado según `/health.now`).
+1. Ruta `/contador`. Encabezado: "Cierre de octubre 2026" (mes en minúscula, sin `capitalize`; período controlado por el `PeriodSelect` global del header en la query `period`, default = último cerrado según `/health.now`). `<title>`: `"Cierres · Wallbit Contabilidad"`.
 2. **Chips de resumen** (de `/summary`): `● Rojos 12` `▲ Amarillos 47` `✓ Verdes 341`. Click = alterna ese color en el filtro `severity` (multi). Cada chip tiene un botón secundario **"Revisar"** (lo conecta 009).
 3. **Barra de filtros**: Situación (multi-select con las etiquetas del catálogo agrupadas por severidad, con contador de `bySignal`), Régimen (Todos/Monotributo/RI), Estado del cierre (multi), búsqueda por nombre/CUIT (debounce 300 ms), "Limpiar filtros".
 4. **Tabla** (TanStack Table, datos server-side). Columnas, en este orden:

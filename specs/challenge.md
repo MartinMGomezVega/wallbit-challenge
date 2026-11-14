@@ -56,7 +56,7 @@
 - **Cierre listo** (solo después de aprobación): cuánto facturó, cuánto tiene que pagar y hasta cuándo, y si tiene que hacer algo.
 - **Recordatorio** antes del vencimiento si no marcó "Ya pagué".
 - Email/push **sin montos** ("Tenés novedades"); el detalle solo dentro de Wallbit.
-- Botones **"Emitir factura en ARCA"** y **"Pagar en ARCA"** visibles pero deshabilitados (`aria-disabled`) con tooltip **"Próximamente"**. El README explica la integración futura.
+- La experiencia del cliente vive en la app de Wallbit. El prototipo expone la API `/api/v1/me/**` que esa app consumiría (se puede probar desde Swagger) y el contador ve en el modal el aviso que recibirá el cliente.
 
 ### 4.5 Alcance de regímenes
 - **Monotributo** (actividad: prestación de servicios) — incluido.
@@ -86,5 +86,5 @@
 5. Si la factura E computa o no para el tope es un **parámetro del contador** (default: computa = criterio conservador). Las fuentes no coinciden.
 6. Tipo de cambio para pesificar facturas: el de la propia factura (columna "Tipo Cambio" del CSV); si no viene, el del proveedor de tipo de cambio según el parámetro `fx_rule`.
 7. Anticipos de Ganancias y aportes de autónomos de RI los carga el contador por cliente (dependen de la DDJJ anterior, que Wallbit no tiene).
-8. No hay autenticación real: un selector de rol de demo (contador / cliente X).
+8. No hay autenticación real: el frontend actúa como el contador (`X-Demo-User: accountant`); la API del cliente se prueba con `X-Demo-User: client:<id>`.
 9. Persistencia en PostgreSQL (Docker); datos semilla determinísticos en el primer arranque (~300 clientes). En memoria solo para tests y `STORAGE=memory`.

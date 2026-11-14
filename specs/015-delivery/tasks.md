@@ -8,3 +8,4 @@
 - [x] **T015.5** `NOTA_DE_DECISIONES.md`: ≤ 10 líneas renderizadas y todo verdadero.
 - [ ] **T015.6** GitHub Pages: Settings → Pages → Source: "GitHub Actions"; correr el workflow y verificar que el Swagger carga con el logo y el spec.
 - [x] **T015.7** Verificación desde carpeta limpia (criterio 9). `make lint` sin warnings; sin `TODO` pendientes; sin datos reales de personas.
+- [x] **T015.8** Fixtures reales del backend en `frontend/src/test/fixtures/api/` validados con Zod (`make fixtures` incluido en `make test`) y workflow de GitHub Pages con `actions/configure-pages@v5` copiando `wallbit-logo-white.svg` y `favicon.svg`.

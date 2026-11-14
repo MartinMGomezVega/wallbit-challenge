@@ -32,8 +32,13 @@ No es un dashboard decorativo: **cada número lleva a la tabla filtrada** que lo
      },
      "success": {
        "greenPct": 7433,
+       "greenCount": 223,
+       "total": 300,
        "notifiedBeforeDay10Pct": 2666,
-       "paidOnTimePct": 6250
+       "notifiedBeforeDay10Count": 80,
+       "notifiedCount": 80,
+       "paidOnTimePct": 6250,
+       "paidOnTimeCount": 50
      }
    }
    ```
@@ -45,25 +50,26 @@ No es un dashboard decorativo: **cada número lleva a la tabla filtrada** que lo
    - `bySignal` ordenado por severidad desc y `count` desc; cuenta cierres (no señales repetidas).
    - `byCategory`: categoría actual para Monotributo (A–K, siempre las 11 aunque estén en 0) + una fila `RI`.
    - `nearKCap` = cierres con `MONO_NEAR_K_CAP` o `MONO_EXCLUSION_K_CAP_EXCEEDED`.
-   - `greenPct` = verdes / total.
-   - `notifiedBeforeDay10Pct` = cierres cuya **primera** publicación fue ≤ día 10 del mes siguiente al período / total.
-   - `paidOnTimePct` = cierres notificados con `paidAt` ≤ su vencimiento más cercano / cierres notificados.
+   - `greenPct` = verdes / total (`greenCount`, `total`).
+   - `notifiedBeforeDay10Pct` = cierres cuya **primera** publicación fue ≤ día 10 del mes siguiente al período / total (`notifiedBeforeDay10Count`, `total`).
+   - `paidOnTimePct` = cierres notificados con `paidAt` ≤ su vencimiento más cercano / cierres notificados (`paidOnTimeCount`, `notifiedCount`).
 3. Puerto `StatsQuery.PeriodStats(ctx, period)`: implementación en memoria (Go) y en Postgres (SQL con agregaciones). **Misma suite de contrato** para ambas (013).
 4. Tests: cada definición del criterio 2 con casos borde (período vacío, todos verdes, sin notificados).
 
 ### Frontend
-5. Ruta `/contador/resumen`; navegación del header: **Cierres · Resumen · Parámetros**. Respeta `period` en la URL.
-6. **Fila de 4 KPIs**:
-   - **Avance del cierre:** "220 de 300 sin aprobar" + barra apilada por estado + "≈ 17 h 36 min de revisión".
-   - **Facturado en octubre:** US$ grande, ARS chico.
-   - **A pagar por tus clientes:** ARS grande + "próximo vencimiento 20/11".
-   - **Todo ok:** % verdes con el ícono verde.
-7. **Tres gráficos**:
-   - **Situaciones más frecuentes:** barras horizontales coloreadas por severidad (top 8).
-   - **Clientes por categoría:** barras verticales A–K + RI, en `--color-primary`; las barras I, J, K se marcan con borde amarillo si hay clientes cerca del tope K.
-   - **Vencimientos:** barras por fecha con el monto a pagar.
-8. **Métricas de éxito** (fila de 3 tarjetas chicas con texto explicativo): % verdes, % avisados antes del día 10, % de cuotas pagadas en término.
-9. **Drill-down:** click en una barra de situación → `/contador?period=…&signal=CODE`; click en un segmento de la barra de avance → `/contador?status=…`; click en "Todo ok" → `/contador?severity=GREEN`.
-10. Estados de carga (skeletons con la forma de cada tarjeta), vacío y error (§5 de `ui-guidelines.md`).
-11. Accesibilidad: cada gráfico tiene título, `aria-label` con resumen textual ("Faltan facturas: 14 clientes; …") y una tabla equivalente oculta visualmente (`sr-only`).
-12. Tests: render de KPIs y formatos, drill-down navega con los filtros correctos, estados, `vitest-axe` sin violaciones serias.
+5. Ruta `/contador/resumen`; navegación del header: **Cierres · Resumen · Parámetros**. Título `"Resumen de octubre 2026"` (mes en minúscula, sin `capitalize`), `<title>`: `"Resumen · Wallbit Contabilidad"`. Lee `period` de la URL (controlado por el `PeriodSelect` global del header; no renderiza selector propio).
+6. **Orden de la página:**
+   1. **Estado de los clientes (`SeverityOverview`):** 3 tarjetas (**Rojos · Amarillos · Verdes**), cada una con ícono y borde izquierdo de 4 px de su severidad, cantidad grande, `"% del total"` y link `"Ver en la tabla →"` (`/contador?period=…&severity=RED|YELLOW|GREEN`).
+   2. **Indicadores del cierre (3 KPIs):**
+      - **Progreso del cierre:** "220 de 300 sin aprobar" + barra apilada por estado + "≈ 17 h 36 min de revisión".
+      - **Facturado del mes:** US$ grande, ARS chico.
+      - **A pagar estimado:** ARS grande + "Próximo vence 20/11".
+   3. **Tres gráficos:**
+      - **Situaciones detectadas:** barras horizontales coloreadas por severidad (top 8).
+      - **Distribución por categoría:** barras verticales A–K + RI, en `--color-primary`; las barras I, J, K se marcan con borde amarillo si hay clientes cerca del tope K.
+      - **Vencimientos próximos:** barras por fecha con el monto a pagar.
+   4. **Sección separada "¿Está funcionando el servicio?" (`ServiceHealth`):** separador + título `text-lg` + subtítulo `"Las métricas con las que mido si el servicio cumple su objetivo."` y 3 tarjetas: Clientes en verde, Avisados antes del día 10, Pagos en término. Cada una muestra el porcentaje grande y debajo `"X de Y"` con su definición en una línea.
+7. **Drill-down:** click en `"Ver en la tabla →"` → `/contador?period=…&severity=…`; click en una barra de situación → `/contador?period=…&signal=CODE`; click en un segmento de la barra de avance → `/contador?status=…`.
+8. Estados de carga (skeletons con la forma de cada tarjeta), vacío y error (§5 de `ui-guidelines.md`).
+9. Accesibilidad: cada gráfico tiene título, `aria-label` con resumen textual ("Faltan facturas: 14 clientes; …") y una tabla equivalente oculta visualmente (`sr-only`).
+10. Tests: orden de secciones, links de las tarjetas de estado, ausencia de "Todo ok", `"X de Y"` correcto, drill-down, estados, `vitest-axe` sin violaciones serias.

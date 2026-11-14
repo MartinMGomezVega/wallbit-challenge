@@ -84,26 +84,26 @@ Archivos en `specs/assets/brand/` → copiar a `frontend/src/assets/brand/` (log
 
 | Archivo | Uso |
 |---|---|
-| `wallbit-logo-white.png` (isotipo azul + texto blanco, fondo transparente, 429×94) | **Header oscuro** (contador y cliente). Variante principal. |
-| `wallbit-logo-dark.png` (isotipo azul + texto `#0A0A0A`, transparente) | Fondos claros: pantalla de "Ver como", estados vacíos, página `/_ui`. |
-| `wallbit-isotype.png` (solo isotipo, transparente, 97×97) | Espacios chicos: modal en mobile, loader, avatar del contador en notificaciones. |
-| `favicon-32.png`, `favicon-64.png` | `<link rel="icon">` |
-| `favicon-180.png` (isotipo sobre negro) | `apple-touch-icon` |
+| `wallbit-logo-white.svg` (isotipo azul + texto blanco) | **Header oscuro** del contador. Variante principal. |
+| `wallbit-logo-dark.svg` (isotipo azul + texto `#0A0A0A`) | Fondos claros: estados vacíos, página `/_ui`. |
+| `wallbit-isotype.svg` (solo isotipo azul) | Espacios chicos: modal en mobile, loader. |
+| `favicon.svg` | `<link rel="icon" type="image/svg+xml">` (principal). |
+| `favicon-32.png`, `favicon-64.png` | `<link rel="icon">` fallback PNG. |
+| `favicon-180.png` (isotipo sobre negro) | `apple-touch-icon`. |
 
 Reglas:
 - Alto del logo en el header: **24 px** (ancho automático). Isotipo solo: mínimo 20 px.
 - Espacio libre alrededor del logo: al menos la mitad de su alto.
-- No recolorear, estirar, rotar ni agregar sombras. Solo las dos variantes provistas.
+- No recolorear, estirar, rotar ni agregar sombras. Solo las variantes SVG oficiales provistas.
 - `alt="Wallbit"` en el logo con texto; el isotipo decorativo lleva `alt=""`.
-- Al lado del logo, separado por un divisor vertical de 1 px `rgba(255,255,255,0.2)`, el nombre de la herramienta en `text-sm` 500 blanco: **"Contabilidad"** (contador) o **"Impuestos"** (cliente).
-- Son PNG extraídos de las imágenes provistas; si Wallbit comparte el SVG oficial, reemplazarlos (mismo nombre de archivo, extensión `.svg`).
+- Separación de **32 px** (`gap-8`) entre el logo y la primera pestaña; sin texto "Contabilidad" en el header (queda en el `<title>` de cada página).
 
 ## 3. Layout
 
 ### 3.1 Contador (desktop-first, mínimo soportado 1280 px)
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [logo wallbit] │ Contabilidad   Cierres  Resumen  Parámetros   [Ver como ▾] │  ← header 56 px, fondo #0A0A0A, logo blanco 24 px; navegación activa con subrayado 2 px #0D99FF
+│ [logo wallbit 24px]   Cierres  Resumen  Parámetros   Período [octubre 2026 ▾]  (C) Contador │  ← header 56 px, fondo #0A0A0A, logo blanco 24 px; navegación activa con subrayado 2 px #0D99FF
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Cierre de octubre 2026                                   300 clientes     │  ← título + subtítulo muted
 │ [● Rojos 12  Revisar] [▲ Amarillos 47  Revisar] [✓ Verdes 241]           │  ← chips de resumen (toggle)
@@ -117,10 +117,8 @@ Reglas:
 - Contenido a ancho completo (la tabla necesita el espacio). Fondo `--color-bg`; tabla dentro de una tarjeta `surface`.
 - Barra de selección: flotante, centrada abajo, `shadow-xl`, aparece con ≥ 1 seleccionado.
 
-### 3.2 Cliente (mobile-first)
-- Columna única centrada, `max-width: 640px`. Tarjetas apiladas con 16 px de separación.
-- Header oscuro igual al del contador (logo blanco + "Impuestos") con la campana a la derecha.
-- La cifra principal ("Tenés que pagar $ 84.613,00 · vence el 20/11") en `text-2xl` arriba de todo cuando el cierre está listo.
+### 3.2 Cliente
+Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
 
 ## 4. Componentes
 
@@ -145,9 +143,8 @@ Reglas:
 | Secondary | fondo blanco, borde, texto `text` | "Aprobar", "Revisar", "Cancelar" |
 | Ghost | sin fondo ni borde | acciones de tabla, "Limpiar filtros" |
 | Danger-soft | fondo `#FEF2F2`, texto `#B91C1C` | "Confirmar pase a RI" |
-| **ComingSoon** | Secondary atenuado (opacidad 0.55), `aria-disabled`, ícono `Clock` 14 px, tooltip "Próximamente" | "Emitir factura en ARCA", "Pagar en ARCA" |
 
-Alturas: 32 px (contador), 40 px (cliente). Foco visible siempre (anillo `--color-focus`).
+Altura: 32 px. Foco visible siempre (anillo `--color-focus`).
 
 ### 4.4 Modal de revisión (009)
 - Tamaño `min(1120px, 94vw)` × `88vh`, radio 10 px, `shadow-xl`, overlay `rgba(10,10,10,0.5)`.
@@ -162,12 +159,14 @@ Alturas: 32 px (contador), 40 px (cliente). Foco visible siempre (anillo `--colo
 - Diálogos de confirmación: 440 px de ancho, título + 1 párrafo + 2 botones.
 
 ### 4.6 Vista del cliente (011)
-- Tarjeta de período con un **stepper vertical** para "Acción requerida" (número en círculo, check verde al completar).
-- Zona de carga de CSV: borde punteado 2 px, ícono `Upload`, texto "Arrastrá el CSV de Mis Comprobantes o hacé click".
-- Cierre listo: cifra grande, lista de conceptos con vencimiento, botones apilados en mobile (100% ancho).
+Fuera del alcance del prototipo: la vista del cliente vive en la app de Wallbit.
 
 ### 4.7 Resumen (dashboard, 014)
-- Grilla de 12 columnas, gap 16 px. KPIs: 4 tarjetas de 3 columnas; gráficos: "Situaciones" 6 columnas, "Categorías" 6, "Vencimientos" 12; métricas de éxito: 3 tarjetas de 4.
+- Grilla de 12 columnas, gap 16 px, ordenada de arriba hacia abajo en 4 bloques:
+  1. **Estado de los clientes (`SeverityOverview`):** 3 tarjetas de 4 columnas (**Rojos · Amarillos · Verdes**) con borde izquierdo de 4 px del color de su severidad, ícono, cantidad grande, "% del total" y link "Ver en la tabla →" (`/contador?period=…&severity=…`).
+  2. **Indicadores del cierre:** 3 tarjetas de 4 columnas (Progreso del cierre, Facturado del mes, A pagar estimado con próximo vencimiento real). Sin KPI "Todo ok".
+  3. **Gráficos (Recharts):** "Situaciones detectadas" 6 columnas, "Distribución por categoría" 6, "Vencimientos próximos" 12.
+  4. **Sección separada "¿Está funcionando el servicio?" (`ServiceHealth`):** separador superior, título `text-lg`, subtítulo muted y 3 tarjetas de 4 columnas (% en verde, % avisados antes del día 10, % pagos en término), cada una con **"X de Y"** debajo.
 - **KPI:** tarjeta blanca, padding 20 px, label `text-xs` MAYÚSCULAS muted arriba, valor `text-2xl` `tabular-nums`, línea secundaria `text-sm` muted. Toda la tarjeta clickeable si tiene drill-down (cursor pointer, hover `surface-muted`, foco visible).
 - **Barra de avance apilada:** alto 8 px, radio completo, segmentos en este orden: Notificado `#047857`, Aprobado `#0369A1`, Para revisar `#006FC0` al 40% de opacidad, Esperando al cliente `#D4D4D4`.
 - **Gráficos (Recharts):** sin fondo propio (van dentro de una tarjeta blanca), grilla horizontal `#E5E5E5` punteada, sin grilla vertical, ejes `text-xs` `#6B6B6B` sin línea de eje, barras con radio 4 px en el extremo, ancho máximo de barra 28 px, tooltip con el estilo de §4.5. Colores: barras de situaciones con el color de **ícono** de su severidad; categorías y vencimientos en `--color-primary`. Nada de gradientes, 3D ni tortas.
@@ -183,13 +182,13 @@ Alturas: 32 px (contador), 40 px (cliente). Foco visible siempre (anillo `--colo
 - **Contador:** términos técnicos permitidos (categoría, tope K, débito fiscal, RG).
 - **Cliente:** sin jerga. "Cuota del Monotributo", no "impuesto integrado"; "lo que facturaste", no "ingresos brutos devengados".
 - Botones con verbo + objeto ("Aprobar y siguiente", "Subir facturas"). Sin signos de exclamación salvo en la confirmación final del cliente.
-- Fechas `dd/MM/yyyy` (en tabla `dd/MM`); meses en minúscula ("octubre 2026"); montos `$ 1.234.567,89` y `US$ 1.234,56`.
+- Fechas `dd/MM/yyyy` (en tabla `dd/MM`); meses en minúscula sin `capitalize` en encabezados ("Cierre de octubre 2026", "Resumen de octubre 2026"); montos `$ 1.234.567,89` y `US$ 1.234,56`.
 
 ## 7. Accesibilidad (checklist por componente)
 - Contraste AA en texto; 3:1 en íconos y bordes significativos.
 - Todo operable con teclado; orden de foco lógico; foco atrapado en modal y diálogos.
 - `aria-live="polite"` para el resultado de importación y para el contador "Cliente 3 de 47".
-- Tests de accesibilidad con `vitest-axe` en DashboardPage, ReviewModal y ClientPage (0 violaciones serias).
+- Tests de accesibilidad con `vitest-axe` en DashboardPage, ReviewModal y SummaryPage (0 violaciones serias).
 
 ## 8. Fuera de alcance
 Modo oscuro (los tokens quedan preparados como variables), responsive del tablero del contador por debajo de 1280 px, internacionalización.

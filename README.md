@@ -45,8 +45,6 @@ docker compose up --build
 
 En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. La "fecha de hoy" del prototipo está fijada en el 5/11/2026 para que siempre se vea lo mismo. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
 
-Arriba a la derecha, **"Ver como"** cambia entre la vista del contador y la de cualquier cliente.
-
 <details>
 <summary><b>Sin Docker para la app, tests y variables</b></summary>
 
@@ -108,11 +106,11 @@ El color es la situación **más grave** del cliente, y la descripción explica 
 Se abre desde una fila, desde un chip de color o desde una selección, y recorre **exactamente la lista que el contador tenía filtrada**, en el mismo orden, con Anterior / Siguiente y atajos de teclado. La cola se congela al abrir: si un cliente cambia de color al aprobarlo, el índice no salta. Todo queda en la URL, así que recargar, compartir el link o usar el botón Atrás del navegador vuelve al mismo lugar.
 
 ### Resumen del cierre
-La pestaña **Resumen** muestra:
-- cuánto falta para terminar el cierre, con una estimación de horas de revisión;
-- cuánto facturaron y cuánto tienen que pagar los clientes, y cuándo vence;
-- dónde está el riesgo: situaciones más frecuentes, clientes por categoría y cerca del tope K;
-- **las métricas que definen si el servicio funciona:** % de verdes, % de clientes avisados antes del día 10 y % de cuotas pagadas en término.
+La pestaña **Resumen** muestra, de arriba hacia abajo:
+- **Estado de los clientes:** tarjetas Rojos, Amarillos y Verdes con su porcentaje del total y link directo a la tabla filtrada;
+- **Indicadores del cierre:** avance de aprobación con estimación de horas de revisión, facturado del mes y total a pagar con próximo vencimiento;
+- **Gráficos:** situaciones detectadas, clientes por categoría (y cerca del tope K) y vencimientos próximos;
+- **¿Está funcionando el servicio?:** sección separada con % de verdes, % avisados antes del día 10 y % de pagos en término (con su detalle `X de Y`).
 
 No es decorativo: cada número lleva a la tabla filtrada que lo explica.
 
@@ -126,6 +124,8 @@ No es decorativo: cada número lleva a la tabla filtrada que lo explica.
 - **Cierre listo:** solo después de la firma. Dentro de la app ve cuánto facturó, cuánto paga y hasta cuándo.
 - **Email y push sin montos ni CUIT**, solo "Tenés novedades en Wallbit". El detalle se ve dentro de la app. Un test falla si un mensaje saliente contiene un monto.
 - **Recordatorio** unos días antes del vencimiento si no marcó "Ya pagué".
+
+En este prototipo, la parte del cliente es la API `/api/v1/me/**` (lista para que la consuma la app de Wallbit, se puede probar desde Swagger), y el contador ve en el modal exactamente el aviso que va a recibir el cliente.
 
 ### Monotributo y Responsable Inscripto
 Incluí RI porque **es a donde va el freelancer que crece**: si factura más que el tope de la categoría K, queda excluido del Monotributo desde ese día. La herramienta calcula el acumulado de 12 meses día por día y detecta **la fecha exacta** en que se cruzó el tope. Esa fecha importa: desde ahí debería haber facturado como RI. El contador confirma el pase y la herramienta empieza a calcular IVA, autónomos y anticipos.
@@ -220,14 +220,13 @@ Las reglas impositivas viven en `domain`, sin HTTP ni base de datos, y se testea
 
 ```
 frontend/src/
-├── app/          router, providers, layout, "Ver como"
+├── app/          router, providers, layout, selector global de período
 ├── shared/       api (fetch + zod), ui (tokens de marca, semáforo, botones), format (es-AR)
 └── features/
     ├── closings-dashboard/   tablero, filtros, chips, aprobación en lote
     ├── closing-review/       modal con cola Anterior / Siguiente
     ├── summary-dashboard/    Resumen del cierre
-    ├── parameters/           parámetros del contador
-    └── client-portal/        vista del cliente
+    └── parameters/           parámetros del contador
 ```
 
 TanStack Query y TanStack Table, React Router (con el estado en la URL), Tailwind con los tokens de marca, Radix UI para accesibilidad, Recharts para el Resumen y Zod para validar las respuestas.
@@ -244,7 +243,7 @@ PENDING_CLIENT_INPUT ──cliente confirma──► READY_FOR_REVIEW ──cont
 
 ## API
 
-La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (también en `http://localhost:8080/docs`). El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
+La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público o plan pago; si no, el Swagger está en `http://localhost:8080/docs`). El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
 
 Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<clientId>`.
 
@@ -257,7 +256,7 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 
 ## Datos de demo
 
-300 clientes generados con semilla fija (85% Monotributo, 15% RI, cobros de USD 800 a 9.000 por mes de empresas y plataformas del exterior) y **15 clientes armados a mano**, uno por cada situación. Los encontrás en "Ver como" y con el buscador del tablero:
+300 clientes generados con semilla fija (85% Monotributo, 15% RI, cobros de USD 800 a 9.000 por mes de empresas y plataformas del exterior) y **15 clientes armados a mano**, uno por cada situación. Los encontrás con el buscador del tablero:
 
 | Cliente | Situación |
 |---|---|
@@ -275,7 +274,7 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 | Nicolás Peralta | 🔴 Depósitos por encima del tope K |
 | Julieta Molina | 🟡 Declaró cobros fuera de Wallbit |
 | Bruno Acosta | 🟡 Podría bajar de categoría |
-| Paula Rojas | Esperando que suba sus facturas: entrá como ella, descargá el CSV de ejemplo y subilo |
+| Paula Rojas | Esperando que suba sus facturas (su flujo se prueba por API: importar el CSV de `frontend/public/samples/` como `client:cli_demo_15` desde Swagger) |
 
 Todos los nombres, CUITs y empresas son inventados.
 
@@ -300,7 +299,7 @@ Todos los nombres, CUITs y empresas son inventados.
 No entraba en el alcance del challenge, pero son los próximos pasos para llevarlo a producción.
 
 ### Login y roles
-Hoy la identidad es un selector de demo ("Ver como") y un header `X-Demo-User`. Para producción:
+Hoy la identidad es un header de demo (`X-Demo-User`). Para producción:
 - **Contador:** login real con MFA obligatorio y roles. El backend validaría el token en un middleware que reemplaza al de demo, y cada aprobación quedaría atada a la identidad del contador matriculado que firmó.
 - **Cliente:** no crearía cuentas nuevas. El cliente ya tiene cuenta en Wallbit, así que esta parte viviría dentro de la app de Wallbit y usaría la sesión que ya tiene.
 
@@ -312,11 +311,14 @@ Hoy Postgres corre en Docker y los datos salen de un generador. Para producción
 - Particionado de cierres y movimientos por período.
 - Descarté DynamoDB por lo mismo que en el prototipo: transacciones entre varias entidades y agregaciones.
 
+### Vista del cliente
+La experiencia del cliente (subir facturas, ver el resumen, marcar "Ya pagué") va dentro de la app de Wallbit. Dejé lista la API que la alimenta y la vista previa del aviso en el modal del contador.
+
 ### Emitir facturas en ARCA
-Hoy el botón está visible como *Próximamente*. Lo haría así: un formulario prellenado con el cobro que acaba de entrar (cliente del exterior, monto, moneda, tipo de cambio) que emite la **Factura E** por el web service de facturación de exportación de ARCA, con el usuario delegando ese servicio a Wallbit desde su Clave Fiscal. La factura vuelve con su CAE y entra sola al cierre. Esto **elimina el riesgo más grande del producto**: que el usuario no cargue sus facturas.
+Lo haría así: un formulario prellenado con el cobro que acaba de entrar (cliente del exterior, monto, moneda, tipo de cambio) que emite la **Factura E** por el web service de facturación de exportación de ARCA, con el usuario delegando ese servicio a Wallbit desde su Clave Fiscal. La factura vuelve con su CAE y entra sola al cierre. Esto **elimina el riesgo más grande del producto**: que el usuario no cargue sus facturas.
 
 ### Pagar en ARCA
-También está como *Próximamente*. Generaría el VEP de la obligación ya aprobada y lo pagaría con el saldo de Wallbit en un click. `paidAt` se marca solo con el comprobante, y las métricas de pago en término dejan de depender de que el usuario marque "Ya pagué".
+Generaría el VEP de la obligación ya aprobada y lo pagaría con el saldo de Wallbit en un click. `paidAt` se marca solo con el comprobante, y las métricas de pago en término dejan de depender de que el usuario marque "Ya pagué".
 
 ### Integraciones reales
 - ARCA (escalas, vencimientos, padrón) y cotización oficial del BNA/BCRA, reemplazando los adaptadores mock detrás de los mismos puertos.
@@ -334,10 +336,10 @@ Ingresos Brutos (varía por provincia), declaraciones juradas anuales, notas de 
 
 ## Calidad
 
-- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.1% · frontend 98.4%.
+- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.1% · frontend 98.2%.
 - Backend: tests table-driven del dominio, `httptest` para los handlers, `-race` para el cierre concurrente, un benchmark del cálculo de Monotributo y un test end-to-end que verifica que cada cliente de demo cae en su situación.
 - Integración: los repositorios Postgres pasan las mismas suites de contrato que los de memoria, más tests de transacciones y de concurrencia optimista.
-- Frontend: Vitest + Testing Library + MSW, y `vitest-axe` para accesibilidad en las pantallas principales.
+- Frontend: Vitest + Testing Library + MSW, fixtures reales generados por el backend validados con Zod (`make fixtures`), y `vitest-axe` para accesibilidad en las pantallas principales.
 
 ---
 

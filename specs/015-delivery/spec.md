@@ -20,7 +20,8 @@ Que alguien que nunca vio el proyecto lo levante con **un comando**, entienda la
 ### API documentada
 6. `backend/api/embed.go` (`package api`, `//go:embed openapi.yaml`, `var Spec []byte`). `GET /api/openapi.yaml` sirve el spec (`application/yaml`) y `GET /docs` sirve `docs/index.html` (embebido) sin auth.
 7. **Test de contrato** (`internal/interfaces/http/contract_test.go`): extrae de `openapi.yaml` las líneas `^  (/api/v1/[^:]+):$` y los métodos debajo (`^    (get|post|put|patch|delete):$`), las compara con `Routes() []string` del router (`"GET /api/v1/..."`) y falla si sobra o falta alguna. Sin dependencias YAML.
-8. GitHub Pages publica el Swagger con el workflow incluido (si el repo lo permite; si no, queda documentado el Swagger local).
+8. GitHub Pages publica el Swagger con el workflow incluido (`actions/configure-pages@v5`, copia `openapi.yaml`, `wallbit-logo-white.svg` y `favicon.svg` junto a `docs/index.html`). Requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público (o plan pago); si no, queda documentado el Swagger local en `http://localhost:8080/docs`.
 
 ### Verificación final
 9. Carpeta limpia: `docker compose up --build`, `make test`, `make coverage` (≥ 90%) y `make test-integration` pasan.
+10. **Fixtures de contrato back → front:** `make fixtures` (incluido en `make test`) genera respuestas reales del backend en `frontend/src/test/fixtures/api/` que los tests del front validan con Zod.

@@ -15,7 +15,7 @@ Orquestar todo lo anterior: el día 1 (o al arrancar el prototipo) se genera el 
    2. `knownPayers` = receptores de facturas anteriores al período; clasifica movimientos sin override;
    3. pesifica facturas (`AmountARS`) usando el `ExchangeRateProvider`;
    4. concilia;
-   5. liquida según el régimen vigente al último día del período (004 o 005);
+   5. liquida según el régimen vigente al último día del período (004 o 005), calculando los vencimientos del mes siguiente al período (`p.Next()`);
    6. evalúa señales (006);
    7. persiste `Closing` con `Version+1` si el resultado cambió (comparar `ResultHash`); si no cambió, no crea versión.
 2. `Closing{ID, ClientID, Period, Status, Version, ResultHash, Severity, Signals, Description, Mono?, RI?, Reconciliation (IDs), ComputedAt, Approvals[] , PaidAt?}`. `ResultHash` = SHA-256 de JSON canónico de assessment + señales (orden de claves estable).

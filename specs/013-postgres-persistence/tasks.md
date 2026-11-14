@@ -16,3 +16,4 @@
 - [x] **T013.11** Dockerfiles (backend distroless, frontend nginx con proxy y fallback SPA), `docker-compose.yml`, `.dockerignore`.
   - Listo cuando: `docker compose up --build` en una carpeta limpia deja la app andando en `:5173` y el e2e manual de la demo funciona.
 - [x] **T013.12** Makefile (`up`, `dev`, `dev-memory`, `test-integration`, `reset-db`) + `scripts/coverage.sh` excluye `infrastructure/postgres`. `make coverage` ≥ 90% y `make test-integration` verde.
+- [x] **T013.13** Suite de contrato memoria vs Postgres (`CompareClosingQueries` con `reflect.DeepEqual` sobre `Page` y `Summary`, 10 combinaciones sobre el seed completo de 300 clientes).

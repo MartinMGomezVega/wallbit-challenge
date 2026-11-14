@@ -31,7 +31,7 @@ Que el contador revise clientes uno tras otro sin volver a la tabla, recorriendo
     - **Señales**: todas, con su color, mensaje y datos.
     - **Movimientos**: tabla con tipo, contraparte, monto USD/ARS, TC, clasificación (regla + confianza). Acción "Cambiar a Ingreso / No ingreso" (PATCH de 002); al guardar se refresca el detalle y la cola sigue en el mismo índice.
     - **Facturas y conciliación**: facturas con TC usado y ARS, pares conciliados, cobros sin factura, facturas sin cobro.
-    - **Aviso al cliente**: borrador (lo agrega 010).
+    - **Aviso al cliente**: borrador (lo agrega 010) y, si fue notificado, lo publicado (`Published`) con fecha.
     - **Historial**: versiones y aprobaciones.
 12. Pie: "Aprobar y siguiente" (primario), "Aprobar" , "Confirmar pase a RI" (solo si hay `MONO_EXCLUSION_K_CAP_EXCEEDED`; abre confirmación con la fecha de exclusión; usa 005). Los botones de aprobar los conecta 010.
 13. Accesibilidad: Radix Dialog (foco atrapado, `aria-labelledby`), navegación completa por teclado.
