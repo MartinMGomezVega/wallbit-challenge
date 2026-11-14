@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/src/assets/brand/wallbit-logo-dark.png" alt="Wallbit" height="40">
+  <img src="frontend/src/assets/brand/wallbit-logo-dark.svg" alt="Wallbit" height="40">
 </p>
 
 <h1 align="center">Contabilidad · Cierre de mes</h1>
@@ -88,17 +88,17 @@ make lint
 | Pesifica y concilia cobros con facturas | Corrige clasificaciones | Confirma que terminó |
 | Calcula Monotributo o RI y detecta el pase a RI | Aprueba: individual o en lote (solo verdes) | Ve el resumen **después** de la aprobación |
 | Marca cada cierre 🔴/🟡/🟢 con una descripción | Confirma el pase a RI | Marca "Ya pagué" |
-| Arma el borrador del aviso y los totales del mes | Escribe una nota para el cliente si hace falta | Recibe un recordatorio antes del vencimiento |
+| Arma el borrador del aviso y los totales del mes | Importa facturas y confirma en nombre del cliente si se las manda | Recibe un recordatorio antes del vencimiento |
 
 Lo dimensioné así: con 500 clientes, si el 70% sale verde y se revisa en ~2 minutos, y el 30% necesita ~10, son unas **37 horas por mes**. Entra en una semana de trabajo del contador.
 
 ### Por qué reglas y no IA para clasificar
 Las reglas son **explicables**: cada movimiento muestra qué regla lo clasificó, por ejemplo "Empresa del exterior → ingreso", y el contador puede auditarlas y corregirlas. Además respetan que **los datos no salgan de Wallbit**, porque no se mandan a un modelo externo. Cubren el caso típico (cobros de empresas del exterior, transferencias propias, gastos con tarjeta, conversiones a stablecoins). Lo dudoso queda "sin clasificar" y aparece en amarillo: prefiero pedirle 10 segundos al contador antes que adivinar un número impositivo.
 
-### Sistema de semáforo que pense:
+### El semáforo
 - 🔴 **Requiere acción:** excede el tope de la categoría K, facturas C después de la exclusión, cobros sin factura, depósitos por encima del tope.
 - 🟡 **Revisar:** cerca del tope K o de su categoría, debe recategorizar, cobro fuera de lo habitual, movimientos sin clasificar, cobros declarados fuera de Wallbit, facturas sin cobro, gastos con tarjeta altos, puede bajar de categoría.
-- 🟢 **Todo ok.**: No requiere cambios.
+- 🟢 **Todo ok:** no requiere cambios.
 
 El color es la situación **más grave** del cliente, y la descripción explica esa situación en una línea. El color nunca va solo: siempre lo acompañan un ícono y un texto, para quien no distingue colores. El **estado del cierre** (esperando al cliente, para revisar, aprobado, notificado) va en otra columna. Mezclarlo con el semáforo haría que "todavía no subió facturas" se viera igual que "tiene un problema real".
 
@@ -112,20 +112,21 @@ La pestaña **Resumen** muestra, de arriba hacia abajo:
 - **Gráficos:** situaciones detectadas, clientes por categoría (y cerca del tope K) y vencimientos próximos;
 - **¿Está funcionando el servicio?:** sección separada con % de verdes, % avisados antes del día 10 y % de pagos en término (con su detalle `X de Y`).
 
-El selector de período permite alternar entre **octubre 2026** (el período en curso, con los cierres listos para revisar y la estimación de tiempo) y **septiembre 2026** (período cerrado y aprobado, donde se aprecian las métricas de éxito históricas de avisos y pagos en término). No es decorativo: cada número lleva a la tabla filtrada que lo explica.
+Con el selector de período se compara **septiembre** (cerrado y aprobado, con métricas de éxito reales) con **octubre** (en curso). Cada número lleva a la tabla filtrada que lo explica.
 
 ### Aprobación: rápida pero auditada
 - **En lote, solo los verdes.** Los amarillos y rojos los firma el contador uno por uno.
 - Cada aprobación guarda **quién, cuándo, la versión del cálculo y un hash del resultado**. Si después cambia un dato, el cierre vuelve a "para revisar" con una versión nueva y la aprobación anterior queda en el historial.
 - **Nunca se firma un número que no se vio:** si el cierre cambió mientras el contador lo miraba, la aprobación se rechaza y se le pide refrescar.
 
-### Cómo se entera el usuario
-- **Acción requerida** (subir facturas, declarar cobros externos): sale sin aprobación, porque no es asesoramiento.
-- **Cierre listo:** solo después de la firma. Dentro de la app ve cuánto facturó, cuánto paga y hasta cuándo.
-- **Email y push sin montos ni CUIT**, solo "Tenés novedades en Wallbit". El detalle se ve dentro de la app. Un test falla si un mensaje saliente contiene un monto.
-- **Recordatorio** unos días antes del vencimiento si no marcó "Ya pagué".
+### La experiencia del cliente
+Vive dentro de la app de Wallbit. Así la pensé:
+1. **Día 1:** "Subí tus facturas de octubre" (push sin montos y aviso en la app).
+2. **Carga en 3 pasos:** importar el CSV de "Mis Comprobantes" de ARCA (o cargar a mano) → "¿Cobraste algo fuera de Wallbit?" → "Listo, ya cargué todo". Si prefiere mandárselas al contador, él las importa desde el modal.
+3. **Espera:** "Tu contador está revisando tu cierre".
+4. **Con la firma:** "Facturaste US$ X. Pagás $ Y antes del 20/11", con "Ya pagué" y un recordatorio antes del vencimiento.
 
-En este prototipo, la parte del cliente es la API `/api/v1/me/**` (lista para que la consuma la app de Wallbit, se puede probar desde Swagger), y el contador ve en el modal exactamente el aviso que va a recibir el cliente.
+Email y push nunca llevan montos ni CUIT, y nada impositivo sale sin la firma del contador. En el prototipo, esta experiencia es la API `/api/v1/me/**` (se puede probar desde Swagger), y el contador ve en el modal el aviso exacto que recibe el cliente. A futuro, la factura se emite desde Wallbit y el paso 2 desaparece.
 
 ### Monotributo y Responsable Inscripto
 Incluí RI porque **es a donde va el freelancer que crece**: si factura más que el tope de la categoría K, queda excluido del Monotributo desde ese día. La herramienta calcula el acumulado de 12 meses día por día y detecta **la fecha exacta** en que se cruzó el tope. Esa fecha importa: desde ahí debería haber facturado como RI. El contador confirma el pase y la herramienta empieza a calcular IVA, autónomos y anticipos.
@@ -249,7 +250,7 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 
 | Para | Endpoints principales |
 |---|---|
-| Contador | `GET /accountant/periods/{period}/closings` (+ `/summary`, `/ids`, `/stats`) · `GET /accountant/closings/{id}` · `POST .../approve` · `POST .../approve-batch` · `PATCH /accountant/movements/{id}/classification` · `POST /accountant/clients/{id}/regime-change` · `GET/PUT /accountant/parameters` |
+| Contador | `GET /accountant/periods/{period}/closings` (+ `/summary`, `/ids`, `/stats`) · `GET /accountant/closings/{id}` · `POST .../approve` · `POST .../approve-batch` · `PATCH /accountant/movements/{id}/classification` · `POST /accountant/clients/{id}/regime-change` · `GET/PUT /accountant/parameters` · `POST /accountant/clients/{id}/invoices/import` · `POST .../periods/{period}/confirm-input` |
 | Cliente | `GET /me/closings` · `POST /me/invoices/import` · `PUT /me/periods/{period}/external-income` · `POST /me/periods/{period}/confirm` · `POST /me/closings/{id}/paid` · `GET /me/notifications` |
 
 ---
@@ -274,7 +275,7 @@ Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<
 | Nicolás Peralta | 🔴 Depósitos por encima del tope K |
 | Julieta Molina | 🟡 Declaró cobros fuera de Wallbit |
 | Bruno Acosta | 🟡 Podría bajar de categoría |
-| Paula Rojas | Esperando que suba sus facturas (su flujo se prueba por API: importar el CSV de `frontend/public/samples/` como `client:cli_demo_15` desde Swagger) |
+| Paula Rojas | Esperando sus facturas: en el modal → Facturas → Importar, con el CSV de ejemplo, y después 'Confirmar en nombre del cliente'. |
 
 Todos los nombres, CUITs y empresas son inventados.
 
@@ -311,9 +312,6 @@ Hoy Postgres corre en Docker y los datos salen de un generador. Para producción
 - Particionado de cierres y movimientos por período.
 - Descarté DynamoDB por lo mismo que en el prototipo: transacciones entre varias entidades y agregaciones.
 
-### Vista del cliente
-La experiencia del cliente (subir facturas, ver el resumen, marcar "Ya pagué") va dentro de la app de Wallbit. Dejé lista la API que la alimenta y la vista previa del aviso en el modal del contador.
-
 ### Emitir facturas en ARCA
 Lo haría así: un formulario prellenado con el cobro que acaba de entrar (cliente del exterior, monto, moneda, tipo de cambio) que emite la **Factura E** por el web service de facturación de exportación de ARCA, con el usuario delegando ese servicio a Wallbit desde su Clave Fiscal. La factura vuelve con su CAE y entra sola al cierre. Esto **elimina el riesgo más grande del producto**: que el usuario no cargue sus facturas.
 
@@ -336,10 +334,10 @@ Ingresos Brutos (varía por provincia), declaraciones juradas anuales, notas de 
 
 ## Calidad
 
-- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.1% · frontend 98.2%.
+- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.2% · frontend 97.0%.
 - Backend: tests table-driven del dominio, `httptest` para los handlers, `-race` para el cierre concurrente, un benchmark del cálculo de Monotributo y un test end-to-end que verifica que cada cliente de demo cae en su situación.
 - Integración: los repositorios Postgres pasan las mismas suites de contrato que los de memoria, más tests de transacciones y de concurrencia optimista.
-- Frontend: Vitest + Testing Library + MSW, fixtures reales generados por el backend validados con Zod (`make fixtures`), y `vitest-axe` para accesibilidad en las pantallas principales.
+- Frontend: Vitest + Testing Library + MSW, fixtures reales de todas las formas del detalle y de las respuestas de los endpoints que modifican datos validados con Zod (`make fixtures`), y `vitest-axe` para accesibilidad en las pantallas principales.
 
 ---
 

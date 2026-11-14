@@ -24,4 +24,4 @@ Que alguien que nunca vio el proyecto lo levante con **un comando**, entienda la
 
 ### Verificación final
 9. Carpeta limpia: `docker compose up --build`, `make test`, `make coverage` (≥ 90%) y `make test-integration` pasan.
-10. **Fixtures de contrato back → front:** `make fixtures` (incluido en `make test`) genera respuestas reales del backend en `frontend/src/test/fixtures/api/` que los tests del front validan con Zod.
+10. **Fixtures de contrato back → front:** `make fixtures` (incluido en `make test`) genera respuestas reales del backend en `frontend/src/test/fixtures/api/` que los tests del front validan con Zod. La suite cubre todas las formas del detalle del cierre (Monotributo estándar, Monotributo con exclusión, Responsable Inscripto, notificado, pendiente de confirmación e historial con reapertura) y las respuestas de todos los endpoints de escritura que modifican datos (aprobación individual, aprobación en lote, cambio de régimen, importación de facturas por cliente y por contador, y confirmación de período).

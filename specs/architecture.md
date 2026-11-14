@@ -101,7 +101,7 @@ backend/
 - Tests de integración (`//go:build integration`) contra el Postgres del compose: `make test-integration`. Las suites de contrato de `ports/repotest` corren contra memoria (unitarios) y contra Postgres (integración) para garantizar el mismo comportamiento.
 - Tests de handlers con `httptest`.
 - Test de concurrencia del job con `-race`.
-- Fixtures de contrato: `make fixtures` genera respuestas reales del backend en `frontend/src/test/fixtures/api/` para que el frontend las valide con Zod.
+- Fixtures de contrato: `make fixtures` genera respuestas reales del backend en `frontend/src/test/fixtures/api/` para que el frontend las valide con Zod. La suite de fixtures cubre **todas las formas del detalle del cierre** (Monotributo estándar, Monotributo con exclusión, Responsable Inscripto, notificado, pendiente de confirmación e historial con reapertura) y **las respuestas de todos los endpoints que modifican datos** (aprobación individual, aprobación en lote, pase a RI, importación de facturas por cliente y por contador, y confirmación de período).
 
 ## 3. Frontend (React + TS)
 
