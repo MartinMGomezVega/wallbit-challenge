@@ -1,0 +1,43 @@
+:root {
+  --color-bg: #F1F1F1;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F7F7F7;
+  --color-border: #E5E5E5;
+  --color-text: #171717;
+  --color-text-muted: #6B6B6B;
+  --color-header-bg: #0A0A0A;
+  --color-header-text: #FFFFFF;
+  --color-brand: #0D99FF;
+  --color-primary: #006FC0;
+  --color-primary-hover: #005FA8;
+  --color-primary-soft: #E6F4FF;
+  --color-focus: #006FC0;
+
+  /* Semáforo */
+  --color-severity-red-icon: #DC2626;
+  --color-severity-red-text: #B91C1C;
+  --color-severity-red-bg: #FEF2F2;
+  --color-severity-red-border: #FECACA;
+
+  --color-severity-yellow-icon: #D97706;
+  --color-severity-yellow-text: #B45309;
+  --color-severity-yellow-bg: #FFFBEB;
+  --color-severity-yellow-border: #FDE68A;
+
+  --color-severity-green-icon: #059669;
+  --color-severity-green-text: #047857;
+  --color-severity-green-bg: #ECFDF5;
+  --color-severity-green-border: #A7F3D0;
+
+  /* Estados de cierre */
+  --color-status-pending-bg: #F5F5F5;
+  --color-status-pending-text: #525252;
+  --color-status-ready-bg: #E6F4FF;
+  --color-status-ready-text: #005FA8;
+  --color-status-approved-bg: #F0F9FF;
+  --color-status-approved-text: #0369A1;
+  --color-status-notified-bg: #ECFDF5;
+  --color-status-notified-text: #047857;
+  --color-status-paid-border: #A7F3D0;
+  --color-status-paid-text: #047857;
+}

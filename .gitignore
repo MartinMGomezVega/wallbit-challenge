@@ -1,0 +1,8 @@
+node_modules/
+coverage/
+dist/
+coverage.out
+coverage.filtered.out
+*.log
+.DS_Store
+/backend/bin/

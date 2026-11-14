@@ -1,0 +1,34 @@
+[
+  {
+    "validFrom": "2026-02-01",
+    "rows": [
+      { "category": "A", "cap": "10277988.13", "servicesFee": "42386.74" },
+      { "category": "B", "cap": "15058447.71", "servicesFee": "48250.78" },
+      { "category": "C", "cap": "21113696.52", "servicesFee": "56501.85" },
+      { "category": "D", "cap": "26212853.42", "servicesFee": "72414.10" },
+      { "category": "E", "cap": "30833964.37", "servicesFee": "102537.97" },
+      { "category": "F", "cap": "38642048.36", "servicesFee": "129045.32" },
+      { "category": "G", "cap": "46211109.37", "servicesFee": "197108.23" },
+      { "category": "H", "cap": "70113407.33", "servicesFee": "447346.93" },
+      { "category": "I", "cap": "78479211.62", "servicesFee": "824802.26" },
+      { "category": "J", "cap": "89872640.30", "servicesFee": "999007.65" },
+      { "category": "K", "cap": "108357084.00", "servicesFee": "1381687.90" }
+    ]
+  },
+  {
+    "validFrom": "2026-08-01",
+    "rows": [
+      { "category": "A", "cap": "12009410.45", "servicesFee": "49527.18" },
+      { "category": "B", "cap": "17595183.00", "servicesFee": "56379.08" },
+      { "category": "C", "cap": "24670494.00", "servicesFee": "66020.00" },
+      { "category": "D", "cap": "30628651.00", "servicesFee": "84613.00" },
+      { "category": "E", "cap": "36028231.00", "servicesFee": "119811.00" },
+      { "category": "F", "cap": "45151659.00", "servicesFee": "150784.00" },
+      { "category": "G", "cap": "53995799.00", "servicesFee": "230313.00" },
+      { "category": "H", "cap": "81924660.37", "servicesFee": "522706.68" },
+      { "category": "I", "cap": "91699761.90", "servicesFee": "963747.86" },
+      { "category": "J", "cap": "105012519.20", "servicesFee": "1167299.76" },
+      { "category": "K", "cap": "126610838.75", "servicesFee": "1614446.04" }
+    ]
+  }
+]

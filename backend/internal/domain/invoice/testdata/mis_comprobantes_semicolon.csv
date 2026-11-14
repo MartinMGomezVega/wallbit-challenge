@@ -1,0 +1,4 @@
+Fecha;Tipo;Punto de Venta;Número Desde;Número Hasta;Cód. Autorización;Tipo Doc. Receptor;Nro. Doc. Receptor;Denominación Receptor;Tipo Cambio;Moneda;Imp. Neto Gravado;Imp. Neto No Gravado;Imp. Op. Exentas;IVA;Imp. Total
+02/10/2026;19 - Factura E;00002;00000010;00000010;74392819283751;80;30712345682;Acme Digital Inc;1489,80;USD;3.000,00;0,00;0,00;0,00;3.000,00
+14/10/2026;19 - Factura E;00002;00000011;00000011;74392819283752;80;30712345683;Orbital SaaS Corp;1481,80;USD;1.800,00;0,00;0,00;0,00;1.800,00
+
