@@ -43,3 +43,4 @@ export const DEMO_CLIENTS: DemoClient[] = [
     shortScenario: 'En revisión (faltan facturas)',
   },
 ];
+

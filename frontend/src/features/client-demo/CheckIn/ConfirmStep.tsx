@@ -34,3 +34,4 @@ export function ConfirmStep({ canConfirm, loading, onConfirm, error }: ConfirmSt
     </div>
   );
 }
+

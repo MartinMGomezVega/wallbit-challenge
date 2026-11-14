@@ -98,3 +98,4 @@ export async function markClientClosingPaid(clientId: string, closingId: string)
     { as: clientId },
   );
 }
+
