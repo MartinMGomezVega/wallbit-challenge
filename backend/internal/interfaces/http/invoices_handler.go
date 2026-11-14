@@ -28,6 +28,7 @@ type InvoiceDTO struct {
 	ReceiverName string   `json:"receiverName"`
 	ReceiverDoc  string   `json:"receiverDoc,omitempty"`
 	Source       string   `json:"source"`
+	UploadedBy   string   `json:"uploadedBy,omitempty"`
 	CreatedAt    string   `json:"createdAt"`
 }
 
@@ -35,6 +36,10 @@ func toInvoiceDTO(inv invoice.Invoice) InvoiceDTO {
 	var fxRateStr string
 	if inv.FXRate != nil {
 		fxRateStr = inv.FXRate.DecimalString()
+	}
+	uploadedBy := string(inv.UploadedBy)
+	if uploadedBy == "" {
+		uploadedBy = "CLIENT"
 	}
 	return InvoiceDTO{
 		ID:           inv.ID,
@@ -51,6 +56,7 @@ func toInvoiceDTO(inv invoice.Invoice) InvoiceDTO {
 		ReceiverName: inv.ReceiverName,
 		ReceiverDoc:  inv.ReceiverDoc,
 		Source:       string(inv.Source),
+		UploadedBy:   uploadedBy,
 		CreatedAt:    inv.CreatedAt.Format(time.RFC3339),
 	}
 }
@@ -87,6 +93,8 @@ type ClientPeriodInputDTO struct {
 	ExternalIncome           []ExternalIncomeItemDTO `json:"externalIncome"`
 	DeclaredNoExternalIncome bool                    `json:"declaredNoExternalIncome"`
 	ConfirmedAt              string                  `json:"confirmedAt,omitempty"`
+	ConfirmedBy              string                  `json:"confirmedBy,omitempty"`
+	ConfirmationNote         string                  `json:"confirmationNote,omitempty"`
 	UpdatedAt                string                  `json:"updatedAt"`
 }
 
@@ -114,17 +122,20 @@ func toClientPeriodInputDTO(in clientinput.ClientPeriodInput) ClientPeriodInputD
 		ExternalIncome:           items,
 		DeclaredNoExternalIncome: in.DeclaredNoExternalIncome,
 		ConfirmedAt:              confirmedAt,
+		ConfirmedBy:              string(in.ConfirmedBy),
+		ConfirmationNote:         in.ConfirmationNote,
 		UpdatedAt:                in.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
 type invoicesHandler struct {
-	importUC            *usecase.ImportInvoicesCSV
-	addInvoiceUC        *usecase.AddInvoice
-	listInvoicesUC      *usecase.ListInvoices
-	addPurchaseUC       *usecase.AddPurchaseInvoice
-	setExternalIncomeUC *usecase.SetExternalIncome
-	confirmPeriodUC     *usecase.ConfirmPeriodInput
+	importUC               *usecase.ImportInvoicesCSV
+	addInvoiceUC           *usecase.AddInvoice
+	listInvoicesUC         *usecase.ListInvoices
+	addPurchaseUC          *usecase.AddPurchaseInvoice
+	setExternalIncomeUC    *usecase.SetExternalIncome
+	confirmPeriodUC        *usecase.ConfirmPeriodInput
+	confirmInputOnBehalfUC *usecase.ConfirmInputOnBehalf
 }
 
 // importCSV maneja POST /api/v1/me/invoices/import (multipart, max 2MB)
@@ -149,7 +160,7 @@ func (h *invoicesHandler) importCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = file.Close() }()
 
-	res, err := h.importUC.Execute(r.Context(), id.ClientID, file)
+	res, err := h.importUC.Execute(r.Context(), id.ClientID, file, invoice.UploadedByClient)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -380,4 +391,107 @@ func (h *invoicesHandler) confirmPeriod(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, http.StatusOK, toClientPeriodInputDTO(confirmed))
+}
+
+// importCSVAccountant maneja POST /api/v1/accountant/clients/{id}/invoices/import (spec 016 criterio 1)
+func (h *invoicesHandler) importCSVAccountant(w http.ResponseWriter, r *http.Request) {
+	clientID := r.PathValue("id")
+	if clientID == "" {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no provisto", nil)
+		return
+	}
+
+	// Limitar a 2 MB
+	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Archivo supera el límite de 2 MB o formato multipart inválido", nil)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Falta el campo 'file' en el formulario multipart", nil)
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	res, err := h.importUC.Execute(r.Context(), clientID, file, invoice.UploadedByAccountant)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
+type confirmOnBehalfRequest struct {
+	ExternalIncome struct {
+		None  bool `json:"none"`
+		Items []struct {
+			Amount struct {
+				Amount   any    `json:"amount"`
+				Currency string `json:"currency"`
+			} `json:"amount"`
+			Description string `json:"description"`
+		} `json:"items"`
+	} `json:"externalIncome"`
+	Note string `json:"note"`
+}
+
+// confirmInputAccountant maneja POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input (spec 016 criterio 3)
+func (h *invoicesHandler) confirmInputAccountant(w http.ResponseWriter, r *http.Request) {
+	clientID := r.PathValue("id")
+	if clientID == "" {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no provisto", nil)
+		return
+	}
+
+	pStr := r.PathValue("period")
+	p, err := period.Parse(pStr)
+	if err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Período inválido (YYYY-MM)", nil)
+		return
+	}
+
+	var req confirmOnBehalfRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "JSON inválido", nil)
+		return
+	}
+
+	items := make([]clientinput.ExternalIncomeItem, len(req.ExternalIncome.Items))
+	for i, it := range req.ExternalIncome.Items {
+		curr := money.USD
+		if it.Amount.Currency != "" {
+			curr = money.Currency(it.Amount.Currency)
+		}
+		var amt money.Money
+		switch v := it.Amount.Amount.(type) {
+		case float64:
+			amt = money.New(int64(v), curr)
+		case string:
+			parsed, err := money.ParseDecimal(v, curr)
+			if err == nil {
+				amt = parsed
+			}
+		}
+		items[i] = clientinput.ExternalIncomeItem{
+			Amount:      amt,
+			Description: it.Description,
+		}
+	}
+
+	res, err := h.confirmInputOnBehalfUC.Execute(r.Context(), usecase.ConfirmInputOnBehalfInput{
+		ClientID:       clientID,
+		Period:         p,
+		None:           req.ExternalIncome.None,
+		ExternalIncome: items,
+		Note:           req.Note,
+	})
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, toClientPeriodInputDTO(res))
 }

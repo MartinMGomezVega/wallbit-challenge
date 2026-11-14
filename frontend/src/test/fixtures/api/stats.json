@@ -103,7 +103,7 @@
         "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
         "label": "Puede bajar de categoría",
         "severity": "YELLOW",
-        "count": 9
+        "count": 10
       },
       {
         "code": "INVOICE_WITHOUT_PAYMENT",

@@ -177,7 +177,8 @@ func RunInvoiceRepo(t *testing.T, b Bundle) {
 		ID: "inv_1", ClientID: "cli_i", Type: invoice.TypeC, PointOfSale: 1, Number: 10,
 		IssueDate: time.Date(2026, 10, 10, 0, 0, 0, 0, loc), Currency: money.ARS,
 		NetAmount: money.New(10000, money.ARS), VatAmount: money.New(0, money.ARS), TotalAmount: money.New(10000, money.ARS),
-		FXRate: &fxRate, ReceiverName: "Client X", ReceiverDoc: "20123456789", Source: invoice.SourceManual, CreatedAt: time.Date(2026, 10, 10, 1, 0, 0, 0, loc),
+		FXRate: &fxRate, ReceiverName: "Client X", ReceiverDoc: "20123456789", Source: invoice.SourceManual,
+		UploadedBy: invoice.UploadedByAccountant, CreatedAt: time.Date(2026, 10, 10, 1, 0, 0, 0, loc),
 	}
 	if err := b.Invoices.Save(ctx, inv); err != nil {
 		t.Fatalf("Save failed: %v", err)
@@ -187,7 +188,7 @@ func RunInvoiceRepo(t *testing.T, b Bundle) {
 		t.Fatalf("Exists = %v, err=%v", exists, err)
 	}
 	got, err := b.Invoices.Get(ctx, "inv_1")
-	if err != nil || got.Number != 10 {
+	if err != nil || got.Number != 10 || got.UploadedBy != invoice.UploadedByAccountant {
 		t.Fatalf("Get = %+v, err=%v", got, err)
 	}
 	byCli, err := b.Invoices.ByClient(ctx, "cli_i")
@@ -239,13 +240,15 @@ func RunClientInputRepo(t *testing.T, b Bundle) {
 		ExternalIncome: []clientinput.ExternalIncomeItem{
 			{Amount: money.New(50000, money.ARS), Description: "Local work"},
 		},
-		ConfirmedAt: &now,
+		ConfirmedAt:      &now,
+		ConfirmedBy:      clientinput.ConfirmedByAccountant,
+		ConfirmationNote: "Confirmado por mail",
 	}
 	if err := b.ClientInputs.Save(ctx, in); err != nil {
 		t.Fatalf("Save failed: %v", err)
 	}
 	got, err := b.ClientInputs.Get(ctx, "cli_ci", p)
-	if err != nil || len(got.ExternalIncome) != 1 || got.ConfirmedAt == nil {
+	if err != nil || len(got.ExternalIncome) != 1 || got.ConfirmedAt == nil || got.ConfirmedBy != clientinput.ConfirmedByAccountant || got.ConfirmationNote != "Confirmado por mail" {
 		t.Fatalf("Get = %+v, err=%v", got, err)
 	}
 }

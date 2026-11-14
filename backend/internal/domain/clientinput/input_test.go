@@ -59,4 +59,39 @@ func TestClientPeriodInput(t *testing.T) {
 	if err := inputWithItems.Confirm(now); err != nil {
 		t.Fatalf("Confirm failed: %v", err)
 	}
+
+	// 4. ConfirmBy con ACCOUNTANT requiere nota no vacía y <= 300 caracteres
+	inputAccountant := ClientPeriodInput{
+		ClientID:                 "cli_3",
+		Period:                   p,
+		DeclaredNoExternalIncome: true,
+	}
+	// Nota vacía
+	err = inputAccountant.ConfirmBy(ConfirmedByAccountant, "", now)
+	if !errors.Is(err, domain.ErrValidation) {
+		t.Fatalf("expected ErrValidation for empty note, got %v", err)
+	}
+	// Nota demasiado larga
+	longNote := string(make([]byte, 301))
+	err = inputAccountant.ConfirmBy(ConfirmedByAccountant, longNote, now)
+	if !errors.Is(err, domain.ErrValidation) {
+		t.Fatalf("expected ErrValidation for note > 300 chars, got %v", err)
+	}
+	// Nota válida
+	err = inputAccountant.ConfirmBy(ConfirmedByAccountant, "Confirmado por llamada", now)
+	if err != nil {
+		t.Fatalf("ConfirmBy accountant failed: %v", err)
+	}
+	if inputAccountant.ConfirmedBy != ConfirmedByAccountant {
+		t.Errorf("ConfirmedBy = %v, want ACCOUNTANT", inputAccountant.ConfirmedBy)
+	}
+	if inputAccountant.ConfirmationNote != "Confirmado por llamada" {
+		t.Errorf("ConfirmationNote = %q, want 'Confirmado por llamada'", inputAccountant.ConfirmationNote)
+	}
+
+	// 5. ConfirmBy cuando ya está confirmado devuelve ErrAlreadyConfirmed
+	err = inputAccountant.ConfirmBy(ConfirmedByAccountant, "Otra nota", now)
+	if !errors.Is(err, domain.ErrConflict) {
+		t.Fatalf("expected ErrConflict when already confirmed, got %v", err)
+	}
 }

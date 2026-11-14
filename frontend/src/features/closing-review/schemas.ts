@@ -203,7 +203,7 @@ export const ClientPeriodInputDTOSchema = z.object({
   externalIncome: z.array(ExternalIncomeItemSchema).optional(),
   declaredNoExternalIncome: z.boolean().optional(),
   confirmedAt: z.string().nullable().optional(),
-  confirmedBy: z.enum(['CLIENT', 'ACCOUNTANT']).nullable().optional(),
+  confirmedBy: z.enum(['CLIENT', 'ACCOUNTANT', 'SEED']).nullable().optional(),
   confirmationNote: z.string().nullable().optional(),
   updatedAt: z.string().optional(),
 }).passthrough();
@@ -292,10 +292,15 @@ export const LineIssueSchema = z.object({
 });
 export type LineIssue = z.infer<typeof LineIssueSchema>;
 
+export const WarningIssueSchema = z.union([
+  LineIssueSchema,
+  z.string().transform((message) => ({ line: 0, message })),
+]);
+
 export const ImportResultSchema = z.object({
   imported: z.number(),
   skippedDuplicates: z.number(),
-  warnings: z.array(LineIssueSchema).default([]),
+  warnings: z.array(WarningIssueSchema).default([]),
   errors: z.array(LineIssueSchema).default([]),
 });
 export type ImportResultDTO = z.infer<typeof ImportResultSchema>;

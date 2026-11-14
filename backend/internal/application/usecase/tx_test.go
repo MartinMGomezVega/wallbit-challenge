@@ -151,7 +151,7 @@ func TestImportInvoicesCSV_RollsBackOnFailureInsideTx(t *testing.T) {
 		"02/10/2026;11 - Factura C;0001;00000002;20111111111;Cliente Uno;1;PES;2000;0;2000",
 	}, "\n")
 
-	_, err := uc.Execute(ctx, "cli_csv", strings.NewReader(csvData))
+	_, err := uc.Execute(ctx, "cli_csv", strings.NewReader(csvData), invoice.UploadedByClient)
 	if err == nil {
 		t.Fatal("expected error on second invoice save")
 	}

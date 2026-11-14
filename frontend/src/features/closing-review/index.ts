@@ -12,4 +12,8 @@ export * from './sections/MovementsSection';
 export * from './sections/InvoicesSection';
 export * from './sections/ClientMessageSection';
 export * from './sections/HistorySection';
+export * from './import/ImportInvoicesDialog';
+export * from './import/ImportResultView';
+export * from './import/useImportInvoices';
+export * from './confirm/ConfirmOnBehalfForm';
 

@@ -286,5 +286,23 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	_ = mpWriter.Close()
 	writePostFixture("invoices_import_client_response.json", "/api/v1/me/invoices/import", "client:cli_demo_03", bodyBuf, mpWriter.FormDataContentType())
 
+	// 11. Endpoint de escritura: invoices_import_accountant_response.json (cli_demo_03)
+	csvAccContent := "Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total\n14/10/2026,19 - Factura E,00001,00000098,00000098,74392819289902,80,DE329182392,NextGen AI Inc,1482.15,USD,1200.00,0.00,0.00,0.00,1200.00\n"
+	bodyAccBuf := &bytes.Buffer{}
+	mpAccWriter := multipart.NewWriter(bodyAccBuf)
+	partAcc, _ := mpAccWriter.CreateFormFile("file", "mis_comprobantes_acc.csv")
+	_, _ = partAcc.Write([]byte(csvAccContent))
+	_ = mpAccWriter.Close()
+	writePostFixture("invoices_import_accountant_response.json", "/api/v1/accountant/clients/cli_demo_03/invoices/import", "accountant", bodyAccBuf, mpAccWriter.FormDataContentType())
+
+	// 12. Endpoint de escritura: confirm_input_response.json (cli_demo_15 - Paula Rojas)
+	confirmBody, _ := json.Marshal(map[string]any{
+		"externalIncome": map[string]any{
+			"none": true,
+		},
+		"note": "Me lo confirmó por mail el 06/11",
+	})
+	writePostFixture("confirm_input_response.json", "/api/v1/accountant/clients/cli_demo_15/periods/2026-10/confirm-input", "accountant", bytes.NewReader(confirmBody), "application/json")
+
 	_ = closingsBytes
 }

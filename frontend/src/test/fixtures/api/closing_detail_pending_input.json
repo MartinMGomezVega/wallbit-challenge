@@ -5,7 +5,7 @@
     "period": "2026-10",
     "status": "PENDING_CLIENT_INPUT",
     "version": 1,
-    "resultHash": "53e07cc2c6738854a0edd35ef8d9d40eb3be2f05bb91a09a9b04d984cb2df3d0",
+    "resultHash": "8de118d53fe8bbbc45df29df7fd60ba0eb7dd3c7d59936c0f13d975c7665b0e2",
     "severity": "RED",
     "signals": [
       {
@@ -16,6 +16,15 @@
         "data": {
           "count": "1",
           "totalUSD": "850.00"
+        }
+      },
+      {
+        "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+        "severity": "YELLOW",
+        "priority": 13,
+        "message": "Podría bajar a la categoría A en la próxima recategorización.",
+        "data": {
+          "required": "A"
         }
       }
     ],
@@ -30,13 +39,13 @@
         "currency": "ARS"
       },
       "billed12mARS": {
-        "amount": 1318456250,
+        "amount": 1085787500,
         "currency": "ARS"
       },
       "currentCategory": "B",
-      "requiredCategory": "B",
-      "pctOfCurrentCapBp": 7493,
-      "pctOfKCapBp": 1041,
+      "requiredCategory": "A",
+      "pctOfCurrentCapBp": 6170,
+      "pctOfKCapBp": 857,
       "excluded": false,
       "fee": {
         "amount": 5637908,
@@ -44,7 +53,7 @@
       },
       "feeDueDate": "2026-11-20T00:00:00-03:00",
       "inbound12mARS": {
-        "amount": 1438772900,
+        "amount": 1207069700,
         "currency": "ARS"
       },
       "cardSpend12mARS": {
@@ -139,7 +148,7 @@
   },
   "draftMessage": {
     "title": "Tu cierre de octubre 2026 está listo",
-    "body": "Facturaste US$ 0,00 ($ 0,00). Cuota de Monotributo categoría B: $ 56.379,08, vence el 20/11/2026. Tenés 1 cobros sin factura. Emitilas y subilas para que quede todo en orden."
+    "body": "Facturaste US$ 0,00 ($ 0,00). Cuota de Monotributo categoría B: $ 56.379,08, vence el 20/11/2026. Tenés 1 cobros sin factura. Emitilas y subilas para que quede todo en orden. Buenas noticias: en la próxima recategorización podrías bajar a la categoría A."
   }
 }
 

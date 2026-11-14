@@ -1,0 +1,11 @@
+{
+  "clientId": "cli_demo_15",
+  "period": "2026-10",
+  "externalIncome": [],
+  "declaredNoExternalIncome": true,
+  "confirmedAt": "2026-11-05T09:00:00-03:00",
+  "confirmedBy": "ACCOUNTANT",
+  "confirmationNote": "Me lo confirmó por mail el 06/11",
+  "updatedAt": "2026-11-05T09:00:00-03:00"
+}
+

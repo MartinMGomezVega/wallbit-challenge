@@ -24,7 +24,12 @@ func TestInvoiceKeyAndTypes(t *testing.T) {
 		ReceiverName: "Northwind Labs LLC",
 		ReceiverDoc:  "12-34567890",
 		Source:       SourceCSV,
+		UploadedBy:   UploadedByAccountant,
 		CreatedAt:    time.Now(),
+	}
+
+	if inv.UploadedBy != UploadedByAccountant {
+		t.Fatalf("UploadedBy = %v, want ACCOUNTANT", inv.UploadedBy)
 	}
 
 	key := inv.Key()

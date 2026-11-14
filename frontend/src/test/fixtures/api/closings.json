@@ -918,7 +918,13 @@
         "severity": "RED"
       },
       "description": "1 cobros por US$ 850,00 sin factura asociada.",
-      "otherSignals": [],
+      "otherSignals": [
+        {
+          "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+          "label": "Puede bajar de categoría",
+          "severity": "YELLOW"
+        }
+      ],
       "billedInPeriod": {
         "usd": {
           "amount": 0,
@@ -931,10 +937,10 @@
       },
       "accumulated12m": {
         "ars": {
-          "amount": 1318456250,
+          "amount": 1085787500,
           "currency": "ARS"
         },
-        "pctOfKCapBp": 1041
+        "pctOfKCapBp": 857
       },
       "toPay": {
         "amount": {

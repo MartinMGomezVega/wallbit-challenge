@@ -34,7 +34,10 @@ type ImportInvoicesCSV struct {
 }
 
 // Execute parsea, valida y persiste comprobantes del CSV.
-func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.Reader) (ImportResult, error) {
+func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.Reader, uploadedBy invoice.UploadedBy) (ImportResult, error) {
+	if uploadedBy == "" {
+		uploadedBy = invoice.UploadedByClient
+	}
 	rows, warnings, lineErrors, err := invoice.ParseMisComprobantes(r)
 	if err != nil {
 		return ImportResult{}, domain.NewError(domain.ErrValidation, "INVALID_CSV_HEADERS", err.Error())
@@ -99,6 +102,7 @@ func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.
 				ReceiverName: row.ReceiverName,
 				ReceiverDoc:  row.ReceiverDoc,
 				Source:       invoice.SourceCSV,
+				UploadedBy:   uploadedBy,
 				CreatedAt:    uc.Clock.Now(),
 			}
 

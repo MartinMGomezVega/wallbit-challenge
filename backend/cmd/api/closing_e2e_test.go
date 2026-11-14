@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -473,5 +474,134 @@ func TestRegimeChangeExcludedDemoClient(t *testing.T) {
 	}
 	if c.RI == nil {
 		t.Errorf("cierre de octubre para cli_demo_02 debería tener RI, pero es nil")
+	}
+}
+
+func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
+	ctx := context.Background()
+	handler, closingRepo, _ := setupTestApp(t)
+
+	pOct := period.MustParse("2026-10")
+
+	// 1. Estado inicial de Paula Rojas (cli_demo_15)
+	cInit, found, err := closingRepo.ByClientPeriod(ctx, "cli_demo_15", pOct)
+	if err != nil || !found {
+		t.Fatalf("cierre de Paula Rojas no encontrado: %v", err)
+	}
+	if cInit.Status != closing.StatusPendingClientInput {
+		t.Fatalf("estado inicial = %v, esperado PENDING_CLIENT_INPUT", cInit.Status)
+	}
+
+	// 2. Importar facturas CSV en su nombre como contador (usando el CSV de ejemplo mis_comprobantes_ok.csv)
+	csvContent := "Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total\n12/10/2026,19 - Factura E,00001,00000001,00000001,74392819289901,80,DE329182391,Brightloop GmbH,1482.15,USD,850.00,0.00,0.00,0.00,850.00\n"
+	bodyBuf := &bytes.Buffer{}
+	mpWriter := multipart.NewWriter(bodyBuf)
+	part, _ := mpWriter.CreateFormFile("file", "mis_comprobantes_paula.csv")
+	_, _ = part.Write([]byte(csvContent))
+	_ = mpWriter.Close()
+
+	reqImport := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_demo_15/invoices/import", bodyBuf)
+	reqImport.Header.Set("Content-Type", mpWriter.FormDataContentType())
+	reqImport.Header.Set("X-Demo-User", "accountant")
+	recImport := httptest.NewRecorder()
+	handler.ServeHTTP(recImport, reqImport)
+
+	if recImport.Code != http.StatusOK {
+		t.Fatalf("POST import invoices devolvió %d: %s", recImport.Code, recImport.Body.String())
+	}
+
+	// Cierre recalculado tras la importación: pasa a verde
+	cAfterImport, found, err := closingRepo.ByClientPeriod(ctx, "cli_demo_15", pOct)
+	if err != nil || !found {
+		t.Fatalf("cierre tras import no encontrado: %v", err)
+	}
+	if cAfterImport.Severity != signal.SeverityGreen {
+		t.Errorf("severidad tras importar = %v, esperado GREEN", cAfterImport.Severity)
+	}
+	if cAfterImport.Status != closing.StatusPendingClientInput {
+		t.Errorf("estado tras importar = %v, esperado PENDING_CLIENT_INPUT (aún falta confirmar)", cAfterImport.Status)
+	}
+
+	// 3. Confirmar en nombre del cliente ("No tuvo cobros fuera de Wallbit", nota obligatoria)
+	confirmBody := []byte(`{"externalIncome": {"none": true}, "note": "Confirmó por WhatsApp el 05/11 que no tuvo otros ingresos"}`)
+	reqConfirm := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_demo_15/periods/2026-10/confirm-input", bytes.NewReader(confirmBody))
+	reqConfirm.Header.Set("Content-Type", "application/json")
+	reqConfirm.Header.Set("X-Demo-User", "accountant")
+	recConfirm := httptest.NewRecorder()
+	handler.ServeHTTP(recConfirm, reqConfirm)
+
+	if recConfirm.Code != http.StatusOK {
+		t.Fatalf("POST confirm-input devolvió %d: %s", recConfirm.Code, recConfirm.Body.String())
+	}
+
+	// Cierre pasa a READY_FOR_REVIEW
+	cAfterConfirm, found, err := closingRepo.ByClientPeriod(ctx, "cli_demo_15", pOct)
+	if err != nil || !found {
+		t.Fatalf("cierre tras confirmación no encontrado: %v", err)
+	}
+	if cAfterConfirm.Status != closing.StatusReadyForReview {
+		t.Errorf("estado tras confirmar = %v, esperado READY_FOR_REVIEW", cAfterConfirm.Status)
+	}
+
+	// 4. Detalle del cierre expone datos auditados
+	reqDet := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/accountant/closings/%s", cAfterConfirm.ID), nil)
+	reqDet.Header.Set("X-Demo-User", "accountant")
+	recDet := httptest.NewRecorder()
+	handler.ServeHTTP(recDet, reqDet)
+
+	if recDet.Code != http.StatusOK {
+		t.Fatalf("GET closing detail devolvió %d: %s", recDet.Code, recDet.Body.String())
+	}
+
+	var detResp struct {
+		PeriodInvoices []struct {
+			Invoice struct {
+				UploadedBy string `json:"uploadedBy"`
+			} `json:"invoice"`
+		} `json:"periodInvoices"`
+		ClientInput struct {
+			ConfirmedBy      string `json:"confirmedBy"`
+			ConfirmationNote string `json:"confirmationNote"`
+		} `json:"clientInput"`
+	}
+	if err := json.Unmarshal(recDet.Body.Bytes(), &detResp); err != nil {
+		t.Fatalf("unmarshal detail response: %v", err)
+	}
+	if detResp.ClientInput.ConfirmedBy != "ACCOUNTANT" || detResp.ClientInput.ConfirmationNote != "Confirmó por WhatsApp el 05/11 que no tuvo otros ingresos" {
+		t.Errorf("clientInput audit mismatch: %+v", detResp.ClientInput)
+	}
+	foundAccountantInv := false
+	for _, pi := range detResp.PeriodInvoices {
+		if pi.Invoice.UploadedBy == "ACCOUNTANT" {
+			foundAccountantInv = true
+			break
+		}
+	}
+	if !foundAccountantInv {
+		t.Errorf("no se encontró factura con uploadedBy = ACCOUNTANT en el detalle")
+	}
+
+	// 5. Aprobar cierre
+	approveBody := []byte(fmt.Sprintf(`{"version": %d, "clientNote": "Aprobado por el contador"}`, cAfterConfirm.Version))
+	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/accountant/closings/%s/approve", cAfterConfirm.ID), bytes.NewReader(approveBody))
+	reqApprove.Header.Set("Content-Type", "application/json")
+	reqApprove.Header.Set("X-Demo-User", "accountant")
+	recApprove := httptest.NewRecorder()
+	handler.ServeHTTP(recApprove, reqApprove)
+
+	if recApprove.Code != http.StatusOK {
+		t.Fatalf("POST approve devolvió %d: %s", recApprove.Code, recApprove.Body.String())
+	}
+
+	// Cierre aprobado y notificado
+	cApproved, found, err := closingRepo.ByClientPeriod(ctx, "cli_demo_15", pOct)
+	if err != nil || !found {
+		t.Fatalf("cierre aprobado no encontrado: %v", err)
+	}
+	if cApproved.Status != closing.StatusNotified {
+		t.Errorf("estado final = %v, esperado NOTIFIED", cApproved.Status)
+	}
+	if cApproved.Published == nil {
+		t.Errorf("cierre notificado debe contener snapshot publicado (published != nil)")
 	}
 }

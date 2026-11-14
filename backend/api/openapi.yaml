@@ -108,6 +108,64 @@ components:
             notifiedCount: { type: integer }
             paidOnTimePct: { type: integer, description: BasisPoints }
             paidOnTimeCount: { type: integer }
+    ImportResult:
+      type: object
+      properties:
+        imported: { type: integer }
+        duplicates: { type: integer }
+        warnings:
+          type: array
+          items: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              line: { type: integer }
+              message: { type: string }
+    Invoice:
+      type: object
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        type: { type: string, enum: [A, B, C, E] }
+        pointOfSale: { type: integer }
+        number: { type: integer }
+        issueDate: { type: string }
+        currency: { type: string, enum: [ARS, USD] }
+        netAmount: { $ref: '#/components/schemas/Money' }
+        vatAmount: { $ref: '#/components/schemas/Money' }
+        totalAmount: { $ref: '#/components/schemas/Money' }
+        receiverName: { type: string }
+        receiverDoc: { type: string }
+        source: { type: string, enum: [CSV, MANUAL, SEED] }
+        uploadedBy:
+          type: string
+          enum: [CLIENT, ACCOUNTANT, SEED]
+          description: Actor que cargó la factura en el sistema
+        createdAt: { type: string }
+    ClientInput:
+      type: object
+      properties:
+        clientId: { type: string }
+        period: { type: string }
+        declaredNoExternalIncome: { type: boolean }
+        externalIncome:
+          type: array
+          items:
+            type: object
+            properties:
+              amount: { $ref: '#/components/schemas/Money' }
+              description: { type: string }
+        confirmedAt: { type: string }
+        confirmedBy:
+          type: string
+          enum: [CLIENT, ACCOUNTANT, SEED]
+          description: Actor que confirmó el período
+        confirmationNote:
+          type: string
+          description: Evidencia o justificación de la confirmación por el contador
+        updatedAt: { type: string }
 paths:
   /api/v1/health:
     get:
@@ -347,6 +405,113 @@ paths:
       responses:
         '200':
           description: Facturas del cliente
+  /api/v1/accountant/clients/{id}/invoices/import:
+    post:
+      summary: Importa facturas de venta desde CSV en nombre del cliente
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Resultado de importación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportResult' }
+        '403':
+          description: Rol no autorizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Cliente no encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '422':
+          description: Error de validación del CSV
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/clients/{id}/periods/{period}/confirm-input:
+    post:
+      summary: Confirma la carga mensual en nombre del cliente con nota de auditoría
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                externalIncome:
+                  type: object
+                  properties:
+                    none: { type: boolean }
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        required: [amount, description]
+                        properties:
+                          amount: { $ref: '#/components/schemas/Money' }
+                          description: { type: string }
+                note:
+                  type: string
+                  minLength: 1
+                  maxLength: 300
+                  example: "Me lo confirmó por mail el 06/11"
+      responses:
+        '200':
+          description: Período confirmado exitosamente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClientInput' }
+        '403':
+          description: Rol no autorizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Cliente o cierre no encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '409':
+          description: Período ya confirmado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '422':
+          description: Nota requerida o datos inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
   /api/v1/accountant/clients/{id}/regime-change:
     post:
       summary: Cambia el régimen impositivo de un cliente (Monotributo ↔ RI)

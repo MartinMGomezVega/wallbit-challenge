@@ -84,7 +84,7 @@ func TestInvoicesUsecases(t *testing.T) {
 05/10/2026,19 - Factura E,00001,00000001,00000001,74392819283746,80,30712345678,Northwind Labs LLC,1487.15,USD,1500.00,0.00,0.00,0.00,1500.00
 15/10/2026,11 - Factura C,00001,00000002,00000002,74392819283748,80,30712345680,Cliente Local SA,1.00,$,500000.00,0.00,0.00,0.00,500000.00
 `
-		res1, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent))
+		res1, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent), invoice.UploadedByClient)
 		if err != nil {
 			t.Fatalf("first import failed: %v", err)
 		}
@@ -93,7 +93,7 @@ func TestInvoicesUsecases(t *testing.T) {
 		}
 
 		// Idempotency: second import of same CSV
-		res2, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent))
+		res2, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent), invoice.UploadedByClient)
 		if err != nil {
 			t.Fatalf("second import failed: %v", err)
 		}
@@ -107,7 +107,7 @@ func TestInvoicesUsecases(t *testing.T) {
 		csvContent := `Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total
 05/10/2026,1 - Factura A,00001,00000010,00000010,74392819283746,80,30712345678,Cliente Local SA,1.00,$,100000.00,0.00,0.00,21000.00,121000.00
 `
-		res, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent))
+		res, err := importUC.Execute(ctx, "cli_mono", strings.NewReader(csvContent), invoice.UploadedByAccountant)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -209,7 +209,7 @@ func TestInvoicesUsecases(t *testing.T) {
 	})
 
 	t.Run("Invalid CSV header", func(t *testing.T) {
-		_, err := importUC.Execute(ctx, "cli_mono", bytes.NewReader([]byte("bad headers\n1,2,3")))
+		_, err := importUC.Execute(ctx, "cli_mono", bytes.NewReader([]byte("bad headers\n1,2,3")), invoice.UploadedByClient)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Fatalf("expected ErrValidation on bad headers, got %v", err)
 		}

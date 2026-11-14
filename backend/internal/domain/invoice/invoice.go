@@ -28,6 +28,16 @@ const (
 // InvoiceSource identifica el origen del registro.
 type InvoiceSource string
 
+// Actores que cargaron la factura (spec 016).
+const (
+	UploadedByClient     UploadedBy = "CLIENT"
+	UploadedByAccountant UploadedBy = "ACCOUNTANT"
+	UploadedBySeed       UploadedBy = "SEED"
+)
+
+// UploadedBy identifica quién cargó la factura en el sistema.
+type UploadedBy string
+
 // Key representa la clave natural y única de una factura emitida por cliente.
 type Key struct {
 	ClientID    string      `json:"clientId"`
@@ -56,6 +66,7 @@ type Invoice struct {
 	ReceiverName string         `json:"receiverName"`
 	ReceiverDoc  string         `json:"receiverDoc"`
 	Source       InvoiceSource  `json:"source"`
+	UploadedBy   UploadedBy     `json:"uploadedBy"`
 	CreatedAt    time.Time      `json:"createdAt"`
 }
 

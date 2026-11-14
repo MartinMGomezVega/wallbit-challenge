@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SummarySection } from '../sections/SummarySection';
 import { SignalsSection } from '../sections/SignalsSection';
 import { MovementsSection } from '../sections/MovementsSection';
@@ -334,15 +335,26 @@ describe('Review Sections', () => {
   });
 
   describe('InvoicesSection', () => {
+    const renderInvoices = (detail: ClosingDetailDTO) => {
+      const qc = new QueryClient({
+        defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      });
+      return render(
+        <QueryClientProvider client={qc}>
+          <InvoicesSection detail={detail} />
+        </QueryClientProvider>
+      );
+    };
+
     it('renderiza facturas emitidas y pares conciliados', () => {
-      render(<InvoicesSection detail={mockDetailMono} />);
+      renderInvoices(mockDetailMono);
       expect(screen.getByText(/facturas del período/i)).toBeInTheDocument();
       expect(screen.getByText('0001-00000104')).toBeInTheDocument();
       expect(screen.getByText(/pares conciliados/i)).toBeInTheDocument();
     });
 
     it('muestra estado vacío si no hay facturas emitidas', () => {
-      render(<InvoicesSection detail={mockDetailRI} />);
+      renderInvoices(mockDetailRI);
       expect(screen.getByText(/no se emitieron facturas en este período/i)).toBeInTheDocument();
     });
 
@@ -380,7 +392,7 @@ describe('Review Sections', () => {
         },
       };
 
-      render(<InvoicesSection detail={detailWithUnmatched} />);
+      renderInvoices(detailWithUnmatched);
       expect(screen.getByText('Facturas sin cobro (1)')).toBeInTheDocument();
       expect(screen.getByText('Cobros sin factura (1)')).toBeInTheDocument();
       expect(screen.getByText(/Client X/)).toBeInTheDocument();

@@ -28,12 +28,12 @@ func NewInvoiceRepository(pool *pgxpool.Pool) *InvoiceRepository {
 
 func scanInvoice(row pgx.Row) (invoice.Invoice, error) {
 	var inv invoice.Invoice
-	var typ, cur, src string
+	var typ, cur, src, upBy string
 	var netC, vatC, totC int64
 	var fxScaled *int64
 	err := row.Scan(
 		&inv.ID, &inv.ClientID, &typ, &inv.PointOfSale, &inv.Number, &inv.IssueDate,
-		&cur, &netC, &vatC, &totC, &fxScaled, &inv.ReceiverName, &inv.ReceiverDoc, &src, &inv.CreatedAt,
+		&cur, &netC, &vatC, &totC, &fxScaled, &inv.ReceiverName, &inv.ReceiverDoc, &src, &upBy, &inv.CreatedAt,
 	)
 	if err != nil {
 		return invoice.Invoice{}, err
@@ -48,6 +48,10 @@ func scanInvoice(row pgx.Row) (invoice.Invoice, error) {
 		inv.FXRate = &r
 	}
 	inv.Source = invoice.InvoiceSource(src)
+	if upBy == "" {
+		upBy = "CLIENT"
+	}
+	inv.UploadedBy = invoice.UploadedBy(upBy)
 	inv.IssueDate = inv.IssueDate.In(period.Location())
 	inv.CreatedAt = inv.CreatedAt.In(period.Location())
 	return inv, nil
@@ -55,7 +59,7 @@ func scanInvoice(row pgx.Row) (invoice.Invoice, error) {
 
 func (r *InvoiceRepository) ByClientBetween(ctx context.Context, clientID string, from, to time.Time) ([]invoice.Invoice, error) {
 	rows, err := conn(ctx, r.pool).Query(ctx, `
-		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, created_at
+		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, uploaded_by, created_at
 		FROM invoices
 		WHERE client_id = $1 AND issue_date >= $2 AND issue_date <= $3
 		ORDER BY issue_date ASC, id ASC
@@ -77,7 +81,7 @@ func (r *InvoiceRepository) ByClientBetween(ctx context.Context, clientID string
 
 func (r *InvoiceRepository) ByClient(ctx context.Context, clientID string) ([]invoice.Invoice, error) {
 	rows, err := conn(ctx, r.pool).Query(ctx, `
-		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, created_at
+		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, uploaded_by, created_at
 		FROM invoices
 		WHERE client_id = $1
 		ORDER BY issue_date ASC, id ASC
@@ -109,7 +113,7 @@ func (r *InvoiceRepository) Exists(ctx context.Context, clientID string, key inv
 
 func (r *InvoiceRepository) Get(ctx context.Context, id string) (invoice.Invoice, error) {
 	inv, err := scanInvoice(conn(ctx, r.pool).QueryRow(ctx, `
-		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, created_at
+		SELECT id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, uploaded_by, created_at
 		FROM invoices WHERE id = $1
 	`, id))
 	if err != nil {
@@ -127,9 +131,13 @@ func (r *InvoiceRepository) Save(ctx context.Context, inv invoice.Invoice) error
 		v := int64(*inv.FXRate)
 		fxScaled = &v
 	}
+	uploadedBy := string(inv.UploadedBy)
+	if uploadedBy == "" {
+		uploadedBy = "CLIENT"
+	}
 	_, err := conn(ctx, r.pool).Exec(ctx, `
-		INSERT INTO invoices (id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		INSERT INTO invoices (id, client_id, type, point_of_sale, number, issue_date, currency, net_cents, vat_cents, total_cents, fx_rate_scaled, receiver_name, receiver_doc, source, uploaded_by, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (id) DO UPDATE SET
 			issue_date = EXCLUDED.issue_date,
 			currency = EXCLUDED.currency,
@@ -138,10 +146,11 @@ func (r *InvoiceRepository) Save(ctx context.Context, inv invoice.Invoice) error
 			total_cents = EXCLUDED.total_cents,
 			fx_rate_scaled = EXCLUDED.fx_rate_scaled,
 			receiver_name = EXCLUDED.receiver_name,
-			receiver_doc = EXCLUDED.receiver_doc
+			receiver_doc = EXCLUDED.receiver_doc,
+			uploaded_by = EXCLUDED.uploaded_by
 	`, inv.ID, inv.ClientID, string(inv.Type), inv.PointOfSale, inv.Number, inv.IssueDate,
 		string(inv.Currency), inv.NetAmount.Amount, inv.VatAmount.Amount, inv.TotalAmount.Amount,
-		fxScaled, inv.ReceiverName, inv.ReceiverDoc, string(inv.Source), inv.CreatedAt)
+		fxScaled, inv.ReceiverName, inv.ReceiverDoc, string(inv.Source), uploadedBy, inv.CreatedAt)
 	return err
 }
 

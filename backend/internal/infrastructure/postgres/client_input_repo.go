@@ -32,10 +32,11 @@ func (r *ClientInputRepository) Get(ctx context.Context, clientID string, p peri
 	out.ClientID = clientID
 	out.Period = p
 	var confirmedAt *time.Time
+	var confBy, confNote *string
 	err := db.QueryRow(ctx, `
-		SELECT declared_none, confirmed_at
+		SELECT declared_none, confirmed_at, confirmed_by, confirmation_note
 		FROM client_period_inputs WHERE client_id = $1 AND period = $2
-	`, clientID, p.String()).Scan(&out.DeclaredNoExternalIncome, &confirmedAt)
+	`, clientID, p.String()).Scan(&out.DeclaredNoExternalIncome, &confirmedAt, &confBy, &confNote)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return clientinput.ClientPeriodInput{}, domain.ErrNotFound
@@ -45,6 +46,12 @@ func (r *ClientInputRepository) Get(ctx context.Context, clientID string, p peri
 	if confirmedAt != nil {
 		t := confirmedAt.In(period.Location())
 		out.ConfirmedAt = &t
+	}
+	if confBy != nil {
+		out.ConfirmedBy = clientinput.ConfirmedBy(*confBy)
+	}
+	if confNote != nil {
+		out.ConfirmationNote = *confNote
 	}
 
 	rows, err := db.Query(ctx, `
@@ -74,13 +81,24 @@ func (r *ClientInputRepository) Get(ctx context.Context, clientID string, p peri
 func (r *ClientInputRepository) Save(ctx context.Context, input clientinput.ClientPeriodInput) error {
 	db := conn(ctx, r.pool)
 	per := input.Period.String()
+	var confBy, confNote *string
+	if input.ConfirmedBy != "" {
+		s := string(input.ConfirmedBy)
+		confBy = &s
+	}
+	if input.ConfirmationNote != "" {
+		s := input.ConfirmationNote
+		confNote = &s
+	}
 	if _, err := db.Exec(ctx, `
-		INSERT INTO client_period_inputs (client_id, period, declared_none, confirmed_at)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO client_period_inputs (client_id, period, declared_none, confirmed_at, confirmed_by, confirmation_note)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (client_id, period) DO UPDATE SET
 			declared_none = EXCLUDED.declared_none,
-			confirmed_at = EXCLUDED.confirmed_at
-	`, input.ClientID, per, input.DeclaredNoExternalIncome, input.ConfirmedAt); err != nil {
+			confirmed_at = EXCLUDED.confirmed_at,
+			confirmed_by = EXCLUDED.confirmed_by,
+			confirmation_note = EXCLUDED.confirmation_note
+	`, input.ClientID, per, input.DeclaredNoExternalIncome, input.ConfirmedAt, confBy, confNote); err != nil {
 		return err
 	}
 

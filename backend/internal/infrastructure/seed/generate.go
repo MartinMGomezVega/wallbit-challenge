@@ -300,6 +300,7 @@ func Generate(ctx context.Context, cfg SeedConfig, fx ports.ExchangeRateProvider
 					ReceiverName: payer.name,
 					ReceiverDoc:  fmt.Sprintf("US%08d", rng.IntN(100000000)),
 					Source:       invoice.SourceSeed,
+					UploadedBy:   invoice.UploadedBySeed,
 					CreatedAt:    invDate,
 				})
 			}
@@ -435,6 +436,7 @@ func Generate(ctx context.Context, cfg SeedConfig, fx ports.ExchangeRateProvider
 				Period:                   octPeriod,
 				DeclaredNoExternalIncome: true,
 				ConfirmedAt:              &confDate,
+				ConfirmedBy:              clientinput.ConfirmedBySeed,
 				UpdatedAt:                confDate,
 			})
 		} else {

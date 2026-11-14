@@ -607,14 +607,35 @@ func TestSendPaymentReminders_Borders(t *testing.T) {
 	_ = cPaid.MarkPaid(now)
 	_ = closingsRepo.Save(ctx, cPaid)
 
+	// RI con vencimientos en ventana (VAT, Autónomos y Anticipo Ganancias)
+	_ = clientsRepo.Save(ctx, client.Client{ID: "cli_ri_due", Name: "RI Due", Regime: client.RegimeRI})
+	advanceAmt := money.New(100000, money.ARS)
+	cRI := closing.NewClosing(
+		"clo_ri_due", "cli_ri_due", p, true, "h_ri", signal.SeverityGreen,
+		nil, "Ok",
+		nil,
+		&tax.RIAssessment{
+			VatDueDate:               dueOnThreshold,
+			VatToPay:                 money.New(200000, money.ARS),
+			SelfEmployedDueDate:      dueOnThreshold,
+			SelfEmployedContribution: money.New(300000, money.ARS),
+			IncomeTaxAdvanceDueDate:  &dueOnThreshold,
+			IncomeTaxAdvance:         &advanceAmt,
+		},
+		closing.Reconciliation{}, now,
+	)
+	_ = cRI.Approve(closing.Approval{Version: 1})
+	_ = cRI.MarkNotified()
+	_ = closingsRepo.Save(ctx, cRI)
+
 	// Execute SendPaymentReminders
 	reminded, err := sendReminders.Execute(ctx, now)
 	if err != nil {
 		t.Fatalf("SendPaymentReminders failed: %v", err)
 	}
 
-	if reminded != 1 {
-		t.Errorf("reminded = %d, want 1 (only the threshold one)", reminded)
+	if reminded != 4 {
+		t.Errorf("reminded = %d, want 4 (1 Monotributo + 3 RI)", reminded)
 	}
 
 	notifs, _ := notifRepo.ByClient(ctx, "cli_thresh")

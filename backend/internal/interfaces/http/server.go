@@ -294,12 +294,21 @@ func newRouter(deps Deps) *router {
 				Clock:    deps.Clock,
 				Notifier: deps.ChangeNotifier,
 			},
+			confirmInputOnBehalfUC: &usecase.ConfirmInputOnBehalf{
+				Inputs:   deps.ClientInputRepo,
+				Closings: deps.ClosingRepo,
+				Clock:    deps.Clock,
+				Notifier: deps.ChangeNotifier,
+				Tx:       deps.TxManager,
+			},
 		}
 
 		rt.client("POST /api/v1/me/invoices/import", invH.importCSV)
 		rt.client("POST /api/v1/me/invoices", invH.createInvoice)
 		rt.client("GET /api/v1/me/invoices", invH.listMeInvoices)
 		rt.accountant("GET /api/v1/accountant/clients/{id}/invoices", invH.listClientInvoicesAccountant)
+		rt.accountant("POST /api/v1/accountant/clients/{id}/invoices/import", invH.importCSVAccountant)
+		rt.accountant("POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input", invH.confirmInputAccountant)
 		rt.client("POST /api/v1/me/purchase-invoices", invH.createPurchaseInvoice)
 		rt.client("PUT /api/v1/me/periods/{period}/external-income", invH.setExternalIncome)
 		rt.client("POST /api/v1/me/periods/{period}/confirm", invH.confirmPeriod)

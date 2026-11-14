@@ -183,7 +183,7 @@ func copyInvoices(ctx context.Context, tx pgx.Tx, ds *seed.Dataset) error {
 		if _, err := tx.CopyFrom(
 			ctx,
 			pgx.Identifier{"invoices"},
-			[]string{"id", "client_id", "type", "point_of_sale", "number", "issue_date", "currency", "net_cents", "vat_cents", "total_cents", "fx_rate_scaled", "receiver_name", "receiver_doc", "source", "created_at"},
+			[]string{"id", "client_id", "type", "point_of_sale", "number", "issue_date", "currency", "net_cents", "vat_cents", "total_cents", "fx_rate_scaled", "receiver_name", "receiver_doc", "source", "uploaded_by", "created_at"},
 			pgx.CopyFromSlice(len(ds.Invoices), func(i int) ([]any, error) {
 				inv := ds.Invoices[i]
 				var fx *int64
@@ -191,10 +191,14 @@ func copyInvoices(ctx context.Context, tx pgx.Tx, ds *seed.Dataset) error {
 					v := int64(*inv.FXRate)
 					fx = &v
 				}
+				upBy := string(inv.UploadedBy)
+				if upBy == "" {
+					upBy = "SEED"
+				}
 				return []any{
 					inv.ID, inv.ClientID, string(inv.Type), inv.PointOfSale, inv.Number,
 					inv.IssueDate, string(inv.Currency), inv.NetAmount.Amount, inv.VatAmount.Amount,
-					inv.TotalAmount.Amount, fx, inv.ReceiverName, inv.ReceiverDoc, string(inv.Source), inv.CreatedAt,
+					inv.TotalAmount.Amount, fx, inv.ReceiverName, inv.ReceiverDoc, string(inv.Source), upBy, inv.CreatedAt,
 				}, nil
 			}),
 		); err != nil {
@@ -228,10 +232,19 @@ func copyClientInputs(ctx context.Context, tx pgx.Tx, ds *seed.Dataset) error {
 	if _, err := tx.CopyFrom(
 		ctx,
 		pgx.Identifier{"client_period_inputs"},
-		[]string{"client_id", "period", "declared_none", "confirmed_at"},
+		[]string{"client_id", "period", "declared_none", "confirmed_at", "confirmed_by", "confirmation_note"},
 		pgx.CopyFromSlice(len(ds.ClientInputs), func(i int) ([]any, error) {
 			in := ds.ClientInputs[i]
-			return []any{in.ClientID, in.Period.String(), in.DeclaredNoExternalIncome, in.ConfirmedAt}, nil
+			var confBy, confNote *string
+			if in.ConfirmedBy != "" {
+				s := string(in.ConfirmedBy)
+				confBy = &s
+			}
+			if in.ConfirmationNote != "" {
+				s := in.ConfirmationNote
+				confNote = &s
+			}
+			return []any{in.ClientID, in.Period.String(), in.DeclaredNoExternalIncome, in.ConfirmedAt, confBy, confNote}, nil
 		}),
 	); err != nil {
 		return fmt.Errorf("copy client_period_inputs: %w", err)

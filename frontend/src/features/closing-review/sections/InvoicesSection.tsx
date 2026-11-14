@@ -1,17 +1,30 @@
+import { useState } from 'react';
 import { ClosingDetailDTO } from '../schemas';
 import { formatMoney, formatDate } from '../../../shared/format';
-import { CheckCircle2, AlertCircle, FileText, ArrowRightLeft } from 'lucide-react';
+import { CheckCircle2, AlertCircle, FileText, ArrowRightLeft, UploadCloud } from 'lucide-react';
+import { ImportInvoicesDialog } from '../import/ImportInvoicesDialog';
+import { ConfirmOnBehalfForm } from '../confirm/ConfirmOnBehalfForm';
 
 export interface InvoicesSectionProps {
   detail: ClosingDetailDTO;
 }
 
 export function InvoicesSection({ detail }: InvoicesSectionProps) {
-  const { periodInvoices, reconciliation } = detail;
+  const { periodInvoices, reconciliation, closing, client } = detail;
   const { matchedPairs, unmatchedIncome, unmatchedInvoices } = reconciliation;
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   return (
     <div className="space-y-6">
+      {/* Si el período está pendiente de confirmación del cliente, mostramos el formulario para confirmar en su nombre */}
+      {closing.status === 'PENDING_CLIENT_INPUT' && (
+        <ConfirmOnBehalfForm
+          clientId={client.id}
+          period={closing.period}
+          closingId={closing.id}
+        />
+      )}
+
       {/* Facturas emitidas en el período */}
       <div className="rounded-card border border-app-border bg-app-surface overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-app-border flex items-center justify-between">
@@ -21,6 +34,14 @@ export function InvoicesSection({ detail }: InvoicesSectionProps) {
               Facturas del período ({periodInvoices.length})
             </h3>
           </div>
+          <button
+            type="button"
+            onClick={() => setImportDialogOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-control border border-app-border bg-app-surface px-3 py-1.5 text-xs font-semibold text-app-text hover:bg-app-surface-muted focus:outline-none focus:ring-2 focus:ring-app-primary"
+          >
+            <UploadCloud className="h-3.5 w-3.5 text-app-text-muted" aria-hidden="true" />
+            <span>Importar facturas (CSV de ARCA)</span>
+          </button>
         </div>
 
         {periodInvoices.length === 0 ? (
@@ -57,9 +78,16 @@ export function InvoicesSection({ detail }: InvoicesSectionProps) {
                         {formattedNum}
                       </td>
                       <td className="px-3 py-2">
-                        <span className="inline-block px-1.5 py-0.5 rounded bg-app-surface-muted border border-app-border text-[10px] font-semibold text-app-text">
-                          Factura {inv.type}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-app-surface-muted border border-app-border text-[10px] font-semibold text-app-text">
+                            Factura {inv.type}
+                          </span>
+                          {inv.uploadedBy === 'ACCOUNTANT' && (
+                            <span className="inline-block px-1.5 py-0.5 rounded bg-[#E6F4FF] border border-[#B8E1FF] text-[10px] font-semibold text-[#005FA8]">
+                              Cargada por el contador
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums font-semibold text-app-text">
                         {formatMoney(inv.totalAmount)}
@@ -81,6 +109,14 @@ export function InvoicesSection({ detail }: InvoicesSectionProps) {
           </div>
         )}
       </div>
+
+      <ImportInvoicesDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        clientId={client.id}
+        closingId={closing.id}
+        closingStatus={closing.status}
+      />
 
       {/* Conciliación automática: Pares conciliados */}
       <div className="rounded-card border border-app-border bg-app-surface p-4 space-y-3">

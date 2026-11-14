@@ -176,6 +176,7 @@
         "receiverName": "Kiwi Studio Ltd",
         "receiverDoc": "",
         "source": "SEED",
+        "uploadedBy": "SEED",
         "createdAt": "2026-10-12T10:00:00-03:00"
       },
       "amountArs": {
@@ -230,6 +231,7 @@
           "receiverName": "Kiwi Studio Ltd",
           "receiverDoc": "",
           "source": "SEED",
+          "uploadedBy": "SEED",
           "createdAt": "2026-10-12T10:00:00-03:00"
         },
         "diffAmount": 0
@@ -244,6 +246,7 @@
     "externalIncome": [],
     "declaredNoExternalIncome": true,
     "confirmedAt": "2026-11-02T11:00:00-03:00",
+    "confirmedBy": "SEED",
     "updatedAt": "2026-11-02T11:00:00-03:00"
   },
   "draftMessage": {

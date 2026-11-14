@@ -12,6 +12,7 @@ import {
   ApproveBatchResponseSchema,
   RegimeChangeResponseSchema,
   ImportResultSchema,
+  ClientPeriodInputDTOSchema,
 } from '../features/closing-review/schemas';
 import { PeriodStatsSchema } from '../features/summary-dashboard/schemas';
 import { ParametersDTOSchema } from '../features/parameters/schemas';
@@ -33,6 +34,8 @@ import approveResponseFixture from './fixtures/api/approve_response.json';
 import approveBatchResponseFixture from './fixtures/api/approve_batch_response.json';
 import regimeChangeResponseFixture from './fixtures/api/regime_change_response.json';
 import invoicesImportClientResponseFixture from './fixtures/api/invoices_import_client_response.json';
+import invoicesImportAccountantResponseFixture from './fixtures/api/invoices_import_accountant_response.json';
+import confirmInputResponseFixture from './fixtures/api/confirm_input_response.json';
 
 describe('API contract fixtures (backend -> Zod)', () => {
   it('valida closings.json con ClosingsListResponseSchema', () => {
@@ -127,6 +130,19 @@ describe('API contract fixtures (backend -> Zod)', () => {
     const parsed = ImportResultSchema.parse(invoicesImportClientResponseFixture);
     expect(parsed.imported).toBe(1);
     expect(parsed.skippedDuplicates).toBe(0);
+  });
+
+  it('valida invoices_import_accountant_response.json con ImportResultSchema', () => {
+    const parsed = ImportResultSchema.parse(invoicesImportAccountantResponseFixture);
+    expect(parsed.imported).toBe(1);
+    expect(parsed.skippedDuplicates).toBe(0);
+  });
+
+  it('valida confirm_input_response.json con ClientPeriodInputDTOSchema', () => {
+    const parsed = ClientPeriodInputDTOSchema.parse(confirmInputResponseFixture);
+    expect(parsed.confirmedBy).toBe('ACCOUNTANT');
+    expect(parsed.confirmationNote).toBe('Me lo confirmó por mail el 06/11');
+    expect(parsed.declaredNoExternalIncome).toBe(true);
   });
 
   it('valida stats.json con PeriodStatsSchema', () => {

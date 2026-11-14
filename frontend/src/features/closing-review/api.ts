@@ -10,6 +10,10 @@ import {
   ApproveClosingResponseSchema,
   ApproveBatchResponse,
   ApproveBatchResponseSchema,
+  ImportResultDTO,
+  ImportResultSchema,
+  ClientPeriodInputDTO,
+  ClientPeriodInputDTOSchema,
 } from './schemas';
 import { z } from 'zod';
 
@@ -109,6 +113,45 @@ export async function approveBatch(
     {
       method: 'POST',
       body: JSON.stringify({ items }),
+    }
+  );
+}
+
+export async function importInvoicesAsAccountant(
+  clientId: string,
+  file: File
+): Promise<ImportResultDTO> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiFetch(
+    `/api/v1/accountant/clients/${clientId}/invoices/import`,
+    ImportResultSchema,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  );
+}
+
+export type ConfirmInputOnBehalfPayload = {
+  externalIncome?: {
+    none?: boolean;
+    items?: Array<{ amount: { amount: number; currency: 'ARS' | 'USD' }; description: string }>;
+  };
+  note: string;
+};
+
+export async function confirmInputOnBehalf(
+  clientId: string,
+  period: string,
+  payload: ConfirmInputOnBehalfPayload
+): Promise<ClientPeriodInputDTO> {
+  return apiFetch(
+    `/api/v1/accountant/clients/${clientId}/periods/${period}/confirm-input`,
+    ClientPeriodInputDTOSchema,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }
   );
 }

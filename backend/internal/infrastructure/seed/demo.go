@@ -249,6 +249,7 @@ func BuildDemoClients(ctx context.Context, fx ports.ExchangeRateProvider) (DemoC
 			FXRate:       fxRate,
 			ReceiverName: receiver,
 			Source:       invoice.SourceSeed,
+			UploadedBy:   invoice.UploadedBySeed,
 			CreatedAt:    d,
 		})
 		invIdx++
@@ -393,6 +394,7 @@ func BuildDemoClients(ctx context.Context, fx ports.ExchangeRateProvider) (DemoC
 				ReceiverName: "Servicios Tecnológicos Argentinos SA",
 				ReceiverDoc:  "30-65432109-8",
 				Source:       invoice.SourceSeed,
+				UploadedBy:   invoice.UploadedBySeed,
 				CreatedAt:    time.Date(2026, 10, 10, 10, 0, 0, 0, period.Location()),
 			})
 			invIdx++
@@ -449,11 +451,15 @@ func BuildDemoClients(ctx context.Context, fx ports.ExchangeRateProvider) (DemoC
 
 		// cli_demo_15: Paula Rojas (MONO B -> PENDING_CLIENT_INPUT y MISSING_INVOICES)
 		// Recibe cobro de USD 850 en octubre 2026 pero NO tiene facturas subidas todavía
-		_ = addMovement("cli_demo_15", movement.TypeInboundTransfer, 85000,
-			time.Date(year, time.Month(month), 15, 10, 0, 0, 0, period.Location()),
-			movement.Counterparty{Name: "Brightloop GmbH", Country: "DE", Kind: movement.CounterpartyCompany}, "Traducción técnica")
-		if !isOct2026 {
-			_ = addInvoice("cli_demo_15", invoice.TypeE, 1, m+1, time.Date(year, time.Month(month), 12, 10, 0, 0, 0, period.Location()), money.USD, 85000, "Brightloop GmbH")
+		if isOct2026 {
+			_ = addMovement("cli_demo_15", movement.TypeInboundTransfer, 85000,
+				time.Date(year, time.Month(month), 15, 10, 0, 0, 0, period.Location()),
+				movement.Counterparty{Name: "Brightloop GmbH", Country: "DE", Kind: movement.CounterpartyCompany}, "Traducción técnica")
+		} else {
+			_ = addMovement("cli_demo_15", movement.TypeInboundTransfer, 70000,
+				time.Date(year, time.Month(month), 15, 10, 0, 0, 0, period.Location()),
+				movement.Counterparty{Name: "Brightloop GmbH", Country: "DE", Kind: movement.CounterpartyCompany}, "Traducción técnica")
+			_ = addInvoice("cli_demo_15", invoice.TypeE, 2, m+1, time.Date(year, time.Month(month), 12, 10, 0, 0, 0, period.Location()), money.USD, 70000, "Brightloop GmbH")
 		}
 	}
 
@@ -482,6 +488,7 @@ func BuildDemoClients(ctx context.Context, fx ports.ExchangeRateProvider) (DemoC
 				},
 				DeclaredNoExternalIncome: false,
 				ConfirmedAt:              &confirmedDate,
+				ConfirmedBy:              clientinput.ConfirmedBySeed,
 				UpdatedAt:                confirmedDate,
 			})
 			continue
@@ -493,6 +500,7 @@ func BuildDemoClients(ctx context.Context, fx ports.ExchangeRateProvider) (DemoC
 			Period:                   oct2026Period,
 			DeclaredNoExternalIncome: true,
 			ConfirmedAt:              &confirmedDate,
+			ConfirmedBy:              clientinput.ConfirmedBySeed,
 			UpdatedAt:                confirmedDate,
 		})
 	}

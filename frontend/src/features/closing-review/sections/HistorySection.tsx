@@ -89,6 +89,21 @@ export function HistorySection({ detail }: HistorySectionProps) {
           </div>
         </div>
       </div>
+
+      {/* Confirmación en nombre del cliente si fue realizada por el contador */}
+      {detail.clientInput?.confirmedBy === 'ACCOUNTANT' && (
+        <div className="rounded-card border border-app-border bg-app-surface p-4 text-xs space-y-1">
+          <span className="font-semibold text-app-text block">Confirmación de período</span>
+          <p className="text-app-text">
+            Período confirmado por el contador: <span className="font-medium text-app-text">{detail.clientInput.confirmationNote || 'Sin nota'}</span>
+          </p>
+          {detail.clientInput.confirmedAt && (
+            <span className="text-[11px] text-app-text-muted block">
+              Fecha: {formatDate(detail.clientInput.confirmedAt, 'full')}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
