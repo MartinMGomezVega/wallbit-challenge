@@ -1,5 +1,7 @@
 import type { ZodType, ZodTypeDef } from 'zod';
-import { getRole, roleHeader } from '../../app/roleStore';
+
+/** Identidad de demo fija para la herramienta del contador. */
+export const DEMO_ACCOUNTANT_USER = 'accountant';
 
 export type ApiErrorFields = Record<string, string>;
 
@@ -40,12 +42,12 @@ async function readJson(res: Response): Promise<unknown> {
 }
 
 /**
- * fetch a la API: agrega X-Demo-User según el rol, valida la respuesta con zod
+ * fetch a la API: agrega X-Demo-User fijo (contador), valida la respuesta con zod
  * y convierte errores al formato estándar.
  */
 export async function apiFetch<T>(path: string, schema: ZodType<T, ZodTypeDef, unknown>, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set('X-Demo-User', roleHeader(getRole()));
+  headers.set('X-Demo-User', DEMO_ACCOUNTANT_USER);
   if (init.body && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

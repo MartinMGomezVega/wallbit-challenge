@@ -263,7 +263,8 @@ func (uc *ComputeClosing) execute(ctx context.Context, clientID string, p period
 	}
 
 	// 4. Liquidación según régimen al último día del período
-	dueDates, err := uc.DueDates.DueDates(ctx, p, c.CUIT)
+	// Las obligaciones del período p vencen en el mes siguiente (domain-context.md §2.3 y §7.1).
+	dueDates, err := uc.DueDates.DueDates(ctx, p.Next(), c.CUIT)
 	if err != nil {
 		return ComputeResult{}, err
 	}

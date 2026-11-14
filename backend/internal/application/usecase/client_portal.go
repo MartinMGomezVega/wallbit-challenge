@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"context"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports"
@@ -44,51 +42,6 @@ func (uc *GetMe) Execute(ctx context.Context, clientID string) (MeDTO, error) {
 		dto.Category = string(c.MonotributoCategory)
 	}
 	return dto, nil
-}
-
-// DemoClientDTO representa un cliente para el switcher de la demo (011 §1).
-type DemoClientDTO struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Regime string `json:"regime"`
-}
-
-// ListDemoClients lista los clientes para el RoleSwitcher, ordenando primero los 15 de demo.
-type ListDemoClients struct {
-	Clients ports.ClientRepository
-}
-
-// Execute obtiene y ordena los clientes de demo.
-func (uc *ListDemoClients) Execute(ctx context.Context) ([]DemoClientDTO, error) {
-	list, err := uc.Clients.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(list, func(i, j int) bool {
-		isDemoI := strings.HasPrefix(list[i].ID, "cli_demo_")
-		isDemoJ := strings.HasPrefix(list[j].ID, "cli_demo_")
-		if isDemoI && isDemoJ {
-			return list[i].ID < list[j].ID
-		}
-		if isDemoI {
-			return true
-		}
-		if isDemoJ {
-			return false
-		}
-		return list[i].Name < list[j].Name
-	})
-
-	out := make([]DemoClientDTO, len(list))
-	for i, c := range list {
-		out[i] = DemoClientDTO{
-			ID:     c.ID,
-			Name:   c.Name,
-			Regime: string(c.Regime),
-		}
-	}
-	return out, nil
 }
 
 // ClientClosingInputDTO resume el estado de los inputs cargados por el cliente para el período.

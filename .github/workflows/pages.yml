@@ -19,12 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
       - name: Prepare Pages site
         run: |
           mkdir -p _site
           cp docs/index.html _site/index.html
           cp backend/api/openapi.yaml _site/openapi.yaml
-          cp frontend/public/favicon-32.png _site/favicon-32.png
+          cp frontend/src/assets/brand/wallbit-logo-white.svg _site/wallbit-logo-white.svg
+          cp frontend/public/favicon.svg _site/favicon.svg
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -38,4 +40,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-

@@ -73,40 +73,6 @@ func TestClientPortal_GetMe(t *testing.T) {
 	}
 }
 
-func TestClientPortal_ListDemoClients(t *testing.T) {
-	ctx := context.Background()
-	clientsRepo := fakes.NewClientRepository()
-
-	cuit, _ := client.ParseCUIT("20-12345678-9")
-	clients := []client.Client{
-		{ID: "cli_custom_1", Name: "ZZZ Custom", CUIT: cuit, Regime: client.RegimeMonotributo},
-		{ID: "cli_demo_02", Name: "Ignacio Sosa", CUIT: cuit, Regime: client.RegimeMonotributo},
-		{ID: "cli_demo_01", Name: "Lucía Fernández", CUIT: cuit, Regime: client.RegimeMonotributo},
-		{ID: "cli_demo_15", Name: "Paula Rojas", CUIT: cuit, Regime: client.RegimeMonotributo},
-		{ID: "cli_custom_0", Name: "AAA Custom", CUIT: cuit, Regime: client.RegimeRI},
-	}
-	_ = clientsRepo.SaveAll(ctx, clients)
-
-	uc := &usecase.ListDemoClients{Clients: clientsRepo}
-	res, err := uc.Execute(ctx)
-	if err != nil {
-		t.Fatalf("error inesperado: %v", err)
-	}
-
-	if len(res) != 5 {
-		t.Fatalf("len = %d, want 5", len(res))
-	}
-
-	// cli_demo_01, cli_demo_02, cli_demo_15 deben ir primero en orden
-	if res[0].ID != "cli_demo_01" || res[1].ID != "cli_demo_02" || res[2].ID != "cli_demo_15" {
-		t.Errorf("orden de demo clients incorrecto: %+v", res)
-	}
-	// Después van los no-demo
-	if res[3].ID != "cli_custom_0" || res[4].ID != "cli_custom_1" {
-		t.Errorf("orden de custom clients incorrecto: %+v", res)
-	}
-}
-
 func TestClientPortal_ListMyClosings(t *testing.T) {
 	ctx := context.Background()
 	closingsRepo := fakes.NewClosingRepository()

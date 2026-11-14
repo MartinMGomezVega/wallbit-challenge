@@ -1,19 +1,19 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AlertCircle, BarChart3, RotateCcw } from 'lucide-react';
 import { useStats } from './useStats';
+import { SeverityOverview } from './SeverityOverview';
 import { KpiCard } from './KpiCard';
 import { ProgressKpi } from './ProgressKpi';
 import { SignalsBarChart } from './charts/SignalsBarChart';
 import { CategoryBarChart } from './charts/CategoryBarChart';
 import { DueDatesBarChart } from './charts/DueDatesBarChart';
-import { SuccessMetrics } from './SuccessMetrics';
+import { ServiceHealth } from './ServiceHealth';
 import { formatDate, formatPeriodName } from '../../shared/format/date';
 import { formatMoney } from '../../shared/format/money';
-import { formatPercentBp } from '../../shared/format/percent';
 import { ApiError } from '../../shared/api/http';
+import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 
 const DEFAULT_PERIOD = '2026-10';
-const AVAILABLE_PERIODS = ['2026-10', '2026-09', '2026-08'];
 
 function SummarySkeleton() {
   return (
@@ -46,19 +46,10 @@ function SummarySkeleton() {
 }
 
 export function SummaryPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  useDocumentTitle('Resumen · Wallbit Contabilidad');
+  const [searchParams] = useSearchParams();
   const period = searchParams.get('period') || DEFAULT_PERIOD;
   const { data, isLoading, isError, error, refetch } = useStats(period);
-
-  const handlePeriodChange = (nextPeriod: string) => {
-    const next = new URLSearchParams(searchParams);
-    next.set('period', nextPeriod);
-    setSearchParams(next);
-  };
-
-  const periodOptions = AVAILABLE_PERIODS.includes(period)
-    ? AVAILABLE_PERIODS
-    : [period, ...AVAILABLE_PERIODS];
 
   const errorCode = error instanceof ApiError ? error.code : undefined;
 
@@ -74,27 +65,6 @@ export function SummaryPage() {
               {data.progress.total} clientes en el período
             </p>
           )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="summary-period-select"
-            className="text-sm font-medium text-app-text-muted"
-          >
-            Período
-          </label>
-          <select
-            id="summary-period-select"
-            value={period}
-            onChange={(e) => handlePeriodChange(e.target.value)}
-            className="h-8 rounded-md border border-app-border bg-app-surface px-3 text-sm text-app-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-focus"
-          >
-            {periodOptions.map((p) => (
-              <option key={p} value={p}>
-                {formatPeriodName(p)}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -138,30 +108,35 @@ export function SummaryPage() {
             Elegí otro período para ver las métricas del estudio.
           </p>
           {period !== DEFAULT_PERIOD && (
-            <button
-              type="button"
-              onClick={() => handlePeriodChange(DEFAULT_PERIOD)}
+            <Link
+              to={`/contador/resumen?period=${DEFAULT_PERIOD}`}
               className="mt-4 inline-flex h-8 items-center rounded-md bg-app-primary px-3 text-sm font-medium text-white transition-colors hover:bg-app-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-focus"
             >
               Ver {formatPeriodName(DEFAULT_PERIOD)}
-            </button>
+            </Link>
           )}
         </div>
       )}
 
       {!isLoading && !isError && data && data.progress.total > 0 && (
         <div className="grid grid-cols-12 gap-4">
+          <SeverityOverview
+            period={period}
+            total={data.progress.total}
+            bySeverity={data.risk.bySeverity}
+          />
+
           <ProgressKpi
             period={period}
             progress={data.progress}
-            className="col-span-12 md:col-span-6 xl:col-span-3"
+            className="col-span-12 md:col-span-4"
           />
 
           <KpiCard
             label="Facturado del mes"
             value={formatMoney(data.totals.billedUSD)}
             secondary={formatMoney(data.totals.billedARS)}
-            className="col-span-12 md:col-span-6 xl:col-span-3"
+            className="col-span-12 md:col-span-4"
           />
 
           <KpiCard
@@ -172,15 +147,7 @@ export function SummaryPage() {
                 ? `Próximo vence ${formatDate(data.totals.toPayByDueDate[0].date, 'short')}`
                 : 'Sin vencimientos'
             }
-            className="col-span-12 md:col-span-6 xl:col-span-3"
-          />
-
-          <KpiCard
-            label="Todo ok"
-            value={formatPercentBp(data.success.greenPct)}
-            secondary={`${data.risk.bySeverity.GREEN} de ${data.progress.total} clientes`}
-            to={`/contador?period=${encodeURIComponent(period)}&severity=GREEN`}
-            className="col-span-12 md:col-span-6 xl:col-span-3"
+            className="col-span-12 md:col-span-4"
           />
 
           <SignalsBarChart
@@ -200,7 +167,7 @@ export function SummaryPage() {
             className="col-span-12"
           />
 
-          <SuccessMetrics success={data.success} />
+          <ServiceHealth success={data.success} />
         </div>
       )}
     </div>

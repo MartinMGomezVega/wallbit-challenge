@@ -64,7 +64,7 @@ func (r *ClientInputRepository) Get(ctx context.Context, clientID string, p peri
 			return clientinput.ClientPeriodInput{}, err
 		}
 		out.ExternalIncome = append(out.ExternalIncome, clientinput.ExternalIncomeItem{
-			Amount:      money.New(amt, money.ARS),
+			Amount:      money.New(amt, money.USD),
 			Description: desc,
 		})
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -191,6 +192,23 @@ func TestClosingE2E_SeedAndPerformance(t *testing.T) {
 	}
 	if redPct < 3 || redPct > 15 {
 		t.Errorf("distribución rojo fuera de rango: %d%%", redPct)
+	}
+
+	stats := closing.ComputeStats(allClosings, period.MustParse("2026-10"))
+	if len(stats.Totals.ToPayByDueDate) == 0 {
+		t.Fatal("esperaba vencimientos en el resumen de octubre")
+	}
+	hasNov20 := false
+	for _, dd := range stats.Totals.ToPayByDueDate {
+		if strings.HasPrefix(dd.Date, "2026-10-") {
+			t.Errorf("vencimiento de octubre encontrado en el cierre de octubre: %s", dd.Date)
+		}
+		if dd.Date == "2026-11-20" {
+			hasNov20 = true
+		}
+	}
+	if !hasNov20 {
+		t.Errorf("esperaba vencimiento 2026-11-20 en ToPayByDueDate, obtuvo %+v", stats.Totals.ToPayByDueDate)
 	}
 }
 

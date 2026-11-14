@@ -3,23 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Wallbit Contabilidad · API Docs</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
     <style>
       body { margin: 0; background: #f8fafc; }
       .topbar-wallbit {
-        background: #120477;
+        background: #0a0a0a;
         color: #fff;
         padding: 12px 24px;
         font-family: system-ui, -apple-system, sans-serif;
         font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
       }
+      .topbar-wallbit img { height: 24px; width: auto; }
       .topbar-wallbit span.badge {
-        background: #7c73f9;
+        background: #006fc0;
         color: #fff;
         font-size: 12px;
         padding: 2px 8px;
@@ -29,7 +31,8 @@
   </head>
   <body>
     <div class="topbar-wallbit">
-      <span>Wallbit Contabilidad · API v1</span>
+      <img src="./wallbit-logo-white.svg" alt="Wallbit" />
+      <span>Contabilidad · API v1</span>
       <span class="badge">OpenAPI 3.0</span>
     </div>
     <div id="swagger-ui"></div>
@@ -47,4 +50,3 @@
     </script>
   </body>
 </html>
-

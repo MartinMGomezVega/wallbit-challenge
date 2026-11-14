@@ -321,8 +321,7 @@ func newRouter(deps Deps) *router {
 		rt.accountant("PUT /api/v1/accountant/clients/{id}/ri-profile", regimeH.updateRIProfile)
 
 		cliH := &clientHandler{
-			getMeUC:           &usecase.GetMe{Clients: deps.ClientRepo},
-			listDemoClientsUC: &usecase.ListDemoClients{Clients: deps.ClientRepo},
+			getMeUC: &usecase.GetMe{Clients: deps.ClientRepo},
 		}
 		if deps.ClosingRepo != nil && deps.ClientInputRepo != nil && deps.InvoiceRepo != nil {
 			cliH.listMyClosingsUC = &usecase.ListMyClosings{
@@ -347,7 +346,6 @@ func newRouter(deps Deps) *router {
 			}
 		}
 
-		rt.public("GET /api/v1/demo/clients", cliH.listDemoClients)
 		rt.client("GET /api/v1/me", cliH.getMe)
 		if cliH.listMyClosingsUC != nil {
 			rt.client("GET /api/v1/me/closings", cliH.listMyClosings)

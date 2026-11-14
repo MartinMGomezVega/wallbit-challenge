@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../../mocks/server';
 import { apiFetch, ApiError, jsonBody } from '../http';
-import { setRole } from '../../../app/roleStore';
 
 describe('apiFetch', () => {
   const schema = z.object({
@@ -21,19 +20,6 @@ describe('apiFetch', () => {
 
     const res = await apiFetch('/api/v1/test', schema);
     expect(res).toEqual({ status: 'ok', count: 42 });
-  });
-
-  it('envía el header X-Demo-User correspondiente al rol activo', async () => {
-    setRole({ kind: 'client', clientId: 'cli_abc' });
-    server.use(
-      http.get('/api/v1/test-role', ({ request }) => {
-        expect(request.headers.get('X-Demo-User')).toBe('client:cli_abc');
-        return HttpResponse.json({ status: 'ok' });
-      }),
-    );
-
-    const res = await apiFetch('/api/v1/test-role', schema);
-    expect(res.status).toBe('ok');
   });
 
   it('agrega Content-Type application/json automáticamente si hay body string sin header', async () => {

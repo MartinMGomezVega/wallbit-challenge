@@ -13,20 +13,34 @@ export const MovementDTOSchema = z.object({
   clientId: z.string(),
   type: z.string(),
   amount: MoneySchema,
-  counterparty: z.string().optional().default(''),
+  counterparty: z
+    .union([z.string(), z.object({ name: z.string() }).transform((c) => c.name)])
+    .optional()
+    .default(''),
   description: z.string().optional().default(''),
   occurredAt: z.string(),
 });
 export type MovementDTO = z.infer<typeof MovementDTOSchema>;
 
 // Classification DTO
-export const ClassificationDTOSchema = z.object({
-  nature: z.enum(['INCOME', 'EXPENSE', 'TRANSFER', 'OTHER']),
-  rule: z.string(),
-  confidence: z.number().optional().default(1),
-  comment: z.string().optional().default(''),
-  overridden: z.boolean().optional().default(false),
-});
+export const ClassificationDTOSchema = z
+  .object({
+    nature: z.enum(['INCOME', 'EXPENSE', 'TRANSFER', 'OTHER', 'NOT_INCOME', 'UNCLASSIFIED']).optional(),
+    kind: z.enum(['INCOME', 'NOT_INCOME', 'UNCLASSIFIED']).optional(),
+    rule: z.string(),
+    confidence: z.union([z.number(), z.string()]).optional().default(1),
+    comment: z.string().optional().default(''),
+    note: z.string().optional().default(''),
+    overridden: z.boolean().optional(),
+    overriddenBy: z.string().optional(),
+  })
+  .transform((c) => ({
+    nature: c.nature ?? c.kind ?? 'OTHER',
+    rule: c.rule,
+    confidence: c.confidence,
+    comment: c.comment || c.note || '',
+    overridden: c.overridden ?? Boolean(c.overriddenBy),
+  }));
 export type ClassificationDTO = z.infer<typeof ClassificationDTOSchema>;
 
 export const PeriodMovementDTOSchema = z.object({
@@ -78,7 +92,7 @@ export const MonotributoAssessmentSchema = z.object({
   billedInPeriodUSD: MoneySchema,
   billedInPeriodARS: MoneySchema,
   currentCategory: z.string(),
-  requiredCategory: z.string().optional(),
+  requiredCategory: z.string().nullable().optional(),
   billed12mARS: MoneySchema,
   kCapARS: MoneySchema.optional(),
   pctOfKCapBp: z.number(),
@@ -119,6 +133,25 @@ export const ClientDTOSchema = z.object({
 });
 export type ClientDTO = z.infer<typeof ClientDTOSchema>;
 
+// Published snapshot
+export const PublishedSchema = z.object({
+  version: z.number(),
+  title: z.string(),
+  body: z.string(),
+  figures: z.object({
+    billedUSD: MoneySchema,
+    billedARS: MoneySchema,
+    items: z.array(z.object({
+      concept: z.string(),
+      amount: MoneySchema,
+      dueDate: z.string(),
+    })).default([]),
+    total: MoneySchema,
+  }).optional(),
+  publishedAt: z.string(),
+});
+export type PublishedDTO = z.infer<typeof PublishedSchema>;
+
 // Closing Detail
 export const ClosingDetailDTOSchema = z.object({
   closing: z.object({
@@ -150,6 +183,7 @@ export const ClosingDetailDTOSchema = z.object({
     paidAt: z.string().nullable().optional(),
     approvedAt: z.string().nullable().optional(),
     approvedBy: z.string().nullable().optional(),
+    published: PublishedSchema.nullable().optional(),
   }),
   client: ClientDTOSchema,
   periodMovements: z.array(PeriodMovementDTOSchema).default([]),

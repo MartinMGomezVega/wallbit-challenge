@@ -1,0 +1,723 @@
+{
+  "closing": {
+    "id": "clo_000044",
+    "clientId": "cli_000044",
+    "period": "2026-10",
+    "status": "READY_FOR_REVIEW",
+    "version": 1,
+    "resultHash": "d130e9cfd2f02aeaad1423674944eb164518896792fe0f33e5064685d39e203e",
+    "severity": "RED",
+    "signals": [
+      {
+        "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
+        "severity": "RED",
+        "priority": 1,
+        "message": "Superó el tope de la categoría K el 10/09/2026 por $ 2.372.599,37. Corresponde pase a Responsable Inscripto.",
+        "data": {
+          "excessARS": "2372599.37",
+          "exclusionDate": "10/09/2026"
+        }
+      },
+      {
+        "code": "DEPOSITS_EXCEED_K_CAP",
+        "severity": "RED",
+        "priority": 4,
+        "message": "Depósitos de los últimos 12 meses ($ 128.369.802,04) superan el tope de la categoría K.",
+        "data": {
+          "inboundARS": "128369802.04",
+          "kCapARS": "126610838.75"
+        }
+      }
+    ],
+    "description": "Superó el tope de la categoría K el 10/09/2026 por $ 2.372.599,37. Corresponde pase a Responsable Inscripto.",
+    "mono": {
+      "billedInPeriodUSD": {
+        "amount": 668600,
+        "currency": "USD"
+      },
+      "billedInPeriodARS": {
+        "amount": 992068680,
+        "currency": "ARS"
+      },
+      "billed12mARS": {
+        "amount": 12898343812,
+        "currency": "ARS"
+      },
+      "currentCategory": "K",
+      "requiredCategory": null,
+      "pctOfCurrentCapBp": 10187,
+      "pctOfKCapBp": 10187,
+      "excluded": true,
+      "exclusionDate": "2026-09-10T00:00:00-03:00",
+      "excessARS": {
+        "amount": 237259937,
+        "currency": "ARS"
+      },
+      "canReturnFrom": "2030-01-01T00:00:00-03:00",
+      "fee": {
+        "amount": 161444604,
+        "currency": "ARS"
+      },
+      "feeDueDate": "2026-11-20T00:00:00-03:00",
+      "inbound12mARS": {
+        "amount": 12836980204,
+        "currency": "ARS"
+      },
+      "cardSpend12mARS": {
+        "amount": 3145737813,
+        "currency": "ARS"
+      },
+      "kCapARS": {
+        "amount": 12661083875,
+        "currency": "ARS"
+      },
+      "scaleValidFrom": "2026-07-31T21:00:00-03:00"
+    },
+    "reconciliation": {
+      "matchedPairs": [
+        {
+          "movementId": "mov_008106",
+          "invoiceId": "inv_000572",
+          "diffAmount": 0
+        }
+      ],
+      "unmatchedIncomeIds": [],
+      "unmatchedInvoiceIds": []
+    },
+    "computedAt": "2026-11-05T09:00:00-03:00",
+    "approvals": []
+  },
+  "client": {
+    "id": "cli_000044",
+    "name": "Catalina Giménez",
+    "email": "Catalina.Giménez_44@wallbit-test.io",
+    "cuit": "20-20005593-5",
+    "regime": "MONOTRIBUTO",
+    "monotributoCategory": "K",
+    "regimeHistory": [],
+    "createdAt": "2025-10-01T00:00:00-03:00"
+  },
+  "periodMovements": [
+    {
+      "movement": {
+        "id": "mov_008112",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 14900,
+          "currency": "USD"
+        },
+        "fxRate": 14898000,
+        "occurredAt": "2026-10-02T06:01:00-03:00",
+        "counterparty": {
+          "name": "AWS",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "AWS purchase"
+      },
+      "classification": {
+        "movementId": "mov_008112",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008120",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 12100,
+          "currency": "USD"
+        },
+        "fxRate": 14871500,
+        "occurredAt": "2026-10-05T19:34:00-03:00",
+        "counterparty": {
+          "name": "Apple",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Apple purchase"
+      },
+      "classification": {
+        "movementId": "mov_008120",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008108",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 26500,
+          "currency": "USD"
+        },
+        "fxRate": 14895400,
+        "occurredAt": "2026-10-07T05:38:00-03:00",
+        "counterparty": {
+          "name": "Amazon",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Amazon purchase"
+      },
+      "classification": {
+        "movementId": "mov_008108",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008107",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 19900,
+          "currency": "USD"
+        },
+        "fxRate": 14895400,
+        "occurredAt": "2026-10-07T18:47:00-03:00",
+        "counterparty": {
+          "name": "DigitalOcean",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "DigitalOcean purchase"
+      },
+      "classification": {
+        "movementId": "mov_008107",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008116",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 22400,
+          "currency": "USD"
+        },
+        "fxRate": 14866000,
+        "occurredAt": "2026-10-08T15:37:00-03:00",
+        "counterparty": {
+          "name": "Amazon",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Amazon purchase"
+      },
+      "classification": {
+        "movementId": "mov_008116",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008125",
+        "clientId": "cli_000044",
+        "type": "OUTBOUND_TRANSFER",
+        "amount": {
+          "amount": 37100,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "occurredAt": "2026-10-12T12:00:00-03:00",
+        "counterparty": {
+          "name": "External Bank",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Outbound transfer"
+      },
+      "classification": {
+        "movementId": "mov_008125",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "OUTBOUND"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008121",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 21500,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "occurredAt": "2026-10-12T13:25:00-03:00",
+        "counterparty": {
+          "name": "Amazon",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Amazon purchase"
+      },
+      "classification": {
+        "movementId": "mov_008121",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008106",
+        "clientId": "cli_000044",
+        "type": "INBOUND_TRANSFER",
+        "amount": {
+          "amount": 668600,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "occurredAt": "2026-10-12T17:44:00-03:00",
+        "counterparty": {
+          "name": "Ontop",
+          "country": "US",
+          "kind": "PLATFORM",
+          "isOwnAccount": false
+        },
+        "description": "Professional services payment"
+      },
+      "classification": {
+        "movementId": "mov_008106",
+        "kind": "INCOME",
+        "confidence": "HIGH",
+        "rule": "KNOWN_PAYER"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008115",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 17600,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "occurredAt": "2026-10-12T23:02:00-03:00",
+        "counterparty": {
+          "name": "AWS",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "AWS purchase"
+      },
+      "classification": {
+        "movementId": "mov_008115",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008124",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 10200,
+          "currency": "USD"
+        },
+        "fxRate": 14821500,
+        "occurredAt": "2026-10-13T06:06:00-03:00",
+        "counterparty": {
+          "name": "Spotify",
+          "country": "SE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Spotify purchase"
+      },
+      "classification": {
+        "movementId": "mov_008124",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008114",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 14300,
+          "currency": "USD"
+        },
+        "fxRate": 14818000,
+        "occurredAt": "2026-10-14T13:36:00-03:00",
+        "counterparty": {
+          "name": "GitHub",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "GitHub purchase"
+      },
+      "classification": {
+        "movementId": "mov_008114",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008111",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 4100,
+          "currency": "USD"
+        },
+        "fxRate": 14798600,
+        "occurredAt": "2026-10-15T01:14:00-03:00",
+        "counterparty": {
+          "name": "GitHub",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "GitHub purchase"
+      },
+      "classification": {
+        "movementId": "mov_008111",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008113",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 10200,
+          "currency": "USD"
+        },
+        "fxRate": 14814300,
+        "occurredAt": "2026-10-16T00:36:00-03:00",
+        "counterparty": {
+          "name": "Starbucks",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Starbucks purchase"
+      },
+      "classification": {
+        "movementId": "mov_008113",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008119",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 500,
+          "currency": "USD"
+        },
+        "fxRate": 14927800,
+        "occurredAt": "2026-10-21T03:36:00-03:00",
+        "counterparty": {
+          "name": "OpenAI",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "OpenAI purchase"
+      },
+      "classification": {
+        "movementId": "mov_008119",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008123",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 26100,
+          "currency": "USD"
+        },
+        "fxRate": 14927800,
+        "occurredAt": "2026-10-21T04:46:00-03:00",
+        "counterparty": {
+          "name": "Starbucks",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Starbucks purchase"
+      },
+      "classification": {
+        "movementId": "mov_008123",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008117",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 17500,
+          "currency": "USD"
+        },
+        "fxRate": 14963000,
+        "occurredAt": "2026-10-22T02:58:00-03:00",
+        "counterparty": {
+          "name": "Spotify",
+          "country": "SE",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Spotify purchase"
+      },
+      "classification": {
+        "movementId": "mov_008117",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008109",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 12300,
+          "currency": "USD"
+        },
+        "fxRate": 14963200,
+        "occurredAt": "2026-10-24T09:05:00-03:00",
+        "counterparty": {
+          "name": "AWS",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "AWS purchase"
+      },
+      "classification": {
+        "movementId": "mov_008109",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008110",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 26200,
+          "currency": "USD"
+        },
+        "fxRate": 14963200,
+        "occurredAt": "2026-10-24T19:29:00-03:00",
+        "counterparty": {
+          "name": "Starbucks",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Starbucks purchase"
+      },
+      "classification": {
+        "movementId": "mov_008110",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008122",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 15000,
+          "currency": "USD"
+        },
+        "fxRate": 14963200,
+        "occurredAt": "2026-10-25T09:36:00-03:00",
+        "counterparty": {
+          "name": "Netflix",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Netflix purchase"
+      },
+      "classification": {
+        "movementId": "mov_008122",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    },
+    {
+      "movement": {
+        "id": "mov_008118",
+        "clientId": "cli_000044",
+        "type": "CARD_SPEND",
+        "amount": {
+          "amount": 12200,
+          "currency": "USD"
+        },
+        "fxRate": 15068700,
+        "occurredAt": "2026-10-27T12:50:00-03:00",
+        "counterparty": {
+          "name": "Figma",
+          "country": "US",
+          "kind": "COMPANY",
+          "isOwnAccount": false
+        },
+        "description": "Figma purchase"
+      },
+      "classification": {
+        "movementId": "mov_008118",
+        "kind": "NOT_INCOME",
+        "confidence": "HIGH",
+        "rule": "CARD_EXPENSE"
+      }
+    }
+  ],
+  "periodInvoices": [
+    {
+      "invoice": {
+        "id": "inv_000572",
+        "clientId": "cli_000044",
+        "type": "E",
+        "pointOfSale": 1,
+        "number": 13,
+        "issueDate": "2026-10-11T17:44:00-03:00",
+        "currency": "USD",
+        "netAmount": {
+          "amount": 668600,
+          "currency": "USD"
+        },
+        "vatAmount": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalAmount": {
+          "amount": 668600,
+          "currency": "USD"
+        },
+        "fxRate": 14838000,
+        "receiverName": "Ontop",
+        "receiverDoc": "US33879915",
+        "source": "SEED",
+        "createdAt": "2026-10-11T17:44:00-03:00"
+      },
+      "amountArs": {
+        "amount": 992068680,
+        "currency": "ARS"
+      },
+      "fxRateUsed": 14838000
+    }
+  ],
+  "reconciliation": {
+    "matchedPairs": [
+      {
+        "movement": {
+          "id": "mov_008106",
+          "clientId": "cli_000044",
+          "type": "INBOUND_TRANSFER",
+          "amount": {
+            "amount": 668600,
+            "currency": "USD"
+          },
+          "fxRate": 14838000,
+          "occurredAt": "2026-10-12T17:44:00-03:00",
+          "counterparty": {
+            "name": "Ontop",
+            "country": "US",
+            "kind": "PLATFORM",
+            "isOwnAccount": false
+          },
+          "description": "Professional services payment"
+        },
+        "invoice": {
+          "id": "inv_000572",
+          "clientId": "cli_000044",
+          "type": "E",
+          "pointOfSale": 1,
+          "number": 13,
+          "issueDate": "2026-10-11T17:44:00-03:00",
+          "currency": "USD",
+          "netAmount": {
+            "amount": 668600,
+            "currency": "USD"
+          },
+          "vatAmount": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "totalAmount": {
+            "amount": 668600,
+            "currency": "USD"
+          },
+          "fxRate": 14838000,
+          "receiverName": "Ontop",
+          "receiverDoc": "US33879915",
+          "source": "SEED",
+          "createdAt": "2026-10-11T17:44:00-03:00"
+        },
+        "diffAmount": 0
+      }
+    ],
+    "unmatchedIncome": [],
+    "unmatchedInvoices": []
+  },
+  "clientInput": {
+    "clientId": "cli_000044",
+    "period": "2026-10",
+    "externalIncome": [],
+    "declaredNoExternalIncome": true,
+    "confirmedAt": "2026-11-01T17:12:00-03:00",
+    "updatedAt": "2026-11-01T17:12:00-03:00"
+  },
+  "draftMessage": {
+    "title": "Tu cierre de octubre 2026 está listo",
+    "body": "Facturaste US$ 6.686,00 ($ 9.920.686,80). Cuota de Monotributo categoría K: $ 1.614.446,04, vence el 20/11/2026. Superaste el tope del Monotributo. Tu contador te va a contactar para el pase a Responsable Inscripto."
+  }
+}
+

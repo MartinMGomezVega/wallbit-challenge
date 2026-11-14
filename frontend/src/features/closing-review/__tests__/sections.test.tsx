@@ -442,5 +442,33 @@ describe('Review Sections', () => {
       rerender(<ClientMessageSection detail={notifiedDetail} />);
       expect(screen.getByTestId('client-message-body')).not.toHaveTextContent(/nota de tu contador/i);
     });
+
+    it('muestra lo publicado (Published) con fecha cuando el cierre fue notificado', () => {
+      const publishedDetail: ClosingDetailDTO = {
+        ...mockDetailMono,
+        closing: {
+          ...mockDetailMono.closing,
+          status: 'NOTIFIED',
+          published: {
+            version: 1,
+            title: 'Cierre de octubre 2026 publicado',
+            body: 'Tu cuota de octubre es $ 26.600,00 con vencimiento 20/11/2026.',
+            figures: {
+              billedUSD: { amount: 150000, currency: 'USD' },
+              billedARS: { amount: 180000000, currency: 'ARS' },
+              items: [],
+              total: { amount: 2660000, currency: 'ARS' },
+            },
+            publishedAt: '2026-11-05T10:00:00Z',
+          },
+        },
+      };
+
+      render(<ClientMessageSection detail={publishedDetail} />);
+      expect(screen.getByTestId('published-client-message')).toBeInTheDocument();
+      expect(screen.getByTestId('published-message-title')).toHaveTextContent('Cierre de octubre 2026 publicado');
+      expect(screen.getByTestId('published-message-body')).toHaveTextContent(/26\.600,00/);
+      expect(screen.getByTestId('published-at')).toHaveTextContent('05/11/2026');
+    });
   });
 });

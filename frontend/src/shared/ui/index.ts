@@ -5,4 +5,3 @@ export * from './SignalChip';
 export * from './ProgressBar';
 export * from './StatusBadge';
 export * from './Pagination';
-export * from './ComingSoonButton';

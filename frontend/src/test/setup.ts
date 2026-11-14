@@ -2,7 +2,6 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { server } from '../mocks/server';
-import { resetRoleForTests } from '../app/roleStore';
 
 // Polyfill para compatibilidad entre jsdom y undici (Node 22/25 Web API):
 // jsdom crea instancias de AbortSignal que no tienen los símbolos internos de undici,
@@ -70,6 +69,5 @@ afterEach(() => {
   cleanup();
   server.resetHandlers();
   window.localStorage.clear();
-  resetRoleForTests();
 });
 afterAll(() => server.close());

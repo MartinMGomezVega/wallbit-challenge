@@ -8,21 +8,10 @@ import (
 
 type clientHandler struct {
 	getMeUC                *usecase.GetMe
-	listDemoClientsUC      *usecase.ListDemoClients
 	listMyClosingsUC       *usecase.ListMyClosings
 	markClosingPaidUC      *usecase.MarkClosingPaid
 	listMyNotificationsUC  *usecase.ListMyNotifications
 	markNotificationReadUC *usecase.MarkNotificationRead
-}
-
-// GET /api/v1/demo/clients
-func (h *clientHandler) listDemoClients(w http.ResponseWriter, r *http.Request) {
-	clients, err := h.listDemoClientsUC.Execute(r.Context())
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, clients)
 }
 
 // GET /api/v1/me

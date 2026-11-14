@@ -38,7 +38,9 @@ describe('SummaryPage', () => {
   it('renderiza KPIs, gráficos, tablas sr-only y métricas de éxito', async () => {
     renderSummary();
 
-    expect(screen.getByText(/Resumen de octubre 2026/i)).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: 'Resumen de octubre 2026' });
+    expect(heading).toBeInTheDocument();
+    expect(heading).not.toHaveClass('capitalize');
     expect(screen.getByLabelText(/Cargando resumen del período/i)).toBeInTheDocument();
 
     await waitFor(() => {
@@ -50,7 +52,25 @@ describe('SummaryPage', () => {
     expect(screen.getByText('$ 150.000.000,00')).toBeInTheDocument();
     expect(screen.getAllByText('$ 5.000.000,00').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Próximo vence 20\/11/i)).toBeInTheDocument();
-    expect(screen.getByText('223 de 300 clientes')).toBeInTheDocument();
+    expect(screen.queryByText('Todo ok')).not.toBeInTheDocument();
+
+    // Estado de los clientes (arriba)
+    const sevOverview = screen.getByTestId('severity-overview');
+    const progressHeading = screen.getByText('Progreso del cierre');
+    const signalsHeading = screen.getByText('Situaciones detectadas');
+    const serviceHealth = screen.getByTestId('service-health');
+
+    // Orden de secciones: SeverityOverview -> KPIs -> Gráficos -> ServiceHealth
+    expect(sevOverview.compareDocumentPosition(progressHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(progressHeading.compareDocumentPosition(signalsHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(signalsHeading.compareDocumentPosition(serviceHealth) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    expect(screen.getByText('Rojos')).toBeInTheDocument();
+    expect(screen.getByText('Amarillos')).toBeInTheDocument();
+    expect(screen.getByText('Verdes')).toBeInTheDocument();
+    expect(screen.getByText('7% del total')).toBeInTheDocument();
+    expect(screen.getByText('19% del total')).toBeInTheDocument();
+    expect(screen.getByText('74% del total')).toBeInTheDocument();
 
     // Títulos de gráficos y tablas equivalentes sr-only
     expect(screen.getByText('Situaciones detectadas')).toBeInTheDocument();
@@ -61,15 +81,19 @@ describe('SummaryPage', () => {
     expect(screen.getByText('Faltan facturas')).toBeInTheDocument();
     expect(screen.getByText('Cerca del tope K')).toBeInTheDocument();
 
-    // Métricas de éxito
+    // Sección separada "¿Está funcionando el servicio?" con X de Y
+    expect(screen.getByRole('heading', { name: '¿Está funcionando el servicio?' })).toBeInTheDocument();
     expect(screen.getByText('Clientes en verde')).toBeInTheDocument();
     expect(screen.getByText('Avisados antes del día 10')).toBeInTheDocument();
     expect(screen.getByText('Pagos en término')).toBeInTheDocument();
+    expect(screen.getByText(/223 de 300/)).toBeInTheDocument();
+    expect(screen.getByText(/80 de 300/)).toBeInTheDocument();
+    expect(screen.getByText(/38 de 60/)).toBeInTheDocument();
     expect(screen.getByText('27%')).toBeInTheDocument();
     expect(screen.getByText('63%')).toBeInTheDocument();
   });
 
-  it('navega al tablero con filtros al hacer click en segmento de progreso, KPI Todo ok y señal', async () => {
+  it('navega al tablero con filtros al hacer click en segmento de progreso, tarjetas de severidad y señal', async () => {
     const user = userEvent.setup();
 
     // 1. Segmento de barra de progreso -> status=NOTIFIED
@@ -81,12 +105,20 @@ describe('SummaryPage', () => {
     expect(screen.getByTestId('location-display')).toHaveTextContent('/contador?period=2026-10&status=NOTIFIED');
     unmount();
 
-    // 2. KPI Todo ok -> severity=GREEN
+    // 2. Tarjeta Verdes -> severity=GREEN (y links de Rojos / Amarillos)
     const { unmount: unmount2 } = renderSummary();
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /Todo ok/i })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Ver Verdes en la tabla/i })).toBeInTheDocument();
     });
-    await user.click(screen.getByRole('link', { name: /Todo ok/i }));
+    expect(screen.getByRole('link', { name: /Ver Rojos en la tabla/i })).toHaveAttribute(
+      'href',
+      '/contador?period=2026-10&severity=RED',
+    );
+    expect(screen.getByRole('link', { name: /Ver Amarillos en la tabla/i })).toHaveAttribute(
+      'href',
+      '/contador?period=2026-10&severity=YELLOW',
+    );
+    await user.click(screen.getByRole('link', { name: /Ver Verdes en la tabla/i }));
     expect(screen.getByTestId('location-display')).toHaveTextContent('/contador?period=2026-10&severity=GREEN');
     unmount2();
 
@@ -99,18 +131,13 @@ describe('SummaryPage', () => {
     expect(screen.getByTestId('location-display')).toHaveTextContent('/contador?period=2026-10&signal=MISSING_INVOICES');
   });
 
-  it('cambia de período desde el selector', async () => {
-    const user = userEvent.setup();
-    renderSummary();
+  it('lee el período desde la URL y no renderiza selector propio', async () => {
+    renderSummary('/contador/resumen?period=2026-09');
 
-    await waitFor(() => {
-      expect(screen.getByText('220 de 300 sin aprobar')).toBeInTheDocument();
-    });
-
-    await user.selectOptions(screen.getByLabelText(/Período/i), '2026-09');
     await waitFor(() => {
       expect(screen.getByText(/Resumen de septiembre 2026/i)).toBeInTheDocument();
     });
+    expect(screen.queryByRole('combobox', { name: /Período/i })).not.toBeInTheDocument();
   });
 
   it('muestra estado vacío cuando no hay cierres en el período', async () => {
@@ -146,7 +173,7 @@ describe('SummaryPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/No hay cierres para agosto 2026/i)).toBeInTheDocument();
     });
-    expect(screen.getByRole('button', { name: /Ver octubre 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Ver octubre 2026/i })).toBeInTheDocument();
   });
 
   it('muestra error y permite reintentar cuando falla la API', async () => {

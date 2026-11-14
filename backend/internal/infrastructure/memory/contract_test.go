@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports/repotest"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/memory"
 )
 
@@ -30,4 +31,11 @@ func TestMemoryContract(t *testing.T) {
 	}
 
 	repotest.RunAll(t, newBundle, false)
+}
+
+func TestMemoryClosingQueryCompare(t *testing.T) {
+	clients := memory.NewClientRepository()
+	closings := memory.NewClosingRepository()
+	q := memory.NewClosingQuery(closings, clients)
+	repotest.CompareClosingQueries(t, q, q, period.MustParse("2026-10"))
 }

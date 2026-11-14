@@ -1,0 +1,81 @@
+[
+  {
+    "code": "MONO_EXCLUSION_K_CAP_EXCEEDED",
+    "severity": "RED",
+    "priority": 1,
+    "label": "Excede tope K (pasa a RI)"
+  },
+  {
+    "code": "POST_EXCLUSION_C_INVOICES",
+    "severity": "RED",
+    "priority": 2,
+    "label": "Facturas C post-exclusión"
+  },
+  {
+    "code": "MISSING_INVOICES",
+    "severity": "RED",
+    "priority": 3,
+    "label": "Faltan facturas"
+  },
+  {
+    "code": "DEPOSITS_EXCEED_K_CAP",
+    "severity": "RED",
+    "priority": 4,
+    "label": "Depósitos sobre tope K"
+  },
+  {
+    "code": "MONO_NEAR_K_CAP",
+    "severity": "YELLOW",
+    "priority": 5,
+    "label": "Cerca del tope K"
+  },
+  {
+    "code": "MONO_CATEGORY_CHANGE_REQUIRED",
+    "severity": "YELLOW",
+    "priority": 6,
+    "label": "Debe recategorizar"
+  },
+  {
+    "code": "MONO_NEAR_CATEGORY_CAP",
+    "severity": "YELLOW",
+    "priority": 7,
+    "label": "Cerca del tope de su categoría"
+  },
+  {
+    "code": "ATYPICAL_INCOME",
+    "severity": "YELLOW",
+    "priority": 8,
+    "label": "Cobro fuera de lo habitual"
+  },
+  {
+    "code": "UNCLASSIFIED_MOVEMENTS",
+    "severity": "YELLOW",
+    "priority": 9,
+    "label": "Movimientos sin clasificar"
+  },
+  {
+    "code": "EXTERNAL_INCOME_DECLARED",
+    "severity": "YELLOW",
+    "priority": 10,
+    "label": "Cobros fuera de Wallbit"
+  },
+  {
+    "code": "INVOICE_WITHOUT_PAYMENT",
+    "severity": "YELLOW",
+    "priority": 11,
+    "label": "Facturas sin cobro"
+  },
+  {
+    "code": "HIGH_CARD_SPENDING",
+    "severity": "YELLOW",
+    "priority": 12,
+    "label": "Gastos con tarjeta altos"
+  },
+  {
+    "code": "MONO_CATEGORY_DOWNGRADE_POSSIBLE",
+    "severity": "YELLOW",
+    "priority": 13,
+    "label": "Puede bajar de categoría"
+  }
+]
+

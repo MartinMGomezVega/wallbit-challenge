@@ -4,8 +4,10 @@ import { CheckCircle2, AlertCircle, Save, Loader2 } from 'lucide-react';
 import { getParameters, updateParameters } from './api';
 import { ParametersDTO } from './schemas';
 import { ApiError } from '../../shared/api/http';
+import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 
 export function ParametersPage() {
+  useDocumentTitle('Parámetros · Wallbit Contabilidad');
   const queryClient = useQueryClient();
   const { data: initialParams, isLoading, isError, error } = useQuery({
     queryKey: ['parameters'],

@@ -64,29 +64,6 @@ func setupClientTestHandler(t *testing.T) (http.Handler, *memory.ClientRepositor
 	return h, clientRepo, closingRepo, notifRepo, inputRepo, invRepo
 }
 
-func TestHTTP_DemoClients(t *testing.T) {
-	h, _, _, _, _, _ := setupClientTestHandler(t)
-
-	// GET /api/v1/demo/clients es público
-	req := httptest.NewRequest("GET", "/api/v1/demo/clients", nil)
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, req)
-
-	if rec.Code != 200 {
-		t.Fatalf("status = %d, want 200", rec.Code)
-	}
-
-	var clients []map[string]any
-	_ = json.Unmarshal(rec.Body.Bytes(), &clients)
-	if len(clients) != 2 {
-		t.Fatalf("len = %d, want 2", len(clients))
-	}
-	// cli_demo_01 va antes de cli_demo_15
-	if clients[0]["id"] != "cli_demo_01" || clients[1]["id"] != "cli_demo_15" {
-		t.Errorf("orden incorrecto: %+v", clients)
-	}
-}
-
 func TestHTTP_GetMe(t *testing.T) {
 	h, _, _, _, _, _ := setupClientTestHandler(t)
 

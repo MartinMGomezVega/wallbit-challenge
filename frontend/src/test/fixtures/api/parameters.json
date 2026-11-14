@@ -1,0 +1,19 @@
+{
+  "invoiceECountsForCap": true,
+  "fxRule": "BNA_BUY_PREV_BUSINESS_DAY",
+  "categoryCapWarningBp": 8000,
+  "kCapWarningBp": 8000,
+  "atypicalMultiplierBp": 25000,
+  "atypicalWindowMonths": 6,
+  "missingInvoiceMinUsd": {
+    "amount": "50.00",
+    "currency": "USD"
+  },
+  "reconciliationToleranceBp": 300,
+  "reconciliationWindowBeforeDays": 45,
+  "reconciliationWindowAfterDays": 10,
+  "cardSpendKCapBp": 4000,
+  "reminderDaysBeforeDue": 3,
+  "updatedBy": "system"
+}
+

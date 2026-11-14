@@ -91,4 +91,7 @@ func TestComputeStats_AllDefinitionsAndEdgeCases(t *testing.T) {
 	if st.Success.GreenPct != 5000 || st.Success.NotifiedBeforeDay10Pct != 2500 || st.Success.PaidOnTimePct != 5000 {
 		t.Fatalf("success = %+v", st.Success)
 	}
+	if st.Success.GreenCount != 2 || st.Success.Total != 4 || st.Success.NotifiedBeforeDay10Count != 1 || st.Success.NotifiedCount != 2 || st.Success.PaidOnTimeCount != 1 {
+		t.Fatalf("success counts = %+v", st.Success)
+	}
 }

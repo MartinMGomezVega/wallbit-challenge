@@ -1,6 +1,7 @@
 package period
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -130,5 +131,40 @@ func TestFebrero(t *testing.T) {
 	p2024, _ := Parse("2024-02")
 	if p2024.End().Day() != 29 {
 		t.Fatalf("Feb 2024 días = %d", p2024.End().Day())
+	}
+}
+
+func TestPeriod_JSON_And_SetLocation(t *testing.T) {
+	p := MustParse("2026-10")
+	b, err := json.Marshal(p)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	if string(b) != `"2026-10"` {
+		t.Fatalf("Marshal = %s, want \"2026-10\"", b)
+	}
+	var got Period
+	if err := json.Unmarshal(b, &got); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	if got != p {
+		t.Fatalf("Unmarshal = %v, want %v", got, p)
+	}
+	if err := json.Unmarshal([]byte(`123`), &got); err == nil {
+		t.Fatal("expected error for non-string JSON")
+	}
+	if err := json.Unmarshal([]byte(`"invalid"`), &got); err == nil {
+		t.Fatal("expected error for invalid period string")
+	}
+
+	orig := Location()
+	defer SetLocation(orig)
+	SetLocation(time.UTC)
+	if Location() != time.UTC {
+		t.Fatalf("Location = %v, want UTC", Location())
+	}
+	SetLocation(nil)
+	if Location() != time.UTC {
+		t.Fatalf("SetLocation(nil) should not overwrite")
 	}
 }

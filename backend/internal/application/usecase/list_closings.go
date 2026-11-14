@@ -15,6 +15,7 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/parameters"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/reconciliation"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
 )
 
 // ListClosingsQuery encapsula la petición de listado de cierres.
@@ -152,6 +153,15 @@ func (uc *GetClosingDetail) Execute(ctx context.Context, id string) (ClosingDeta
 	if err != nil {
 		return ClosingDetailDTO{}, err
 	}
+	if cli.RegimeHistory == nil {
+		cli.RegimeHistory = []client.RegimeHistoryItem{}
+	}
+	if c.Signals == nil {
+		c.Signals = []signal.Signal{}
+	}
+	if c.Approvals == nil {
+		c.Approvals = []closing.Approval{}
+	}
 
 	p := c.Period
 	periodStart := p.Start()
@@ -163,6 +173,9 @@ func (uc *GetClosingDetail) Execute(ctx context.Context, id string) (ClosingDeta
 			ClientID: c.ClientID,
 			Period:   p,
 		}
+	}
+	if input.ExternalIncome == nil {
+		input.ExternalIncome = []clientinput.ExternalIncomeItem{}
 	}
 
 	params, err := uc.Parameters.Get(ctx)
@@ -193,7 +206,7 @@ func (uc *GetClosingDetail) Execute(ctx context.Context, id string) (ClosingDeta
 		return invoice.Quote{Buy: q.Buy, Sell: q.Sell}, nil
 	}
 
-	var periodInvoicesDTO []PeriodInvoiceDTO
+	periodInvoicesDTO := make([]PeriodInvoiceDTO, 0)
 	invMap := make(map[string]invoice.Invoice)
 
 	for _, inv := range allInvoices {
@@ -237,7 +250,7 @@ func (uc *GetClosingDetail) Execute(ctx context.Context, id string) (ClosingDeta
 		classMap = make(map[string]movement.Classification)
 	}
 
-	var periodMovementsDTO []PeriodMovementDTO
+	periodMovementsDTO := make([]PeriodMovementDTO, 0)
 	for _, m := range allMovements {
 		if !m.OccurredAt.Before(periodStart) && !m.OccurredAt.After(periodEnd) {
 			class, ok := classMap[m.ID]

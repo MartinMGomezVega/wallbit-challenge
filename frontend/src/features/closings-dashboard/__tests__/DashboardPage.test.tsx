@@ -32,7 +32,9 @@ describe('DashboardPage', () => {
   it('renderiza título, chips y tabla con datos cargados de MSW', async () => {
     renderDashboard();
 
-    expect(screen.getByText(/Cierre de octubre 2026/i)).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: 'Cierre de octubre 2026' });
+    expect(heading).toBeInTheDocument();
+    expect(heading).not.toHaveClass('capitalize');
 
     // Espera a que los datos de la tabla carguen
     await waitFor(() => {

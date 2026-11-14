@@ -1,4 +1,4 @@
-.PHONY: all install up dev dev-memory test test-integration coverage lint reset-db
+.PHONY: all install up dev dev-memory test test-integration coverage lint reset-db fixtures
 
 TEST_DATABASE_URL ?= postgres://wallbit:wallbit@localhost:5432/accountant_test?sslmode=disable
 DATABASE_URL ?= postgres://wallbit:wallbit@localhost:5432/accountant?sslmode=disable
@@ -25,7 +25,10 @@ dev-memory:
 	(cd frontend && npm run dev) & \
 	wait
 
-test:
+fixtures:
+	cd backend && WRITE_FIXTURES=1 go test -run TestWriteFrontendFixtures ./internal/interfaces/http
+
+test: fixtures
 	cd backend && go test -race ./...
 	cd frontend && npm run test
 

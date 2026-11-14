@@ -4,6 +4,7 @@
 package period
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -36,6 +37,33 @@ var ErrInvalidPeriod = errors.New("período inválido (formato esperado YYYY-MM)
 type Period struct {
 	Year  int
 	Month time.Month
+}
+
+// MarshalJSON serializa Period como string "YYYY-MM".
+func (p Period) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.String())
+}
+
+// UnmarshalJSON deserializa "YYYY-MM" o un objeto {"Year":...,"Month":...}.
+func (p *Period) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		parsed, err := Parse(s)
+		if err != nil {
+			return err
+		}
+		*p = parsed
+		return nil
+	}
+	var raw struct {
+		Year  int        `json:"Year"`
+		Month time.Month `json:"Month"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	*p = Period{Year: raw.Year, Month: raw.Month}
+	return nil
 }
 
 // New crea un Period a partir de año y mes.

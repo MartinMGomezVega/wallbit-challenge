@@ -99,6 +99,40 @@ export function ClientMessageSection({ detail, clientNote }: ClientMessageSectio
           <span className="font-medium text-app-primary">Garantía de privacidad</span>
         </div>
       </div>
+
+      {closing.published && (
+        <div
+          className="rounded-card border border-status-notified-border bg-status-notified-bg/40 p-5 space-y-3 shadow-sm font-sans"
+          data-testid="published-client-message"
+        >
+          <div className="flex items-center justify-between border-b border-status-notified-border/60 pb-2">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-status-notified-text">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Publicado al cliente (v{closing.published.version})</span>
+            </div>
+            <span className="text-[11px] font-mono text-status-notified-text" data-testid="published-at">
+              Publicado el {formatDate(closing.published.publishedAt, 'full')}
+            </span>
+          </div>
+          <div className="text-xs font-bold text-app-text" data-testid="published-message-title">
+            {closing.published.title}
+          </div>
+          <div
+            className="text-xs text-app-text leading-relaxed whitespace-pre-wrap rounded-control bg-app-surface p-3 border border-app-border"
+            data-testid="published-message-body"
+          >
+            {closing.published.body}
+          </div>
+          {closing.published.figures && (
+            <div className="flex items-center justify-between text-xs text-app-text-muted pt-1">
+              <span>Total publicado a pagar:</span>
+              <span className="font-semibold text-app-text">
+                {formatMoney(closing.published.figures.total)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

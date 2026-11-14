@@ -229,9 +229,14 @@ func (q *StatsQuery) PeriodStats(ctx context.Context, p period.Period) (closing.
 			NearKCap:   nearKCap,
 		},
 		Success: closing.SuccessStats{
-			GreenPct:               ratio(sevGreen, total),
-			NotifiedBeforeDay10Pct: ratio(notifiedBeforeDay10, total),
-			PaidOnTimePct:          ratio(paidOnTime, stNotified),
+			GreenPct:                 ratio(sevGreen, total),
+			GreenCount:               sevGreen,
+			Total:                    total,
+			NotifiedBeforeDay10Pct:   ratio(notifiedBeforeDay10, total),
+			NotifiedBeforeDay10Count: notifiedBeforeDay10,
+			NotifiedCount:            stNotified,
+			PaidOnTimePct:            ratio(paidOnTime, stNotified),
+			PaidOnTimeCount:          paidOnTime,
 		},
 	}, nil
 }

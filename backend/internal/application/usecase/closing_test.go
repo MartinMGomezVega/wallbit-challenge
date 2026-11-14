@@ -462,3 +462,48 @@ func TestComputeClosing_IdempotencyAndReopen(t *testing.T) {
 		t.Fatalf("debió preservar la aprobación anterior: %+v", res3.Closing.Approvals)
 	}
 }
+
+type spyDueDateProvider struct {
+	requested period.Period
+	dates     ports.DueDates
+}
+
+func (s *spyDueDateProvider) DueDates(_ context.Context, p period.Period, _ client.CUIT) (ports.DueDates, error) {
+	s.requested = p
+	return s.dates, nil
+}
+
+func TestComputeClosing_DueDatesNextPeriod(t *testing.T) {
+	ctx := context.Background()
+	p := period.MustParse("2026-10")
+	h := newTestHarness(time.Date(2026, 11, 5, 9, 0, 0, 0, period.Location()))
+
+	spy := &spyDueDateProvider{
+		dates: ports.DueDates{
+			Monotributo:  time.Date(2026, 11, 20, 0, 0, 0, 0, period.Location()),
+			VAT:          time.Date(2026, 11, 18, 0, 0, 0, 0, period.Location()),
+			SelfEmployed: time.Date(2026, 11, 5, 0, 0, 0, 0, period.Location()),
+		},
+	}
+	h.uc.DueDates = spy
+
+	cli := client.Client{
+		ID:                  "cli_due",
+		Name:                "Cliente Vencimiento",
+		CUIT:                "20-11111111-1",
+		Regime:              client.RegimeMonotributo,
+		MonotributoCategory: tax.CatB,
+	}
+	_ = h.clients.Save(ctx, cli)
+
+	res, err := h.uc.Execute(ctx, cli.ID, p)
+	if err != nil {
+		t.Fatalf("Execute failed: %v", err)
+	}
+	if spy.requested != p.Next() {
+		t.Fatalf("DueDates llamado con %s, esperaba %s", spy.requested, p.Next())
+	}
+	if res.Closing.Mono == nil || res.Closing.Mono.FeeDueDate.Month() != time.November {
+		t.Fatalf("FeeDueDate debe ser en noviembre, obtuvo %+v", res.Closing.Mono)
+	}
+}

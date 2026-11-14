@@ -672,18 +672,6 @@ func (f *NotificationSender) Send(_ context.Context, m notification.OutboundMess
 	return nil
 }
 
-// TxManager es un fake de ports.TxManager para tests unitarios.
-type TxManager struct{}
-
-// NewTxManager crea un TxManager fake.
-func NewTxManager() *TxManager {
-	return &TxManager{}
-}
-
-func (f *TxManager) WithinTx(ctx context.Context, fn func(context.Context) error) error {
-	return fn(ctx)
-}
-
 // ClosingQuery es un fake de ports.ClosingQuery sobre ClosingRepository y ClientRepository.
 type ClosingQuery struct {
 	Closings *ClosingRepository

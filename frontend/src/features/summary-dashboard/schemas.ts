@@ -75,8 +75,13 @@ export const PeriodStatsSchema = z.object({
   }),
   success: z.object({
     greenPct: z.number(),
+    greenCount: z.number().default(0),
+    total: z.number().default(0),
     notifiedBeforeDay10Pct: z.number(),
+    notifiedBeforeDay10Count: z.number().default(0),
+    notifiedCount: z.number().default(0),
     paidOnTimePct: z.number(),
+    paidOnTimeCount: z.number().default(0),
   }),
 });
 

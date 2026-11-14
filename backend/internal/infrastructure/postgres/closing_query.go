@@ -12,6 +12,7 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/closing"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -128,15 +129,28 @@ func (q *ClosingQuery) Page(ctx context.Context, p period.Period, filter closing
 	if pSize < 1 {
 		pSize = 50
 	}
+	if pSize > 500 {
+		pSize = 500
+	}
+	totalPages := 0
+	if total > 0 {
+		totalPages = (total + pSize - 1) / pSize
+	}
 	offset := (pNum - 1) * pSize
 	if offset >= total {
-		return ports.PageResult{Items: []closing.Row{}, Total: total}, nil
+		return ports.PageResult{
+			Items:      []closing.Row{},
+			Total:      total,
+			Page:       pNum,
+			PageSize:   pSize,
+			TotalPages: totalPages,
+		}, nil
 	}
 
 	argIdx := len(args) + 1
 	orderSQL := buildOrderBy(s)
 	pageSQL := fmt.Sprintf(`
-		SELECT c.id, c.client_id, cl.name, cl.cuit, c.status, c.version, c.severity, c.description, c.paid_at, c.payload
+		SELECT c.id, c.client_id, cl.name, cl.cuit, c.regime, COALESCE(c.category, ''), c.status, c.version, c.severity, c.description, c.paid_at, c.payload
 		FROM closings c
 		JOIN clients cl ON cl.id = c.client_id
 		WHERE %s
@@ -154,11 +168,11 @@ func (q *ClosingQuery) Page(ctx context.Context, p period.Period, filter closing
 	items := make([]closing.Row, 0)
 	for rows.Next() {
 		var c closing.Closing
-		var cliName, cliCUIT, statusStr string
+		var cliName, cliCUIT, regimeStr, catStr, statusStr string
 		var sev int16
 		var paidAt *time.Time
 		var payloadBytes []byte
-		if err := rows.Scan(&c.ID, &c.ClientID, &cliName, &cliCUIT, &statusStr, &c.Version, &sev, &c.Description, &paidAt, &payloadBytes); err != nil {
+		if err := rows.Scan(&c.ID, &c.ClientID, &cliName, &cliCUIT, &regimeStr, &catStr, &statusStr, &c.Version, &sev, &c.Description, &paidAt, &payloadBytes); err != nil {
 			return ports.PageResult{}, err
 		}
 		c.Period = p
@@ -173,21 +187,36 @@ func (q *ClosingQuery) Page(ctx context.Context, p period.Period, filter closing
 			return ports.PageResult{}, err
 		}
 		c.Mono = pl.Mono
+		if c.Mono != nil {
+			c.Mono.FeeDueDate = c.Mono.FeeDueDate.In(period.Location())
+		}
 		c.RI = pl.RI
+		if c.RI != nil {
+			c.RI.VatDueDate = c.RI.VatDueDate.In(period.Location())
+			c.RI.SelfEmployedDueDate = c.RI.SelfEmployedDueDate.In(period.Location())
+		}
 		c.Signals = pl.Signals
 		c.Reconciliation = pl.Reconciliation
 
 		cli := client.Client{
-			ID:   c.ClientID,
-			Name: cliName,
-			CUIT: client.CUIT(cliCUIT),
+			ID:                  c.ClientID,
+			Name:                cliName,
+			CUIT:                client.CUIT(cliCUIT),
+			Regime:              client.Regime(regimeStr),
+			MonotributoCategory: tax.Category(catStr),
 		}
 		items = append(items, closing.BuildRow(c, cli))
 	}
 	if err := rows.Err(); err != nil {
 		return ports.PageResult{}, err
 	}
-	return ports.PageResult{Items: items, Total: total}, nil
+	return ports.PageResult{
+		Items:      items,
+		Total:      total,
+		Page:       pNum,
+		PageSize:   pSize,
+		TotalPages: totalPages,
+	}, nil
 }
 
 func (q *ClosingQuery) IDs(ctx context.Context, p period.Period, filter closing.Filter, s closing.Sort) ([]string, error) {
@@ -222,21 +251,31 @@ func (q *ClosingQuery) IDs(ctx context.Context, p period.Period, filter closing.
 
 func (q *ClosingQuery) Summary(ctx context.Context, p period.Period, filter closing.Filter) (closing.Summary, error) {
 	db := conn(ctx, q.pool)
-	whereSQL, args := buildWhere(p, filter)
+	noSevFilter := filter
+	noSevFilter.Severities = nil
+	whereSQL, args := buildWhere(p, noSevFilter)
 
 	sumSQL := fmt.Sprintf(`
 		SELECT
 			COUNT(*),
 			COUNT(*) FILTER (WHERE c.severity = 2),
 			COUNT(*) FILTER (WHERE c.severity = 1),
-			COUNT(*) FILTER (WHERE c.severity = 0)
+			COUNT(*) FILTER (WHERE c.severity = 0),
+			COUNT(*) FILTER (WHERE c.status = 'PENDING_CLIENT_INPUT'),
+			COUNT(*) FILTER (WHERE c.status = 'READY_FOR_REVIEW'),
+			COUNT(*) FILTER (WHERE c.status = 'APPROVED'),
+			COUNT(*) FILTER (WHERE c.status = 'NOTIFIED')
 		FROM closings c
 		JOIN clients cl ON cl.id = c.client_id
 		WHERE %s
 	`, whereSQL)
 
 	var total, red, yellow, green int
-	if err := db.QueryRow(ctx, sumSQL, args...).Scan(&total, &red, &yellow, &green); err != nil {
+	var pendingInput, readyReview, approved, notified int
+	if err := db.QueryRow(ctx, sumSQL, args...).Scan(
+		&total, &red, &yellow, &green,
+		&pendingInput, &readyReview, &approved, &notified,
+	); err != nil {
 		return closing.Summary{}, err
 	}
 
@@ -248,6 +287,12 @@ func (q *ClosingQuery) Summary(ctx context.Context, p period.Period, filter clos
 			"GREEN":  green,
 		},
 		BySignal: make(map[string]int),
+		ByStatus: map[closing.Status]int{
+			closing.StatusPendingClientInput: pendingInput,
+			closing.StatusReadyForReview:     readyReview,
+			closing.StatusApproved:           approved,
+			closing.StatusNotified:           notified,
+		},
 	}
 
 	sigSQL := fmt.Sprintf(`

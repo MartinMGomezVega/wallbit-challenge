@@ -13,6 +13,7 @@ import { ClosingsTable } from './ClosingsTable';
 import { SelectionBar } from './SelectionBar';
 import { BatchApproveDialog } from './BatchApproveDialog';
 import { formatPeriodName } from '../../shared/format/date';
+import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 import { ClosingRow } from './schemas';
 import {
   ReviewQueueProvider,
@@ -56,6 +57,7 @@ function DashboardContent({
   onReviewClient,
   highlightedClosingId,
 }: DashboardPageProps & { highlightedClosingId: string | null }) {
+  useDocumentTitle('Cierres · Wallbit Contabilidad');
   const {
     filters,
     toggleSeverity,
@@ -172,7 +174,7 @@ function DashboardContent({
       {/* Título de la página y subtítulo */}
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-app-text capitalize">
+          <h1 className="text-xl font-bold text-app-text">
             Cierre de {formatPeriodName(filters.period)}
           </h1>
           <p className="text-xs text-app-text-muted mt-0.5">

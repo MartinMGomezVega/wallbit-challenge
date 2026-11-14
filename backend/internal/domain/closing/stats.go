@@ -58,9 +58,14 @@ type RiskStats struct {
 
 // SuccessStats mide los KPIs de éxito del servicio contable.
 type SuccessStats struct {
-	GreenPct               money.BasisPoints `json:"greenPct"`
-	NotifiedBeforeDay10Pct money.BasisPoints `json:"notifiedBeforeDay10Pct"`
-	PaidOnTimePct          money.BasisPoints `json:"paidOnTimePct"`
+	GreenPct                 money.BasisPoints `json:"greenPct"`
+	GreenCount               int               `json:"greenCount"`
+	Total                    int               `json:"total"`
+	NotifiedBeforeDay10Pct   money.BasisPoints `json:"notifiedBeforeDay10Pct"`
+	NotifiedBeforeDay10Count int               `json:"notifiedBeforeDay10Count"`
+	NotifiedCount            int               `json:"notifiedCount"`
+	PaidOnTimePct            money.BasisPoints `json:"paidOnTimePct"`
+	PaidOnTimeCount          int               `json:"paidOnTimeCount"`
 }
 
 // PeriodStats es la respuesta completa del dashboard de resumen (spec 014).
@@ -285,9 +290,14 @@ func ComputeStats(closings []Closing, p period.Period) PeriodStats {
 			NearKCap:   nearKCap,
 		},
 		Success: SuccessStats{
-			GreenPct:               ratioBp(bySeverity["GREEN"], total),
-			NotifiedBeforeDay10Pct: ratioBp(notifiedBeforeDay10, total),
-			PaidOnTimePct:          ratioBp(paidOnTime, notifiedCount),
+			GreenPct:                 ratioBp(bySeverity["GREEN"], total),
+			GreenCount:               bySeverity["GREEN"],
+			Total:                    total,
+			NotifiedBeforeDay10Pct:   ratioBp(notifiedBeforeDay10, total),
+			NotifiedBeforeDay10Count: notifiedBeforeDay10,
+			NotifiedCount:            notifiedCount,
+			PaidOnTimePct:            ratioBp(paidOnTime, notifiedCount),
+			PaidOnTimeCount:          paidOnTime,
 		},
 	}
 }

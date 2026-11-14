@@ -757,140 +757,6 @@ export const handlers = [
     });
   }),
 
-  // GET /api/v1/demo/clients
-  http.get('/api/v1/demo/clients', () => {
-    return HttpResponse.json([
-      { id: 'cli_demo_01', name: 'Lucía Fernández', regime: 'MONOTRIBUTO' },
-      { id: 'cli_demo_02', name: 'Ignacio Sosa', regime: 'MONOTRIBUTO' },
-      { id: 'cli_demo_15', name: 'Paula Rojas', regime: 'MONOTRIBUTO' },
-    ]);
-  }),
-
-  // GET /api/v1/me
-  http.get('/api/v1/me', ({ request }) => {
-    const demoHeader = request.headers.get('X-Demo-User') || '';
-    const clientId = demoHeader.replace('client:', '') || 'cli_demo_15';
-    const isPaula = clientId === 'cli_demo_15';
-    return HttpResponse.json({
-      id: clientId,
-      name: isPaula ? 'Paula Rojas' : 'Cliente Demo',
-      cuitMasked: isPaula ? '20-****5678-6' : '20-****1110-0',
-      regime: 'MONOTRIBUTO',
-      category: 'A',
-    });
-  }),
-
-  // GET /api/v1/me/closings
-  http.get('/api/v1/me/closings', () => {
-    return HttpResponse.json([
-      {
-        closingId: 'clo_demo_oct',
-        period: '2026-10',
-        state: 'ACTION_REQUIRED',
-        updating: false,
-        published: null,
-        paidAt: null,
-        input: {
-          answered: false,
-          confirmed: false,
-          invoicesCount: 0,
-        },
-      },
-      {
-        closingId: 'clo_demo_sep',
-        period: '2026-09',
-        state: 'READY',
-        updating: false,
-        published: {
-          version: 1,
-          title: 'Cierre de Septiembre 2026 listo',
-          body: 'Tu cuota mensual de monotributo está liquidada.',
-          figures: {
-            billedUSD: { amount: 150000, currency: 'USD' },
-            billedARS: { amount: 180000000, currency: 'ARS' },
-            items: [
-              {
-                concept: 'Cuota Monotributo',
-                amount: { amount: 2660000, currency: 'ARS' },
-                dueDate: '2026-10-20T00:00:00Z',
-              },
-            ],
-            total: { amount: 2660000, currency: 'ARS' },
-          },
-          publishedAt: '2026-10-05T10:00:00Z',
-        },
-        paidAt: '2026-10-18T14:30:00Z',
-        input: {
-          answered: true,
-          confirmed: true,
-          invoicesCount: 2,
-        },
-      },
-    ]);
-  }),
-
-  // POST /api/v1/me/closings/:id/paid
-  http.post('/api/v1/me/closings/:id/paid', ({ params }) => {
-    return HttpResponse.json({
-      closingId: params.id,
-      paidAt: new Date().toISOString(),
-    });
-  }),
-
-  // GET /api/v1/me/notifications
-  http.get('/api/v1/me/notifications', () => {
-    return HttpResponse.json([
-      {
-        id: 'notif_demo_1',
-        clientId: 'cli_demo_15',
-        closingId: 'clo_demo_sep',
-        kind: 'CLOSING_READY',
-        title: 'Cierre de Septiembre 2026 listo',
-        body: 'Tu cuota mensual es de $26.600.',
-        readAt: null,
-        createdAt: '2026-10-05T10:00:00Z',
-      },
-    ]);
-  }),
-
-  // POST /api/v1/me/notifications/:id/read
-  http.post('/api/v1/me/notifications/:id/read', ({ params }) => {
-    return HttpResponse.json({
-      id: params.id,
-      status: 'read',
-    });
-  }),
-
-  // POST /api/v1/me/invoices/import
-  http.post('/api/v1/me/invoices/import', () => {
-    return HttpResponse.json({
-      imported: 3,
-      skippedDuplicates: 0,
-      warnings: [],
-      errors: [],
-    });
-  }),
-
-  // POST /api/v1/me/invoices
-  http.post('/api/v1/me/invoices', () => {
-    return HttpResponse.json({ id: 'inv_new' });
-  }),
-
-  // POST /api/v1/me/purchase-invoices
-  http.post('/api/v1/me/purchase-invoices', () => {
-    return HttpResponse.json({ id: 'pinv_new' });
-  }),
-
-  // PUT /api/v1/me/periods/:period/external-income
-  http.put('/api/v1/me/periods/:period/external-income', () => {
-    return HttpResponse.json({ ok: true });
-  }),
-
-  // POST /api/v1/me/periods/:period/confirm
-  http.post('/api/v1/me/periods/:period/confirm', () => {
-    return HttpResponse.json({ confirmedAt: new Date().toISOString() });
-  }),
-
   // GET /api/v1/accountant/periods/:period/stats
   http.get('/api/v1/accountant/periods/:period/stats', ({ params }) => {
     const period = String(params.period ?? '2026-10');
@@ -945,8 +811,13 @@ export const handlers = [
       },
       success: {
         greenPct: 7433,
+        greenCount: 223,
+        total: 300,
         notifiedBeforeDay10Pct: 2666,
+        notifiedBeforeDay10Count: 80,
+        notifiedCount: 60,
         paidOnTimePct: 6250,
+        paidOnTimeCount: 38,
       },
     });
   }),

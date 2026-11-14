@@ -1,54 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { RoleSwitcher } from '../RoleSwitcher';
 import { routes } from '../router';
 import { Providers, createQueryClient } from '../providers';
-import { setRole, resetRoleForTests, getRole } from '../roleStore';
 
 describe('App & Navigation', () => {
-  beforeEach(() => {
-    resetRoleForTests();
-    window.localStorage.clear();
-  });
-
-  it('renderiza RoleSwitcher con dropdown y permite cambiar a cliente', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    const clients = [
-      { id: 'cli_01', name: 'Lucía Fernández' },
-      { id: 'cli_02', name: 'Ignacio Sosa' },
-    ];
-
-    render(<RoleSwitcher clients={clients} onChange={onChange} />);
-
-    expect(screen.getByRole('button', { name: /cambiar rol/i })).toHaveTextContent('Contador ▾');
-
-    await user.click(screen.getByRole('button', { name: /cambiar rol/i }));
-    const clientItem = await screen.findByText('Lucía Fernández');
-    await user.click(clientItem);
-
-    expect(onChange).toHaveBeenCalledWith({ kind: 'client', clientId: 'cli_01' });
-    expect(getRole()).toEqual({ kind: 'client', clientId: 'cli_01' });
-  });
-
-  it('permite ingresar un clientId manual cuando no hay lista', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-
-    render(<RoleSwitcher clients={[]} onChange={onChange} />);
-
-    const input = screen.getByPlaceholderText('cli_demo_15');
-    await user.type(input, 'cli_custom');
-    await user.click(screen.getByRole('button', { name: 'Ir' }));
-
-    expect(onChange).toHaveBeenCalledWith({ kind: 'client', clientId: 'cli_custom' });
-    expect(getRole()).toEqual({ kind: 'client', clientId: 'cli_custom' });
-  });
-
-  it('redirige la ruta raíz / según el rol activo', async () => {
-    setRole({ kind: 'accountant' });
+  it('redirige la ruta raíz / a /contador, muestra header con identidad y actualiza <title>', async () => {
     const qc = createQueryClient();
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
 
@@ -58,13 +15,25 @@ describe('App & Navigation', () => {
       </Providers>,
     );
 
-    expect(await screen.findByRole('heading', { name: /Cierre de/i })).toBeInTheDocument();
-    expect(screen.getByText('Contabilidad')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Cierres' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Cierre de octubre 2026' })).toBeInTheDocument();
+    expect(document.title).toBe('Cierres · Wallbit Contabilidad');
+
+    const cierresLink = screen.getByRole('link', { name: 'Cierres' });
+    const resumenLink = screen.getByRole('link', { name: 'Resumen' });
+    const paramsLink = screen.getByRole('link', { name: 'Parámetros' });
+    expect(cierresLink.className).toContain('border-[#0D99FF]');
+    expect(resumenLink.className).toContain('border-transparent');
+    expect(paramsLink.className).toContain('border-transparent');
+
+    const identity = screen.getByTestId('accountant-identity');
+    expect(identity).toHaveAttribute('title', 'Sesión de demo');
+    expect(identity).toHaveTextContent('Contador');
+
+    const header = screen.getByRole('banner');
+    expect(header).not.toHaveTextContent('Contabilidad');
   });
 
-  it('permite navegar a Parámetros en modo contador', async () => {
-    setRole({ kind: 'accountant' });
+  it('permite navegar a Parámetros y actualiza <title> y pestaña activa', async () => {
     const qc = createQueryClient();
     const router = createMemoryRouter(routes, { initialEntries: ['/contador/parametros'] });
 
@@ -75,10 +44,35 @@ describe('App & Navigation', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Parámetros' })).toBeInTheDocument();
+    expect(document.title).toBe('Parámetros · Wallbit Contabilidad');
+    expect(screen.getByRole('link', { name: 'Parámetros' }).className).toContain('border-[#0D99FF]');
   });
 
-  it('muestra título de Impuestos en vista cliente y oculta nav de contador', async () => {
-    setRole({ kind: 'client', clientId: 'cli_01' });
+  it('cambia el período global en el header y lo comparte con Resumen y <title>', async () => {
+    const qc = createQueryClient();
+    const router = createMemoryRouter(routes, { initialEntries: ['/contador'] });
+
+    render(
+      <Providers client={qc}>
+        <RouterProvider router={router} />
+      </Providers>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Cierre de octubre 2026' })).toBeInTheDocument();
+
+    const periodSelect = screen.getByLabelText('Período');
+    fireEvent.change(periodSelect, { target: { value: '2026-09' } });
+
+    expect(await screen.findByRole('heading', { name: 'Cierre de septiembre 2026' })).toBeInTheDocument();
+    expect(router.state.location.search).toContain('period=2026-09');
+
+    fireEvent.click(screen.getByRole('link', { name: 'Resumen' }));
+    expect(await screen.findByRole('heading', { name: 'Resumen de septiembre 2026' })).toBeInTheDocument();
+    expect(document.title).toBe('Resumen · Wallbit Contabilidad');
+    expect(screen.getByRole('link', { name: 'Resumen' }).className).toContain('border-[#0D99FF]');
+  });
+
+  it('redirige rutas desconocidas (como /cliente) a /contador', async () => {
     const qc = createQueryClient();
     const router = createMemoryRouter(routes, { initialEntries: ['/cliente'] });
 
@@ -88,8 +82,6 @@ describe('App & Navigation', () => {
       </Providers>,
     );
 
-    expect(await screen.findByRole('heading', { name: /Hola,/i })).toBeInTheDocument();
-    expect(screen.getByText('Impuestos')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Cierres' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Cierre de octubre 2026' })).toBeInTheDocument();
   });
 });

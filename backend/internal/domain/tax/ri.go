@@ -43,21 +43,21 @@ type RIInput struct {
 
 // RIAssessment contiene el resultado de la liquidación mensual de un Responsable Inscripto.
 type RIAssessment struct {
-	BilledInPeriodUSD        money.Money
-	BilledInPeriodARS        money.Money
-	ExportSalesARS           money.Money
-	LocalSalesNetARS         money.Money
-	OutputVat                money.Money
-	InputVat                 money.Money
-	PreviousVatCredit        money.Money
-	VatToPay                 money.Money
-	NewVatCredit             money.Money
-	VatDueDate               time.Time
-	SelfEmployedContribution money.Money
-	SelfEmployedDueDate      time.Time
-	IncomeTaxAdvance         *money.Money
-	IncomeTaxAdvanceDueDate  *time.Time
-	TotalToPay               money.Money
+	BilledInPeriodUSD        money.Money  `json:"billedInPeriodUSD"`
+	BilledInPeriodARS        money.Money  `json:"billedInPeriodARS"`
+	ExportSalesARS           money.Money  `json:"exportSalesARS"`
+	LocalSalesNetARS         money.Money  `json:"localSalesNetARS"`
+	OutputVat                money.Money  `json:"outputVat"`
+	InputVat                 money.Money  `json:"inputVat"`
+	PreviousVatCredit        money.Money  `json:"previousVatCredit"`
+	VatToPay                 money.Money  `json:"vatToPay"`
+	NewVatCredit             money.Money  `json:"newVatCredit"`
+	VatDueDate               time.Time    `json:"vatDueDate"`
+	SelfEmployedContribution money.Money  `json:"selfEmployedContribution"`
+	SelfEmployedDueDate      time.Time    `json:"selfEmployedDueDate"`
+	IncomeTaxAdvance         *money.Money `json:"incomeTaxAdvance,omitempty"`
+	IncomeTaxAdvanceDueDate  *time.Time   `json:"incomeTaxAdvanceDueDate,omitempty"`
+	TotalToPay               money.Money  `json:"totalToPay"`
 }
 
 // AssessRI ejecuta la liquidación pura de Responsable Inscripto según domain-context.md §7.2.

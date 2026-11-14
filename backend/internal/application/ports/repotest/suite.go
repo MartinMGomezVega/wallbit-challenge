@@ -4,6 +4,7 @@ package repotest
 import (
 	"context"
 	"errors"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -403,8 +404,19 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 			if pageRes.Total != len(tc.wantIDs) {
 				t.Fatalf("Page.Total = %d, want %d", pageRes.Total, len(tc.wantIDs))
 			}
-			if len(pageRes.Items) > 0 && pageRes.Items[0].ClosingID != tc.wantIDs[0] {
-				t.Fatalf("Page.Items[0] = %s, want %s", pageRes.Items[0].ClosingID, tc.wantIDs[0])
+			if pageRes.Page != 1 || pageRes.PageSize != 2 || pageRes.TotalPages != (len(tc.wantIDs)+1)/2 {
+				t.Fatalf("Page meta = (%d, %d, %d), want (1, 2, %d)", pageRes.Page, pageRes.PageSize, pageRes.TotalPages, (len(tc.wantIDs)+1)/2)
+			}
+			if len(pageRes.Items) > 0 {
+				if pageRes.Items[0].ClosingID != tc.wantIDs[0] {
+					t.Fatalf("Page.Items[0] = %s, want %s", pageRes.Items[0].ClosingID, tc.wantIDs[0])
+				}
+				if pageRes.Items[0].Regime == "" {
+					t.Fatalf("Page.Items[0].Regime is empty")
+				}
+				if pageRes.Items[0].Regime == client.RegimeMonotributo && pageRes.Items[0].Category == nil {
+					t.Fatalf("Page.Items[0].Category is nil for Monotributo")
+				}
 			}
 		})
 	}
@@ -415,6 +427,65 @@ func RunClosingQuery(t *testing.T, b Bundle) {
 	}
 	if sum.Total != 4 || sum.BySeverity["RED"] != 1 || sum.BySeverity["YELLOW"] != 1 || sum.BySeverity["GREEN"] != 2 {
 		t.Fatalf("unexpected Summary: %+v", sum)
+	}
+	if sum.ByStatus == nil || sum.BySignal == nil {
+		t.Fatalf("Summary maps must not be nil: ByStatus=%v BySignal=%v", sum.ByStatus, sum.BySignal)
+	}
+	if sum.ByStatus[closing.StatusReadyForReview] != 3 || sum.ByStatus[closing.StatusPendingClientInput] != 1 {
+		t.Fatalf("unexpected Summary.ByStatus: %+v", sum.ByStatus)
+	}
+}
+
+// CompareClosingQueries verifica que dos implementaciones de ClosingQuery devuelvan
+// exactamente los mismos resultados (reflect.DeepEqual) en Page y Summary.
+func CompareClosingQueries(t *testing.T, memQ, pgQ ports.ClosingQuery, p period.Period) {
+	t.Helper()
+	ctx := context.Background()
+
+	combos := []struct {
+		name   string
+		filter closing.Filter
+		sort   closing.Sort
+		page   ports.PageRequest
+	}{
+		{"01_default_p1", closing.Filter{}, closing.Sort{By: "severity", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"02_default_p2", closing.Filter{}, closing.Sort{By: "severity", Dir: "desc"}, ports.PageRequest{Page: 2, PageSize: 50}},
+		{"03_severity_asc", closing.Filter{}, closing.Sort{By: "severity", Dir: "asc"}, ports.PageRequest{Page: 1, PageSize: 25}},
+		{"04_name_asc", closing.Filter{}, closing.Sort{By: "name", Dir: "asc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"05_name_desc", closing.Filter{}, closing.Sort{By: "name", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"06_toPay_desc", closing.Filter{}, closing.Sort{By: "toPay", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"07_pctKCap_desc", closing.Filter{}, closing.Sort{By: "pctKCap", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"08_filter_red_yellow", closing.Filter{Severities: []signal.Severity{signal.SeverityRed, signal.SeverityYellow}}, closing.Sort{By: "severity", Dir: "desc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"09_filter_regime_RI", closing.Filter{Regime: client.RegimeRI}, closing.Sort{By: "name", Dir: "asc"}, ports.PageRequest{Page: 1, PageSize: 50}},
+		{"10_filter_signal_and_query", closing.Filter{Signals: []signal.Code{signal.CodeMonoExclusionKCapExceeded}, Query: "sosa"}, closing.Sort{}, ports.PageRequest{Page: 1, PageSize: 50}},
+	}
+
+	for _, tc := range combos {
+		t.Run(tc.name, func(t *testing.T) {
+			memPage, err := memQ.Page(ctx, p, tc.filter, tc.sort, tc.page)
+			if err != nil {
+				t.Fatalf("mem Page: %v", err)
+			}
+			pgPage, err := pgQ.Page(ctx, p, tc.filter, tc.sort, tc.page)
+			if err != nil {
+				t.Fatalf("pg Page: %v", err)
+			}
+			if !reflect.DeepEqual(memPage, pgPage) {
+				t.Fatalf("Page mismatch\nmem: %+v\npg:  %+v", memPage, pgPage)
+			}
+
+			memSum, err := memQ.Summary(ctx, p, tc.filter)
+			if err != nil {
+				t.Fatalf("mem Summary: %v", err)
+			}
+			pgSum, err := pgQ.Summary(ctx, p, tc.filter)
+			if err != nil {
+				t.Fatalf("pg Summary: %v", err)
+			}
+			if !reflect.DeepEqual(memSum, pgSum) {
+				t.Fatalf("Summary mismatch\nmem: %+v\npg:  %+v", memSum, pgSum)
+			}
+		})
 	}
 }
 
@@ -586,9 +657,7 @@ func RunStatsQuery(t *testing.T, b Bundle) {
 		len(got.Totals.ToPayByDueDate) != len(want.Totals.ToPayByDueDate) ||
 		got.Risk.NearKCap != want.Risk.NearKCap ||
 		len(got.Risk.BySignal) != len(want.Risk.BySignal) ||
-		got.Success.GreenPct != want.Success.GreenPct ||
-		got.Success.NotifiedBeforeDay10Pct != want.Success.NotifiedBeforeDay10Pct ||
-		got.Success.PaidOnTimePct != want.Success.PaidOnTimePct {
+		got.Success != want.Success {
 		t.Fatalf("PeriodStats mismatch:\ngot:  %+v\nwant: %+v", got, want)
 	}
 }

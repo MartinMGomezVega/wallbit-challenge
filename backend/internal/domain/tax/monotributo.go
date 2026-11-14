@@ -68,23 +68,23 @@ type MonotributoInput struct {
 
 // MonotributoAssessment contiene el resultado de la liquidación de Monotributo para un período.
 type MonotributoAssessment struct {
-	BilledInPeriodUSD money.Money
-	BilledInPeriodARS money.Money
-	Billed12mARS      money.Money
-	CurrentCategory   Category
-	RequiredCategory  *Category
-	PctOfCurrentCapBp int64
-	PctOfKCapBp       int64
-	Excluded          bool
-	ExclusionDate     *time.Time
-	ExcessARS         *money.Money
-	CanReturnFrom     *time.Time
-	Fee               money.Money
-	FeeDueDate        time.Time
-	Inbound12mARS     money.Money
-	CardSpend12mARS   money.Money
-	KCapARS           money.Money
-	ScaleValidFrom    time.Time
+	BilledInPeriodUSD money.Money  `json:"billedInPeriodUSD"`
+	BilledInPeriodARS money.Money  `json:"billedInPeriodARS"`
+	Billed12mARS      money.Money  `json:"billed12mARS"`
+	CurrentCategory   Category     `json:"currentCategory"`
+	RequiredCategory  *Category    `json:"requiredCategory"`
+	PctOfCurrentCapBp int64        `json:"pctOfCurrentCapBp"`
+	PctOfKCapBp       int64        `json:"pctOfKCapBp"`
+	Excluded          bool         `json:"excluded"`
+	ExclusionDate     *time.Time   `json:"exclusionDate,omitempty"`
+	ExcessARS         *money.Money `json:"excessARS,omitempty"`
+	CanReturnFrom     *time.Time   `json:"canReturnFrom,omitempty"`
+	Fee               money.Money  `json:"fee"`
+	FeeDueDate        time.Time    `json:"feeDueDate"`
+	Inbound12mARS     money.Money  `json:"inbound12mARS"`
+	CardSpend12mARS   money.Money  `json:"cardSpend12mARS"`
+	KCapARS           money.Money  `json:"kCapARS"`
+	ScaleValidFrom    time.Time    `json:"scaleValidFrom"`
 }
 
 // toEpochDay devuelve el número de días transcurridos desde el epoch UTC (1970-01-01).
