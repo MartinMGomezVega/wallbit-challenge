@@ -25,7 +25,6 @@ jobs:
           mkdir -p _site
           cp docs/index.html _site/index.html
           cp backend/api/openapi.yaml _site/openapi.yaml
-          cp frontend/src/assets/brand/wallbit-logo-white.svg _site/wallbit-logo-white.svg
           cp frontend/public/favicon.svg _site/favicon.svg
       - uses: actions/upload-pages-artifact@v3
         with:

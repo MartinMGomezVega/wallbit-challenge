@@ -76,6 +76,17 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	if !strings.Contains(recDocs.Body.String(), "swagger-ui") {
 		t.Fatalf("/docs body missing swagger-ui")
 	}
+	if !strings.Contains(recDocs.Body.String(), "/api/openapi.yaml") {
+		t.Fatalf("/docs body missing /api/openapi.yaml")
+	}
+
+	recFavicon := do(t, h, "GET", "/favicon.svg", "", nil)
+	if recFavicon.Code != 200 {
+		t.Fatalf("GET /favicon.svg status %d", recFavicon.Code)
+	}
+	if ct := recFavicon.Header().Get("Content-Type"); !strings.Contains(ct, "image/svg+xml") {
+		t.Fatalf("unexpected Content-Type for /favicon.svg: %s", ct)
+	}
 
 	rootDocs, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "docs", "index.html"))
 	if err == nil && string(rootDocs) != string(api.DocsHTML) {

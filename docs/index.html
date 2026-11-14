@@ -1,52 +1,60 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <title>Wallbit Contabilidad · API Docs</title>
-    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wallbit Contabilidad — API</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
     <style>
-      body { margin: 0; background: #f8fafc; }
-      .topbar-wallbit {
-        background: #0a0a0a;
-        color: #fff;
-        padding: 12px 24px;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-weight: 600;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-      .topbar-wallbit img { height: 24px; width: auto; }
-      .topbar-wallbit span.badge {
-        background: #006fc0;
-        color: #fff;
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 9999px;
+      body { margin: 0; }
+      #load-error {
+        display: none;
+        font-family: sans-serif;
+        padding: 24px;
       }
     </style>
   </head>
   <body>
-    <div class="topbar-wallbit">
-      <img src="./wallbit-logo-white.svg" alt="Wallbit" />
-      <span>Contabilidad · API v1</span>
-      <span class="badge">OpenAPI 3.0</span>
-    </div>
     <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <p id="load-error">
+      No se pudo cargar Swagger UI. Verificá la conexión a internet y que el navegador
+      no esté bloqueando scripts externos. La especificación está en
+      <code>backend/api/openapi.yaml</code>.
+    </p>
     <script>
-      const specUrl = window.location.pathname.startsWith('/docs')
-        ? '/api/openapi.yaml'
-        : './openapi.yaml';
-      window.ui = SwaggerUIBundle({
-        url: specUrl,
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        presets: [SwaggerUIBundle.presets.apis],
-      });
+      var IS_LOCAL = location.pathname.indexOf('/docs') === 0;
+      var SPEC_URL = IS_LOCAL ? '/api/openapi.yaml' : 'openapi.yaml';
+      var BUNDLE_URLS = [
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+        'https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js',
+      ];
+      function startSwagger() {
+        var options = {
+          url: SPEC_URL,
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 1,
+        };
+        // En GitHub Pages la página es solo documentación: la API corre en la máquina
+        // de quien la prueba, así que se deshabilita "Try it out". En local (/docs)
+        // queda habilitado contra la misma API.
+        if (!IS_LOCAL) options.supportedSubmitMethods = [];
+        window.ui = SwaggerUIBundle(options);
+      }
+      function loadBundle(index) {
+        if (index >= BUNDLE_URLS.length) {
+          document.getElementById('load-error').style.display = 'block';
+          return;
+        }
+        var script = document.createElement('script');
+        script.src = BUNDLE_URLS[index];
+        script.onload = startSwagger;
+        script.onerror = function () { loadBundle(index + 1); };
+        document.body.appendChild(script);
+      }
+      loadBundle(0);
     </script>
   </body>
 </html>

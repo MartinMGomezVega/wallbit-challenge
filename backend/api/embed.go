@@ -8,3 +8,6 @@ var Spec []byte
 
 //go:embed docs.html
 var DocsHTML []byte
+
+//go:embed favicon.svg
+var FaviconSVG []byte

@@ -7,6 +7,6 @@
 - `frontend/index.html`: enlazar `favicon-32.png`, `favicon-64.png` y `apple-touch-icon` (`favicon-180.png`).
 
 - Los documentos ya están escritos; este feature es de **verificación y ajuste**.
-- `docs/index.html` detecta si corre en `/docs` (local, spec en `/api/openapi.yaml`) o en Pages (spec al lado).
-- El workflow de Pages copia `backend/api/openapi.yaml`, `docs/index.html`, el logo blanco y el favicon a `_site`.
+- `docs/index.html` usa Swagger UI estándar con CDN de respaldo (`jsdelivr` → `unpkg`) y detecta si corre en `/docs` (local: spec en `/api/openapi.yaml` y "Try it out" habilitado) o en Pages (spec relativo `openapi.yaml` y `supportedSubmitMethods = []`).
+- El workflow de Pages copia `backend/api/openapi.yaml`, `docs/index.html` y `favicon.svg` a `_site`.
 - Para la nota: contar líneas renderizadas en el preview de GitHub, no líneas del archivo.

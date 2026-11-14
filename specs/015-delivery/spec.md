@@ -18,9 +18,9 @@ Que alguien que nunca vio el proyecto lo levante con **un comando**, entienda la
 5. ≤ 10 líneas renderizadas, en viñetas: qué hace la v1, qué quedó afuera, riesgo más grande, cómo sabría si funcionó, una línea de IA. Todo lo que afirma es cierto en la app.
 
 ### API documentada
-6. `backend/api/embed.go` (`package api`, `//go:embed openapi.yaml`, `var Spec []byte`). `GET /api/openapi.yaml` sirve el spec (`application/yaml`) y `GET /docs` sirve `docs/index.html` (embebido) sin auth.
+6. `backend/api/embed.go` (`package api`, `//go:embed openapi.yaml`, `//go:embed docs.html`, `//go:embed favicon.svg`). `GET /api/openapi.yaml` sirve el spec (`application/yaml`), `GET /docs` sirve `docs/index.html` (embebido) y `GET /favicon.svg` sirve el favicon, todos sin auth.
 7. **Test de contrato** (`internal/interfaces/http/contract_test.go`): extrae de `openapi.yaml` las líneas `^  (/api/v1/[^:]+):$` y los métodos debajo (`^    (get|post|put|patch|delete):$`), las compara con `Routes() []string` del router (`"GET /api/v1/..."`) y falla si sobra o falta alguna. Sin dependencias YAML.
-8. GitHub Pages publica el Swagger con el workflow incluido (`actions/configure-pages@v5`, copia `openapi.yaml`, `wallbit-logo-white.svg` y `favicon.svg` junto a `docs/index.html`). Requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público (o plan pago); si no, queda documentado el Swagger local en `http://localhost:8080/docs`.
+8. GitHub Pages publica el Swagger estándar con el workflow incluido (`actions/configure-pages@v5`, copia `openapi.yaml` y `favicon.svg` junto a `docs/index.html`, con CDN de respaldo y "Try it out" deshabilitado en Pages). Requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público (o plan pago); si no, queda documentado el Swagger local en `http://localhost:8080/docs`.
 
 ### Verificación final
 9. Carpeta limpia: `docker compose up --build`, `make test`, `make coverage` (≥ 90%) y `make test-integration` pasan.

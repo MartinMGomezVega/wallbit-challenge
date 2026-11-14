@@ -243,7 +243,7 @@ PENDING_CLIENT_INPUT ──cliente confirma──► READY_FOR_REVIEW ──cont
 
 ## API
 
-La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público o plan pago; si no, el Swagger está en `http://localhost:8080/docs`). El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
+La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público o plan pago). En GitHub Pages es solo documentación; para probar los endpoints usá `http://localhost:8080/docs`. El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
 
 Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<clientId>`.
 

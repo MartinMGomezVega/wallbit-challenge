@@ -89,6 +89,7 @@ func newRouter(deps Deps) *router {
 	rt.public("GET /api/v1/health", rt.health)
 	rt.mux.HandleFunc("GET /api/openapi.yaml", serveOpenAPI)
 	rt.mux.HandleFunc("GET /docs", serveDocs)
+	rt.mux.HandleFunc("GET /favicon.svg", serveFavicon)
 	rt.accountant("GET /api/v1/accountant/signals/catalog", signalsCatalog)
 
 	var computeClosing *usecase.ComputeClosing
@@ -394,4 +395,10 @@ func serveDocs(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(api.DocsHTML)
+}
+
+func serveFavicon(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(api.FaviconSVG)
 }
