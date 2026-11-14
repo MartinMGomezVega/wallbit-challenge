@@ -76,6 +76,7 @@ type ClosingRepository interface {
 	ListByPeriod(ctx context.Context, p period.Period) ([]closing.Closing, error)
 	ByClient(ctx context.Context, clientID string) ([]closing.Closing, error)
 	Save(ctx context.Context, c closing.Closing) error
+	SaveIfVersion(ctx context.Context, c closing.Closing, expectedVersion int) error
 	LatestExclusionDate(ctx context.Context, clientID string) (*time.Time, error)
 }
 

@@ -145,4 +145,3 @@ func TestParseMisComprobantesDemoPaula(t *testing.T) {
 		t.Fatalf("unexpected row data: %+v", rows[0])
 	}
 }
-

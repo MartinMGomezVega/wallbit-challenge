@@ -5,11 +5,13 @@
 ## 1. Monorepo
 
 ```
-wallbit-accountant/
-├── backend/                 # Go
-├── frontend/                # React + TS (Vite)
+wallbit-challenge/
+├── backend/                 # Go (+ Dockerfile)
+├── frontend/                # React + TS (Vite) (+ Dockerfile con nginx)
+├── docs/                    # Swagger UI para GitHub Pages
 ├── specs/                   # este directorio (SDD)
-├── Makefile                 # make dev | test | coverage | lint
+├── docker-compose.yml       # db (Postgres) + api + web
+├── Makefile                 # make up | dev | dev-memory | test | coverage | test-integration | lint
 └── README.md
 ```
 
@@ -18,7 +20,8 @@ wallbit-accountant/
 ### 2.1 Stack
 - Go ≥ 1.23. **Solo stdlib** salvo excepciones listadas: `net/http` con routing por patrones (`mux.HandleFunc("GET /api/v1/accountant/closings/{id}", ...)`), `log/slog`, `encoding/json`, `embed`, `math/big`, `testing`.
 - Sin framework web, sin ORM. Sin dependencias externas en `domain` ni `application`.
-- Dependencias permitidas: ninguna obligatoria. (Si hiciera falta, justificar en el `plan.md` de la feature.)
+- Dependencias permitidas: `github.com/jackc/pgx/v5` (solo en `infrastructure/postgres`, desde 013). Cualquier otra se justifica en el `plan.md` de la feature.
+- Persistencia: **PostgreSQL 17** por defecto (013); repositorios en memoria para tests unitarios y `STORAGE=memory`.
 
 ### 2.2 Capas (Clean Architecture)
 
@@ -44,6 +47,8 @@ backend/
 │   │   ├── arca/mock/               # TaxScaleProvider + DueDateProvider (go:embed JSON reales)
 │   │   ├── fx/mock/                 # ExchangeRateProvider (go:embed JSON reales)
 │   │   ├── memory/                  # repositorios en memoria (sync.RWMutex)
+│   │   ├── postgres/                # repositorios Postgres, ClosingQuery/StatsQuery SQL, TxManager, migraciones (013)
+│   │   ├── scheduler/               # job del día 1 y recordatorios
 │   │   ├── notify/log/              # NotificationSender que loguea (simula email/push)
 │   │   ├── clock/                   # Clock real y fijo (APP_NOW)
 │   │   └── seed/                    # generador determinístico de clientes/movimientos/facturas
@@ -75,6 +80,9 @@ backend/
 | `FX_CLIENT` | `mock` | Ídem. |
 | `MOCK_LATENCY_MS` | `0` | Latencia simulada de los mocks externos. |
 | `CORS_ORIGIN` | `http://localhost:5173` | Front en dev. |
+| `STORAGE` | `postgres` | `postgres` o `memory`. |
+| `DATABASE_URL` | `postgres://wallbit:wallbit@localhost:5432/accountant?sslmode=disable` | Conexión (credenciales solo de demo local). |
+| `SEED_RESET` | `false` | `true` vacía las tablas y vuelve a sembrar al arrancar. |
 
 ### 2.5 Identidad de demo
 - Header `X-Demo-User`: `accountant` o `client:<clientId>`. Middleware lo valida y lo pone en el `context`.
@@ -88,7 +96,8 @@ backend/
 
 ### 2.7 Tests backend
 - `testing` stdlib, table-driven, sin mocks generados: fakes escritos a mano en `internal/application/ports/fakes`.
-- Coverage: `go test ./... -coverprofile=coverage.out -covermode=atomic` → **≥ 90% total** excluyendo `cmd/`. Script `scripts/coverage.sh` que filtra `cmd/` y falla si < 90.
+- Coverage: `go test ./... -coverprofile=coverage.out -covermode=atomic` → **≥ 90% total** excluyendo `cmd/` e `internal/infrastructure/postgres/`. Script `scripts/coverage.sh` que filtra esos paths y falla si < 90.
+- Tests de integración (`//go:build integration`) contra el Postgres del compose: `make test-integration`. Las suites de contrato de `ports/repotest` corren contra memoria (unitarios) y contra Postgres (integración) para garantizar el mismo comportamiento.
 - Tests de handlers con `httptest`.
 - Test de concurrencia del job con `-race`.
 
@@ -97,7 +106,7 @@ backend/
 ### 3.1 Stack
 - Vite + React 18 + TypeScript `strict`.
 - **TanStack Query** (data fetching, cache, prefetch), **TanStack Table** (tabla), **React Router** (estado en URL).
-- **Tailwind CSS** para estilos. **Radix UI** (`@radix-ui/react-dialog`, `@radix-ui/react-tooltip`, `@radix-ui/react-checkbox`, `@radix-ui/react-dropdown-menu`) para primitivas accesibles.
+- **Tailwind CSS** para estilos, con los tokens de **`ui-guidelines.md`** (fuente de verdad de colores, tipografía, componentes y redacción). **Radix UI** (`@radix-ui/react-dialog`, `@radix-ui/react-tooltip`, `@radix-ui/react-checkbox`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-tabs`, `@radix-ui/react-toast`) para primitivas accesibles. **lucide-react** para íconos. **@fontsource-variable/inter** para la tipografía (self-hosted).
 - **Zod** para validar respuestas de la API.
 - Tests: **Vitest + Testing Library + MSW** (MSW solo en tests). Coverage `v8` **≥ 90%** líneas/branches/functions/statements (excluye `main.tsx`, `*.d.ts`, `src/test/**`, `src/mocks/**`).
 
@@ -114,6 +123,7 @@ frontend/src/
 ├── features/
 │   ├── closings-dashboard/   # tabla, filtros, chips de resumen, aprobación en lote
 │   ├── closing-review/       # modal de revisión con cola Anterior/Siguiente
+│   ├── summary-dashboard/    # Resumen: avance, totales, riesgo, métricas de éxito (014)
 │   ├── parameters/           # pantalla de parámetros del contador
 │   └── client-portal/        # vista del cliente
 ├── mocks/               # handlers MSW (solo tests)
@@ -131,10 +141,16 @@ frontend/src/
 
 | Target | Hace |
 |---|---|
-| `make dev` | Levanta backend (`go run ./cmd/api`) y frontend (`npm run dev`) en paralelo. |
-| `make test` | Tests backend (`-race`) y frontend. |
+| `make up` | `docker compose up --build`: Postgres + API + web. **Forma principal de correrlo.** |
+| `make install` | `cd frontend && npm ci`. |
+| `make dev` | Postgres en Docker + backend local (`go run ./cmd/api`) + frontend (`npm run dev`). |
+| `make dev-memory` | Backend en memoria + frontend, sin Docker. |
+| `make test` | Tests unitarios backend (`-race`) y frontend. No requiere Docker. |
 | `make coverage` | Coverage de ambos; falla si alguno < 90%. |
+| `make test-integration` | Tests de integración contra Postgres. |
+| `make reset-db` | Borra el volumen de Postgres. |
 | `make lint` | `go vet ./...`, `gofmt -l`, `npm run lint`, `npm run typecheck`. |
+> Hasta la feature 013, `make dev` corre el backend en memoria.
 
 ## 5. Orden de features
 
@@ -151,6 +167,9 @@ frontend/src/
 009-review-modal             (front + endpoint de IDs)
 010-approval-notifications
 011-client-portal
-012-delivery                 (README, nota de decisiones, demo)
+013-postgres-persistence     (Postgres + Docker Compose, tests de integración)
+014-summary-dashboard        (Resumen: avance, totales, riesgo, métricas de éxito)
+015-delivery                 (README, nota de decisiones, Swagger)
 ```
 Cada feature depende de las anteriores. No empezar una feature con tareas pendientes de la anterior.
+(La entrega original, `012-delivery`, se reemplazó por `015-delivery` cuando se sumaron Postgres y el Resumen; la carpeta 012 se borra.)

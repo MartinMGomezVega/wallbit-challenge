@@ -46,4 +46,3 @@ func TestCatalog(t *testing.T) {
 		t.Errorf("Severity(99).String() = %s", Severity(99).String())
 	}
 }
-

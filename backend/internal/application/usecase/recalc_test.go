@@ -232,4 +232,3 @@ func TestUpdateParameters_TriggersRecalc(t *testing.T) {
 		t.Fatalf("esperaba 1 cierre recalculado por cambio de parámetros, obtuvo %d", res.Recalculated)
 	}
 }
-

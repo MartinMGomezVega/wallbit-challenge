@@ -1,0 +1,440 @@
+openapi: 3.0.3
+info:
+  title: Wallbit Contabilidad API
+  version: 1.0.0
+  description: API REST para la gestión de cierres impositivos mensuales (Monotributo y Responsable Inscripto).
+servers:
+  - url: /
+components:
+  securitySchemes:
+    DemoUserHeader:
+      type: apiKey
+      in: header
+      name: X-Demo-User
+      description: Identidad de demo (`accountant` o `client:<clientId>`).
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: integer
+          format: int64
+          description: Monto en centavos
+          example: 12500000
+        currency:
+          type: string
+          enum: [ARS, USD]
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            fields:
+              type: object
+              additionalProperties:
+                type: string
+    PeriodStats:
+      type: object
+      properties:
+        period:
+          type: string
+          example: "2026-10"
+        progress:
+          type: object
+          properties:
+            total: { type: integer }
+            byStatus:
+              type: object
+              additionalProperties: { type: integer }
+            approvedPct: { type: integer, description: BasisPoints }
+            pendingReview:
+              type: object
+              additionalProperties: { type: integer }
+            estimatedReviewMinutes: { type: integer }
+        totals:
+          type: object
+          properties:
+            billedUSD: { $ref: '#/components/schemas/Money' }
+            billedARS: { $ref: '#/components/schemas/Money' }
+            toPayARS: { $ref: '#/components/schemas/Money' }
+            toPayByDueDate:
+              type: array
+              items:
+                type: object
+                properties:
+                  date: { type: string }
+                  amount: { $ref: '#/components/schemas/Money' }
+                  clients: { type: integer }
+        risk:
+          type: object
+          properties:
+            bySeverity:
+              type: object
+              additionalProperties: { type: integer }
+            bySignal:
+              type: array
+              items:
+                type: object
+                properties:
+                  code: { type: string }
+                  label: { type: string }
+                  severity: { type: string }
+                  count: { type: integer }
+            byCategory:
+              type: array
+              items:
+                type: object
+                properties:
+                  category: { type: string }
+                  clients: { type: integer }
+            nearKCap: { type: integer }
+        success:
+          type: object
+          properties:
+            greenPct: { type: integer, description: BasisPoints }
+            notifiedBeforeDay10Pct: { type: integer, description: BasisPoints }
+            paidOnTimePct: { type: integer, description: BasisPoints }
+paths:
+  /api/v1/health:
+    get:
+      summary: Healthcheck
+      tags: [Sistema]
+      responses:
+        '200':
+          description: Servicio operativo
+  /api/v1/demo/clients:
+    get:
+      summary: Lista los clientes disponibles para el selector de demo
+      tags: [Demo]
+      responses:
+        '200':
+          description: Lista de clientes de demo
+  /api/v1/accountant/signals/catalog:
+    get:
+      summary: Catálogo de señales impositivas
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Catálogo de señales
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/parameters:
+    get:
+      summary: Obtiene parámetros globales del estudio
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Parámetros vigentes
+    put:
+      summary: Actualiza parámetros globales del estudio y recalcula cierres
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Parámetros actualizados
+        '422':
+          description: Error de validación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/periods/{period}/run:
+    post:
+      summary: Ejecuta el cálculo masivo de cierres para un período
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string, example: "2026-04" }
+      responses:
+        '200':
+          description: Resultado de la ejecución
+  /api/v1/accountant/periods/{period}/closings:
+    get:
+      summary: Lista paginada, filtrada y ordenada de cierres del período
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Página de cierres
+  /api/v1/accountant/periods/{period}/closings/ids:
+    get:
+      summary: Lista ordenada de IDs de cierres que coinciden con los filtros
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: IDs de cierres
+  /api/v1/accountant/periods/{period}/closings/summary:
+    get:
+      summary: Totales agregados de cierres por severidad y estado
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Resumen de contadores
+  /api/v1/accountant/periods/{period}/stats:
+    get:
+      summary: Estadísticas agregadas del período para el tablero de resumen
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string, example: "2026-04" }
+      responses:
+        '200':
+          description: Estadísticas del período
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PeriodStats' }
+        '422':
+          description: Período inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/closings/{id}:
+    get:
+      summary: Detalle completo de un cierre
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Detalle del cierre
+        '404':
+          description: Cierre no encontrado
+  /api/v1/accountant/closings/{id}/approve:
+    post:
+      summary: Aprueba y publica un cierre individual con concurrencia optimista
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Cierre aprobado
+        '409':
+          description: Conflicto de versión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/v1/accountant/periods/{period}/closings/approve-batch:
+    post:
+      summary: Aprueba en lote múltiples cierres del período
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Resultado del lote
+  /api/v1/accountant/reminders/run:
+    post:
+      summary: Ejecuta el envío de recordatorios de vencimiento próximo
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Recordatorios procesados
+  /api/v1/accountant/movements/{id}/classification:
+    patch:
+      summary: Sobrescribe manualmente la clasificación de un movimiento
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Clasificación actualizada
+  /api/v1/accountant/clients/{id}/invoices:
+    get:
+      summary: Lista las facturas de venta de un cliente
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Facturas del cliente
+  /api/v1/accountant/clients/{id}/regime-change:
+    post:
+      summary: Cambia el régimen impositivo de un cliente (Monotributo ↔ RI)
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Régimen actualizado
+  /api/v1/accountant/clients/{id}/ri-profile:
+    put:
+      summary: Actualiza el perfil de Responsable Inscripto del cliente
+      tags: [Contador]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Perfil RI actualizado
+  /api/v1/me:
+    get:
+      summary: Perfil del cliente autenticado
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Datos del cliente
+  /api/v1/me/invoices/import:
+    post:
+      summary: Importa facturas de venta desde CSV
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Resultado de importación
+  /api/v1/me/invoices:
+    get:
+      summary: Lista las facturas de venta del cliente autenticado
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Facturas del cliente
+    post:
+      summary: Carga manual de una factura de venta
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '201':
+          description: Factura creada
+  /api/v1/me/purchase-invoices:
+    post:
+      summary: Carga manual de una factura de compra (RI)
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '201':
+          description: Factura de compra creada
+  /api/v1/me/periods/{period}/external-income:
+    put:
+      summary: Declara ingresos fuera de Wallbit o declara no tenerlos
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Declaración guardada
+  /api/v1/me/periods/{period}/confirm:
+    post:
+      summary: Confirma la carga mensual del cliente y dispara recálculo
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Carga confirmada
+  /api/v1/me/closings:
+    get:
+      summary: Lista los cierres publicados/pagados del cliente autenticado
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Cierres del cliente
+  /api/v1/me/closings/{id}/paid:
+    post:
+      summary: Marca un cierre publicado como pagado por el cliente
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Cierre marcado como pagado
+  /api/v1/me/notifications:
+    get:
+      summary: Lista las notificaciones del cliente autenticado
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      responses:
+        '200':
+          description: Notificaciones del cliente
+  /api/v1/me/notifications/{id}/read:
+    post:
+      summary: Marca una notificación como leída
+      tags: [Cliente]
+      security: [{ DemoUserHeader: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Notificación marcada como leída
+

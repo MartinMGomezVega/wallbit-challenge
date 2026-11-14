@@ -60,4 +60,3 @@ func TestClientPeriodInput(t *testing.T) {
 		t.Fatalf("Confirm failed: %v", err)
 	}
 }
-

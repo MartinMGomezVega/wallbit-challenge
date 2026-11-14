@@ -68,6 +68,14 @@
 - Hay backend real (no mocks en el front) porque: el cierre corre solo (job), la aprobación necesita auditoría del lado servidor, los datos no deben bajarse completos al navegador y el aviso sale del servidor.
 - Lo único mockeado son los **sistemas externos** (ARCA: escalas/vencimientos; tipo de cambio), detrás de puertos, con **datos reales** embebidos.
 - Sin TDD. Tests unitarios con **coverage ≥ 90%** (backend y frontend).
+- **PostgreSQL en Docker** como persistencia (una base propia no es un servicio externo). `docker compose up --build` levanta todo. Postgres y no DynamoDB: dominio relacional, transacciones y agregaciones (013).
+- **Pestaña "Resumen"** (dashboard compacto): avance del cierre, totales, riesgo y las métricas de éxito de la nota de decisiones. Datos calculados por el backend con SQL, sin mocks (014).
+
+### 4.7 Lo que queda afuera y va al README
+- Login real y roles (contador con MFA; el cliente usaría su sesión de Wallbit). Solo se menciona en "Lo que dejé afuera" del README, sin nombrar proveedores.
+- Base gestionada en la nube (RDS/Aurora o Cloud SQL), backups, réplica de lectura para el Resumen, ingesta real de movimientos de Wallbit.
+- Emitir facturas (WSFEX) y pagar (VEP) en ARCA; integración real con ARCA y BCRA/BNA.
+- Recálculo asincrónico con cola; observabilidad; Ingresos Brutos, DDJJ anuales, notas de crédito.
 
 ## 5. Supuestos explícitos (van al README)
 
@@ -79,4 +87,4 @@
 6. Tipo de cambio para pesificar facturas: el de la propia factura (columna "Tipo Cambio" del CSV); si no viene, el del proveedor de tipo de cambio según el parámetro `fx_rule`.
 7. Anticipos de Ganancias y aportes de autónomos de RI los carga el contador por cliente (dependen de la DDJJ anterior, que Wallbit no tiene).
 8. No hay autenticación real: un selector de rol de demo (contador / cliente X).
-9. Persistencia en memoria, datos semilla determinísticos al arrancar (~300 clientes).
+9. Persistencia en PostgreSQL (Docker); datos semilla determinísticos en el primer arranque (~300 clientes). En memoria solo para tests y `STORAGE=memory`.

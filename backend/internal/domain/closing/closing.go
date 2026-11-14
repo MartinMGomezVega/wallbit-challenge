@@ -83,22 +83,23 @@ type Published struct {
 
 // Closing es la entidad raíz que agrupa toda la información de un cierre contable mensual.
 type Closing struct {
-	ID             string                     `json:"id"`
-	ClientID       string                     `json:"clientId"`
-	Period         period.Period              `json:"period"`
-	Status         Status                     `json:"status"`
-	Version        int                        `json:"version"`
-	ResultHash     string                     `json:"resultHash"`
-	Severity       signal.Severity            `json:"severity"`
-	Signals        []signal.Signal            `json:"signals"`
-	Description    string                     `json:"description"`
-	Mono           *tax.MonotributoAssessment `json:"mono,omitempty"`
-	RI             *tax.RIAssessment          `json:"ri,omitempty"`
-	Reconciliation Reconciliation             `json:"reconciliation"`
-	ComputedAt     time.Time                  `json:"computedAt"`
-	Approvals      []Approval                 `json:"approvals"`
-	PaidAt         *time.Time                 `json:"paidAt,omitempty"`
-	Published      *Published                 `json:"published,omitempty"`
+	ID               string                     `json:"id"`
+	ClientID         string                     `json:"clientId"`
+	Period           period.Period              `json:"period"`
+	Status           Status                     `json:"status"`
+	Version          int                        `json:"version"`
+	ResultHash       string                     `json:"resultHash"`
+	Severity         signal.Severity            `json:"severity"`
+	Signals          []signal.Signal            `json:"signals"`
+	Description      string                     `json:"description"`
+	Mono             *tax.MonotributoAssessment `json:"mono,omitempty"`
+	RI               *tax.RIAssessment          `json:"ri,omitempty"`
+	Reconciliation   Reconciliation             `json:"reconciliation"`
+	ComputedAt       time.Time                  `json:"computedAt"`
+	Approvals        []Approval                 `json:"approvals"`
+	PaidAt           *time.Time                 `json:"paidAt,omitempty"`
+	FirstPublishedAt *time.Time                 `json:"firstPublishedAt,omitempty"`
+	Published        *Published                 `json:"published,omitempty"`
 }
 
 // NewClosing inicializa un nuevo cierre en versión 1 con su estado inicial según confirmación de input.
@@ -207,6 +208,10 @@ func (c *Closing) MarkNotified(p ...Published) error {
 	c.Status = StatusNotified
 	if len(p) > 0 {
 		c.Published = &p[0]
+		if c.FirstPublishedAt == nil {
+			t := p[0].PublishedAt
+			c.FirstPublishedAt = &t
+		}
 	}
 	return nil
 }

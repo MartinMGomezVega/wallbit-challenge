@@ -15,8 +15,6 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/parameters"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/period"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/reconciliation"
-	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/signal"
-	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/domain/tax"
 )
 
 // ListClosingsQuery encapsula la petición de listado de cierres.
@@ -50,109 +48,40 @@ type ListClosingIDsResult struct {
 	Total int      `json:"total"`
 }
 
-func buildClosingRows(ctx context.Context, closingsRepo ports.ClosingRepository, clientsRepo ports.ClientRepository, p period.Period) ([]closing.Row, error) {
-	closingsList, err := closingsRepo.ListByPeriod(ctx, p)
-	if err != nil {
-		return nil, err
-	}
-
-	clientsList, err := clientsRepo.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	clientMap := make(map[string]client.Client, len(clientsList))
-	for _, c := range clientsList {
-		clientMap[c.ID] = c
-	}
-
-	rows := make([]closing.Row, 0, len(closingsList))
-	for _, c := range closingsList {
-		cli := clientMap[c.ClientID]
-		rows = append(rows, buildRow(c, cli))
-	}
-	return rows, nil
-}
-
 // ListClosings construye la vista tabular de los cierres mensuales para el contador (spec 007 criterio 14).
 type ListClosings struct {
-	Closings ports.ClosingRepository
-	Clients  ports.ClientRepository
+	Query ports.ClosingQuery
 }
 
-// Execute obtiene los cierres, los enriquece con datos del cliente y aplica filtros, ordenamiento y paginación.
+// Execute obtiene los cierres paginados, filtrados y ordenados mediante ClosingQuery.
 func (uc *ListClosings) Execute(ctx context.Context, q ListClosingsQuery) (ListClosingsResult, error) {
-	rows, err := buildClosingRows(ctx, uc.Closings, uc.Clients, q.Period)
+	res, err := uc.Query.Page(ctx, q.Period, q.Filter, q.Sort, ports.PageRequest{
+		Page:     q.Page,
+		PageSize: q.PageSize,
+	})
 	if err != nil {
 		return ListClosingsResult{}, err
 	}
-
-	filtered := closing.Apply(rows, q.Filter, q.Sort)
-
-	total := len(filtered)
-	pageSize := q.PageSize
-	if pageSize <= 0 {
-		pageSize = 50
-	}
-	if pageSize > 500 {
-		pageSize = 500
-	}
-
-	page := q.Page
-	if page <= 0 {
-		page = 1
-	}
-
-	totalPages := 0
-	if total > 0 {
-		totalPages = (total + pageSize - 1) / pageSize
-	}
-
-	start := (page - 1) * pageSize
-	if start > total {
-		start = total
-	}
-	end := start + pageSize
-	if end > total {
-		end = total
-	}
-
-	items := filtered[start:end]
-	if items == nil {
-		items = []closing.Row{}
-	}
-
 	return ListClosingsResult{
-		Items:      items,
-		Total:      total,
-		Page:       page,
-		PageSize:   pageSize,
-		TotalPages: totalPages,
+		Items:      res.Items,
+		Total:      res.Total,
+		Page:       res.Page,
+		PageSize:   res.PageSize,
+		TotalPages: res.TotalPages,
 	}, nil
 }
 
 // ListClosingIDs devuelve únicamente los IDs de los cierres filtrados y ordenados, sin paginación (spec 009 criterio 1).
 type ListClosingIDs struct {
-	Closings ports.ClosingRepository
-	Clients  ports.ClientRepository
+	Query ports.ClosingQuery
 }
 
-// Execute obtiene los cierres, los filtra y ordena según los criterios indicados, y devuelve la lista completa de IDs.
+// Execute obtiene la lista completa de IDs filtrados y ordenados mediante ClosingQuery.
 func (uc *ListClosingIDs) Execute(ctx context.Context, q ListClosingIDsQuery) (ListClosingIDsResult, error) {
-	rows, err := buildClosingRows(ctx, uc.Closings, uc.Clients, q.Period)
+	ids, err := uc.Query.IDs(ctx, q.Period, q.Filter, q.Sort)
 	if err != nil {
 		return ListClosingIDsResult{}, err
 	}
-
-	filtered := closing.Apply(rows, q.Filter, q.Sort)
-	ids := make([]string, len(filtered))
-	for i, r := range filtered {
-		ids[i] = r.ClosingID
-	}
-	if ids == nil {
-		ids = []string{}
-	}
-
 	return ListClosingIDsResult{
 		IDs:   ids,
 		Total: len(ids),
@@ -161,134 +90,12 @@ func (uc *ListClosingIDs) Execute(ctx context.Context, q ListClosingIDsQuery) (L
 
 // ClosingsSummary calcula los totales y agrupadores para los chips de la UI (spec 007 criterio 15).
 type ClosingsSummary struct {
-	Closings ports.ClosingRepository
-	Clients  ports.ClientRepository
+	Query ports.ClosingQuery
 }
 
-// Execute aplica los filtros indicados excepto severidad y calcula el resumen.
+// Execute aplica los filtros indicados excepto severidad y calcula el resumen mediante ClosingQuery.
 func (uc *ClosingsSummary) Execute(ctx context.Context, p period.Period, filter closing.Filter) (closing.Summary, error) {
-	closingsList, err := uc.Closings.ListByPeriod(ctx, p)
-	if err != nil {
-		return closing.Summary{}, err
-	}
-
-	clientsList, err := uc.Clients.List(ctx)
-	if err != nil {
-		return closing.Summary{}, err
-	}
-
-	clientMap := make(map[string]client.Client, len(clientsList))
-	for _, c := range clientsList {
-		clientMap[c.ID] = c
-	}
-
-	rows := make([]closing.Row, 0, len(closingsList))
-	for _, c := range closingsList {
-		cli := clientMap[c.ClientID]
-		rows = append(rows, buildRow(c, cli))
-	}
-
-	// Filtros sin severidad para no sesgar los contadores de los chips de semáforo
-	noSevFilter := filter
-	noSevFilter.Severities = nil
-
-	filtered := closing.Apply(rows, noSevFilter, closing.Sort{})
-	return closing.ComputeSummary(filtered), nil
-}
-
-func buildRow(c closing.Closing, cli client.Client) closing.Row {
-	var cat *tax.Category
-	if c.Mono != nil {
-		catCopy := c.Mono.CurrentCategory
-		cat = &catCopy
-	} else if cli.Regime == client.RegimeMonotributo && cli.MonotributoCategory != "" {
-		catCopy := cli.MonotributoCategory
-		cat = &catCopy
-	}
-
-	var primary *closing.SignalSummary
-	var others []closing.SignalSummary
-	if len(c.Signals) > 0 {
-		first := c.Signals[0]
-		label := string(first.Code)
-		if meta, ok := signal.MetaFor(first.Code); ok {
-			label = meta.Label
-		}
-		primary = &closing.SignalSummary{
-			Code:     first.Code,
-			Label:    label,
-			Severity: first.Severity.String(),
-		}
-		for _, s := range c.Signals[1:] {
-			sLabel := string(s.Code)
-			if meta, ok := signal.MetaFor(s.Code); ok {
-				sLabel = meta.Label
-			}
-			others = append(others, closing.SignalSummary{
-				Code:     s.Code,
-				Label:    sLabel,
-				Severity: s.Severity.String(),
-			})
-		}
-	}
-	if others == nil {
-		others = []closing.SignalSummary{}
-	}
-
-	var billed closing.BilledInPeriod
-	var accum closing.Accumulated12m
-	var toPay closing.ToPay
-
-	if c.Mono != nil {
-		billed = closing.BilledInPeriod{
-			USD: c.Mono.BilledInPeriodUSD,
-			ARS: c.Mono.BilledInPeriodARS,
-		}
-		accum = closing.Accumulated12m{
-			ARS:         c.Mono.Billed12mARS,
-			PctOfKCapBp: c.Mono.PctOfKCapBp,
-		}
-		toPay = closing.ToPay{
-			Amount:  c.Mono.Fee,
-			DueDate: c.Mono.FeeDueDate,
-		}
-	} else if c.RI != nil {
-		billed = closing.BilledInPeriod{
-			USD: c.RI.BilledInPeriodUSD,
-			ARS: c.RI.BilledInPeriodARS,
-		}
-		accum = closing.Accumulated12m{
-			ARS:         money.Zero(money.ARS),
-			PctOfKCapBp: 0,
-		}
-		minDue := c.RI.VatDueDate
-		if !c.RI.SelfEmployedDueDate.IsZero() && (minDue.IsZero() || c.RI.SelfEmployedDueDate.Before(minDue)) {
-			minDue = c.RI.SelfEmployedDueDate
-		}
-		toPay = closing.ToPay{
-			Amount:  c.RI.TotalToPay,
-			DueDate: minDue,
-		}
-	}
-
-	return closing.Row{
-		ClosingID:      c.ID,
-		ClientID:       c.ClientID,
-		ClientName:     cli.Name,
-		CUIT:           cli.CUIT.String(),
-		Regime:         cli.RegimeAt(c.Period.End()),
-		Category:       cat,
-		Severity:       c.Severity,
-		PrimarySignal:  primary,
-		Description:    c.Description,
-		OtherSignals:   others,
-		BilledInPeriod: billed,
-		Accumulated12m: accum,
-		ToPay:          toPay,
-		Status:         c.Status,
-		Version:        c.Version,
-		PaidAt:         c.PaidAt,
-	}
+	return uc.Query.Summary(ctx, p, filter)
 }
 
 // PeriodMovementDTO modela un movimiento del período con su clasificación.

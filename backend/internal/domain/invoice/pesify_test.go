@@ -127,4 +127,3 @@ func TestAmountARS(t *testing.T) {
 		t.Fatal("expected error when lookup fails")
 	}
 }
-

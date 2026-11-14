@@ -44,6 +44,16 @@ export function Layout() {
                   Cierres
                 </NavLink>
                 <NavLink
+                  to="/contador/resumen"
+                  className={({ isActive }) =>
+                    `flex h-full items-center border-b-2 pt-0.5 transition-colors hover:text-white ${
+                      isActive ? 'border-app-brand font-medium text-white' : 'border-transparent'
+                    }`
+                  }
+                >
+                  Resumen
+                </NavLink>
+                <NavLink
                   to="/contador/parametros"
                   className={({ isActive }) =>
                     `flex h-full items-center border-b-2 pt-0.5 transition-colors hover:text-white ${

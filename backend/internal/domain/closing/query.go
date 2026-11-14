@@ -296,3 +296,99 @@ func ComputeSummary(rows []Row) Summary {
 	}
 	return s
 }
+
+// BuildRow construye una fila plana de tablero a partir de un cierre y su cliente.
+func BuildRow(c Closing, cli client.Client) Row {
+	var cat *tax.Category
+	if c.Mono != nil {
+		catCopy := c.Mono.CurrentCategory
+		cat = &catCopy
+	} else if cli.Regime == client.RegimeMonotributo && cli.MonotributoCategory != "" {
+		catCopy := cli.MonotributoCategory
+		cat = &catCopy
+	}
+
+	var primary *SignalSummary
+	var others []SignalSummary
+	if len(c.Signals) > 0 {
+		first := c.Signals[0]
+		label := string(first.Code)
+		if meta, ok := signal.MetaFor(first.Code); ok {
+			label = meta.Label
+		}
+		primary = &SignalSummary{
+			Code:     first.Code,
+			Label:    label,
+			Severity: first.Severity.String(),
+		}
+		for _, s := range c.Signals[1:] {
+			sLabel := string(s.Code)
+			if meta, ok := signal.MetaFor(s.Code); ok {
+				sLabel = meta.Label
+			}
+			others = append(others, SignalSummary{
+				Code:     s.Code,
+				Label:    sLabel,
+				Severity: s.Severity.String(),
+			})
+		}
+	}
+	if others == nil {
+		others = []SignalSummary{}
+	}
+
+	var billed BilledInPeriod
+	var accum Accumulated12m
+	var toPay ToPay
+
+	if c.Mono != nil {
+		billed = BilledInPeriod{
+			USD: c.Mono.BilledInPeriodUSD,
+			ARS: c.Mono.BilledInPeriodARS,
+		}
+		accum = Accumulated12m{
+			ARS:         c.Mono.Billed12mARS,
+			PctOfKCapBp: c.Mono.PctOfKCapBp,
+		}
+		toPay = ToPay{
+			Amount:  c.Mono.Fee,
+			DueDate: c.Mono.FeeDueDate,
+		}
+	} else if c.RI != nil {
+		billed = BilledInPeriod{
+			USD: c.RI.BilledInPeriodUSD,
+			ARS: c.RI.BilledInPeriodARS,
+		}
+		accum = Accumulated12m{
+			ARS:         money.Zero(money.ARS),
+			PctOfKCapBp: 0,
+		}
+		minDue := c.RI.VatDueDate
+		if !c.RI.SelfEmployedDueDate.IsZero() && (minDue.IsZero() || c.RI.SelfEmployedDueDate.Before(minDue)) {
+			minDue = c.RI.SelfEmployedDueDate
+		}
+		toPay = ToPay{
+			Amount:  c.RI.TotalToPay,
+			DueDate: minDue,
+		}
+	}
+
+	return Row{
+		ClosingID:      c.ID,
+		ClientID:       c.ClientID,
+		ClientName:     cli.Name,
+		CUIT:           cli.CUIT.String(),
+		Regime:         cli.RegimeAt(c.Period.End()),
+		Category:       cat,
+		Severity:       c.Severity,
+		PrimarySignal:  primary,
+		Description:    c.Description,
+		OtherSignals:   others,
+		BilledInPeriod: billed,
+		Accumulated12m: accum,
+		ToPay:          toPay,
+		Status:         c.Status,
+		Version:        c.Version,
+		PaidAt:         c.PaidAt,
+	}
+}

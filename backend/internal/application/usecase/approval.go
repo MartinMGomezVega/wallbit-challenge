@@ -77,106 +77,112 @@ type ApproveClosing struct {
 	Clock          ports.Clock
 	IDGen          ports.IDGenerator
 	DispatchOutbox *DispatchOutbox
+	Tx             ports.TxManager
 }
 
 // Execute ejecuta la aprobación individual de un cierre según los criterios 1 y 2 de la spec 010.
 func (uc *ApproveClosing) Execute(ctx context.Context, req ApproveClosingRequest) (ApproveClosingResult, error) {
-	c, err := uc.Closings.Get(ctx, req.ClosingID)
-	if err != nil {
-		return ApproveClosingResult{}, err
-	}
-
-	// 2. Si ya está aprobado o notificado en la misma versión -> ALREADY_APPROVED
-	if (c.Status == closing.StatusApproved || c.Status == closing.StatusNotified) && c.Version == req.Version {
-		return ApproveClosingResult{}, domain.ErrAlreadyApproved
-	}
-
-	// 1. Si la versión no coincide -> VERSION_CONFLICT (concurrencia optimista)
-	if c.Version != req.Version {
-		return ApproveClosingResult{}, domain.ErrVersionConflict
-	}
-
-	// Estados permitidos: READY_FOR_REVIEW y PENDING_CLIENT_INPUT
-	if c.Status != closing.StatusReadyForReview && c.Status != closing.StatusPendingClientInput {
-		return ApproveClosingResult{}, fmt.Errorf("%w: estado actual %s no permite aprobación", domain.ErrInvalidTransition, c.Status)
-	}
-
 	if len(req.ClientNote) > 500 {
 		return ApproveClosingResult{}, domain.ValidationError{Field: "clientNote", Msg: "máximo 500 caracteres"}
 	}
 
+	var c closing.Closing
 	var warning string
-	if c.Status == closing.StatusPendingClientInput {
-		warning = "CLIENT_INPUT_NOT_CONFIRMED"
-	}
-
-	now := uc.Clock.Now()
-	approval := closing.Approval{
-		ID:         uc.IDGen.New("appr"),
-		Version:    c.Version,
-		ResultHash: c.ResultHash,
-		ApprovedBy: "accountant",
-		ApprovedAt: now,
-		Note:       req.ClientNote,
-		Batch:      req.Batch,
-	}
-
-	if err := c.Approve(approval); err != nil {
-		return ApproveClosingResult{}, err
-	}
-
-	cli, err := uc.Clients.Get(ctx, c.ClientID)
-	if err != nil {
-		return ApproveClosingResult{}, err
-	}
-
-	// Determinar si es primer aviso o aviso de actualización
-	kind := notification.KindClosingReady
-	if c.Published != nil || len(c.Approvals) > 1 {
-		kind = notification.KindClosingUpdated
-	}
-
-	msg := notification.BuildClosingMessage(c, cli, req.ClientNote)
-
-	// Guardar notificación in-app
-	inApp := notification.Notification{
-		ID:        uc.IDGen.New("notif"),
-		ClientID:  c.ClientID,
-		ClosingID: c.ID,
-		Kind:      kind,
-		Title:     msg.Title,
-		Body:      msg.Body,
-		Key:       string(kind),
-		CreatedAt: now,
-	}
-	if err := uc.Notifications.Save(ctx, inApp); err != nil {
-		return ApproveClosingResult{}, err
-	}
-
-	// Encolar mensajes salientes (email + push)
-	monthLabel := notification.FormatPeriodLabel(c.Period)
-	outboundMsgs := notification.OutboundFor(c.ClientID, c.ID, kind, monthLabel, now)
-	for _, om := range outboundMsgs {
-		om.ID = uc.IDGen.New("outbox")
-		om.CreatedAt = now
-		if err := uc.Outbox.Enqueue(ctx, om); err != nil {
-			return ApproveClosingResult{}, err
+	err := withinTx(ctx, uc.Tx, func(ctx context.Context) error {
+		var err error
+		c, err = uc.Closings.Get(ctx, req.ClosingID)
+		if err != nil {
+			return err
 		}
-	}
 
-	// Congelar Published y marcar cierre como NOTIFIED
-	pub := closing.Published{
-		Version:     c.Version,
-		Title:       msg.Title,
-		Body:        msg.Body,
-		Figures:     buildPublishedFigures(c),
-		PublishedAt: now,
-	}
-	if err := c.Publish(pub); err != nil {
-		return ApproveClosingResult{}, err
-	}
+		// 2. Si ya está aprobado o notificado en la misma versión -> ALREADY_APPROVED
+		if (c.Status == closing.StatusApproved || c.Status == closing.StatusNotified) && c.Version == req.Version {
+			return domain.ErrAlreadyApproved
+		}
 
-	if err := uc.Closings.Save(ctx, c); err != nil {
+		// 1. Si la versión no coincide -> VERSION_CONFLICT (concurrencia optimista)
+		if c.Version != req.Version {
+			return domain.ErrVersionConflict
+		}
+
+		// Estados permitidos: READY_FOR_REVIEW y PENDING_CLIENT_INPUT
+		if c.Status != closing.StatusReadyForReview && c.Status != closing.StatusPendingClientInput {
+			return fmt.Errorf("%w: estado actual %s no permite aprobación", domain.ErrInvalidTransition, c.Status)
+		}
+
+		if c.Status == closing.StatusPendingClientInput {
+			warning = "CLIENT_INPUT_NOT_CONFIRMED"
+		}
+
+		now := uc.Clock.Now()
+		approval := closing.Approval{
+			ID:         uc.IDGen.New("appr"),
+			Version:    c.Version,
+			ResultHash: c.ResultHash,
+			ApprovedBy: "accountant",
+			ApprovedAt: now,
+			Note:       req.ClientNote,
+			Batch:      req.Batch,
+		}
+
+		if err := c.Approve(approval); err != nil {
+			return err
+		}
+
+		cli, err := uc.Clients.Get(ctx, c.ClientID)
+		if err != nil {
+			return err
+		}
+
+		// Determinar si es primer aviso o aviso de actualización
+		kind := notification.KindClosingReady
+		if c.Published != nil || len(c.Approvals) > 1 {
+			kind = notification.KindClosingUpdated
+		}
+
+		msg := notification.BuildClosingMessage(c, cli, req.ClientNote)
+
+		// Guardar notificación in-app
+		inApp := notification.Notification{
+			ID:        uc.IDGen.New("notif"),
+			ClientID:  c.ClientID,
+			ClosingID: c.ID,
+			Kind:      kind,
+			Title:     msg.Title,
+			Body:      msg.Body,
+			Key:       string(kind),
+			CreatedAt: now,
+		}
+		if err := uc.Notifications.Save(ctx, inApp); err != nil {
+			return err
+		}
+
+		// Encolar mensajes salientes (email + push)
+		monthLabel := notification.FormatPeriodLabel(c.Period)
+		outboundMsgs := notification.OutboundFor(c.ClientID, c.ID, kind, monthLabel, now)
+		for _, om := range outboundMsgs {
+			om.ID = uc.IDGen.New("outbox")
+			om.CreatedAt = now
+			if err := uc.Outbox.Enqueue(ctx, om); err != nil {
+				return err
+			}
+		}
+
+		// Congelar Published y marcar cierre como NOTIFIED
+		pub := closing.Published{
+			Version:     c.Version,
+			Title:       msg.Title,
+			Body:        msg.Body,
+			Figures:     buildPublishedFigures(c),
+			PublishedAt: now,
+		}
+		if err := c.Publish(pub); err != nil {
+			return err
+		}
+
+		return uc.Closings.SaveIfVersion(ctx, c, req.Version)
+	})
+	if err != nil {
 		return ApproveClosingResult{}, err
 	}
 
@@ -266,6 +272,7 @@ type ApproveBatch struct {
 	ApproveClosing *ApproveClosing
 	Closings       ports.ClosingRepository
 	NumWorkers     int
+	Tx             ports.TxManager
 }
 
 // Execute procesa la aprobación en lote concurrentemente y devuelve el resumen.
@@ -331,39 +338,47 @@ func (uc *ApproveBatch) Execute(ctx context.Context, p period.Period, req Approv
 }
 
 func (uc *ApproveBatch) processItem(ctx context.Context, item ApproveBatchItemRequest) ApproveBatchItemResult {
-	c, err := uc.Closings.Get(ctx, item.ID)
-	if err != nil {
-		if errors.Is(err, domain.ErrNotFound) {
-			return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_FOUND"}
+	var res ApproveBatchItemResult
+	_ = withinTx(ctx, uc.Tx, func(ctx context.Context) error {
+		c, err := uc.Closings.Get(ctx, item.ID)
+		if err != nil {
+			res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_FOUND"}
+			return err
 		}
-		return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_FOUND"}
-	}
 
-	if c.Severity != signal.SeverityGreen {
-		return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_GREEN"}
-	}
+		if c.Severity != signal.SeverityGreen {
+			res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_GREEN"}
+			return domain.ErrValidation
+		}
 
-	if c.Status != closing.StatusReadyForReview {
-		return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_READY"}
-	}
+		if c.Status != closing.StatusReadyForReview {
+			res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_READY"}
+			return domain.ErrInvalidTransition
+		}
 
-	if c.Version != item.Version {
-		return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "VERSION_CONFLICT"}
-	}
+		if c.Version != item.Version {
+			res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "VERSION_CONFLICT"}
+			return domain.ErrVersionConflict
+		}
 
-	_, err = uc.ApproveClosing.Execute(ctx, ApproveClosingRequest{
-		ClosingID: item.ID,
-		Version:   item.Version,
-		Batch:     true,
+		_, err = uc.ApproveClosing.Execute(ctx, ApproveClosingRequest{
+			ClosingID: item.ID,
+			Version:   item.Version,
+			Batch:     true,
+		})
+		if err != nil {
+			if errors.Is(err, domain.ErrVersionConflict) {
+				res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "VERSION_CONFLICT"}
+			} else {
+				res = ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_READY"}
+			}
+			return err
+		}
+
+		res = ApproveBatchItemResult{ID: item.ID, OK: true}
+		return nil
 	})
-	if err != nil {
-		if errors.Is(err, domain.ErrVersionConflict) {
-			return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "VERSION_CONFLICT"}
-		}
-		return ApproveBatchItemResult{ID: item.ID, OK: false, Error: "NOT_READY"}
-	}
-
-	return ApproveBatchItemResult{ID: item.ID, OK: true}
+	return res
 }
 
 // CreateActionRequiredNotices genera avisos para clientes con cierres en PENDING_CLIENT_INPUT (spec 010 criterio 9).

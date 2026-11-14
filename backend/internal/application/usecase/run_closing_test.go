@@ -113,4 +113,3 @@ func TestRunMonthlyClosing_ErrorInOneClientDoesNotHalt(t *testing.T) {
 		t.Fatalf("esperaba 1 fallo en cli_bad, obtuvo: %+v", sum.Failed)
 	}
 }
-

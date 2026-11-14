@@ -25,9 +25,11 @@ import (
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/idgen"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/memory"
 	notifylog "github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/notify/log"
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/postgres"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/scheduler"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/infrastructure/seed"
 	apihttp "github.com/MartinMGomezVega/wallbit-challenge/backend/internal/interfaces/http"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -67,61 +69,32 @@ func run(log *slog.Logger) error {
 		return err
 	}
 
-	paramsRepo := memory.NewParametersRepository()
-	clientRepo := memory.NewClientRepository()
-	movementRepo := memory.NewMovementRepository()
-	classificationRepo := memory.NewClassificationRepository()
-	invoiceRepo := memory.NewInvoiceRepository()
-	purchaseInvoiceRepo := memory.NewPurchaseInvoiceRepository()
-	clientInputRepo := memory.NewClientInputRepository()
-	closingRepo := memory.NewClosingRepository()
-	notifRepo := memory.NewNotificationRepository()
-	outboxRepo := memory.NewOutboxRepository()
+	r, err := buildRepos(context.Background(), cfg, log)
+	if err != nil {
+		return err
+	}
+	defer r.close()
+
+	paramsRepo := r.params
+	clientRepo := r.clients
+	movementRepo := r.movements
+	classificationRepo := r.classifications
+	invoiceRepo := r.invoices
+	purchaseInvoiceRepo := r.purchaseInvoices
+	clientInputRepo := r.clientInputs
+	closingRepo := r.closings
+	closingQuery := r.closingQuery
+	statsQuery := r.statsQuery
+	txManager := r.txManager
+	notifRepo := r.notifications
+	outboxRepo := r.outbox
 	notifSender := notifylog.NewSender(log)
 
-	// Generación de datos semilla determinísticos
+	// Generación y carga de datos semilla determinísticos
 	idGen := idgen.NewSequential()
-	seedStart := time.Now()
-	ds, err := seed.Generate(context.Background(), seed.SeedConfig{
-		Seed:    cfg.Seed,
-		Clients: cfg.SeedClients,
-		AppNow:  clk.Now(),
-	}, fxClient, idGen)
-	if err != nil {
-		return fmt.Errorf("error generando seed: %w", err)
+	if err := loadSeed(context.Background(), cfg, log, r, fxClient, idGen, clk); err != nil {
+		return err
 	}
-
-	if err := clientRepo.SaveAll(context.Background(), ds.Clients); err != nil {
-		return fmt.Errorf("error guardando clientes seed: %w", err)
-	}
-	if err := movementRepo.SaveAll(context.Background(), ds.Movements); err != nil {
-		return fmt.Errorf("error guardando movimientos seed: %w", err)
-	}
-	if err := invoiceRepo.SaveAll(context.Background(), ds.Invoices); err != nil {
-		return fmt.Errorf("error guardando facturas seed: %w", err)
-	}
-	if err := purchaseInvoiceRepo.SaveAll(context.Background(), ds.PurchaseInvoices); err != nil {
-		return fmt.Errorf("error guardando facturas de compra seed: %w", err)
-	}
-	if err := clientInputRepo.SaveAll(context.Background(), ds.ClientInputs); err != nil {
-		return fmt.Errorf("error guardando inputs de clientes seed: %w", err)
-	}
-
-	// Clasificación inicial concurrente con worker pool (T002.10)
-	classifications := classifyMovementsWorkerPool(ds.Movements, cfg.ClosingWorkers)
-	if err := classificationRepo.SaveAll(context.Background(), classifications); err != nil {
-		return fmt.Errorf("error guardando clasificaciones iniciales: %w", err)
-	}
-
-	log.Info("seed inicializado",
-		"clientes", len(ds.Clients),
-		"movimientos", len(ds.Movements),
-		"facturas", len(ds.Invoices),
-		"facturasCompra", len(ds.PurchaseInvoices),
-		"clientInputs", len(ds.ClientInputs),
-		"clasificaciones", len(classifications),
-		"duracionMs", time.Since(seedStart).Milliseconds(),
-	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -140,6 +113,7 @@ func run(log *slog.Logger) error {
 		ExchangeRates:    fxClient,
 		Clock:            clk,
 		IDGen:            idGen,
+		Tx:               txManager,
 	}
 
 	notifier := &usecase.RecalcOnChange{
@@ -215,6 +189,9 @@ func run(log *slog.Logger) error {
 		ClientInputRepo:           clientInputRepo,
 		LatestExclusionDateReader: closingRepo,
 		ClosingRepo:               closingRepo,
+		ClosingQuery:              closingQuery,
+		StatsQuery:                statsQuery,
+		TxManager:                 txManager,
 		TaxScales:                 arcaClient,
 		DueDates:                  arcaClient,
 		ExchangeRates:             fxClient,
@@ -271,4 +248,142 @@ func classifyMovementsWorkerPool(movements []movement.Movement, workers int) []m
 	}
 	wg.Wait()
 	return results
+}
+
+type repos struct {
+	pool             *pgxpool.Pool
+	txManager        ports.TxManager
+	params           ports.ParametersRepository
+	clients          ports.ClientRepository
+	movements        ports.MovementRepository
+	classifications  ports.ClassificationRepository
+	invoices         ports.InvoiceRepository
+	purchaseInvoices ports.PurchaseInvoiceRepository
+	clientInputs     ports.ClientInputRepository
+	closings         ports.ClosingRepository
+	exclusions       ports.LatestExclusionDateReader
+	closingQuery     ports.ClosingQuery
+	statsQuery       ports.StatsQuery
+	notifications    ports.NotificationRepository
+	outbox           ports.OutboxRepository
+	close            func()
+}
+
+func buildRepos(ctx context.Context, cfg config.Config, log *slog.Logger) (repos, error) {
+	if cfg.Storage == "postgres" {
+		pool, err := postgres.OpenPool(ctx, cfg.DatabaseURL)
+		if err != nil {
+			return repos{}, err
+		}
+		if err := postgres.Migrate(ctx, pool); err != nil {
+			pool.Close()
+			return repos{}, err
+		}
+		log.Info("storage inicializado", "driver", "postgres")
+		cr := postgres.NewClosingRepository(pool)
+		return repos{
+			pool:             pool,
+			txManager:        postgres.NewTxManager(pool),
+			params:           postgres.NewParametersRepository(pool),
+			clients:          postgres.NewClientRepository(pool),
+			movements:        postgres.NewMovementRepository(pool),
+			classifications:  postgres.NewClassificationRepository(pool),
+			invoices:         postgres.NewInvoiceRepository(pool),
+			purchaseInvoices: postgres.NewPurchaseInvoiceRepository(pool),
+			clientInputs:     postgres.NewClientInputRepository(pool),
+			closings:         cr,
+			exclusions:       cr,
+			closingQuery:     postgres.NewClosingQuery(pool),
+			statsQuery:       postgres.NewStatsQuery(pool),
+			notifications:    postgres.NewNotificationRepository(pool),
+			outbox:           postgres.NewOutboxRepository(pool),
+			close:            pool.Close,
+		}, nil
+	}
+
+	log.Info("storage inicializado", "driver", "memory")
+	clientRepo := memory.NewClientRepository()
+	closingRepo := memory.NewClosingRepository()
+	return repos{
+		txManager:        memory.NewTxManager(),
+		params:           memory.NewParametersRepository(),
+		clients:          clientRepo,
+		movements:        memory.NewMovementRepository(),
+		classifications:  memory.NewClassificationRepository(),
+		invoices:         memory.NewInvoiceRepository(),
+		purchaseInvoices: memory.NewPurchaseInvoiceRepository(),
+		clientInputs:     memory.NewClientInputRepository(),
+		closings:         closingRepo,
+		exclusions:       closingRepo,
+		closingQuery:     memory.NewClosingQuery(closingRepo, clientRepo),
+		statsQuery:       memory.NewStatsQuery(closingRepo),
+		notifications:    memory.NewNotificationRepository(),
+		outbox:           memory.NewOutboxRepository(),
+		close:            func() {},
+	}, nil
+}
+
+func loadSeed(
+	ctx context.Context,
+	cfg config.Config,
+	log *slog.Logger,
+	r repos,
+	fxClient ports.ExchangeRateProvider,
+	idGen ports.IDGenerator,
+	clk ports.Clock,
+) error {
+	seedStart := time.Now()
+	ds, err := seed.Generate(ctx, seed.SeedConfig{
+		Seed:    cfg.Seed,
+		Clients: cfg.SeedClients,
+		AppNow:  clk.Now(),
+	}, fxClient, idGen)
+	if err != nil {
+		return fmt.Errorf("error generando seed: %w", err)
+	}
+	classifications := classifyMovementsWorkerPool(ds.Movements, cfg.ClosingWorkers)
+
+	if cfg.Storage == "postgres" {
+		inserted, err := postgres.LoadSeed(ctx, r.pool, &ds, classifications, cfg.SeedReset)
+		if err != nil {
+			return fmt.Errorf("error cargando seed en postgres: %w", err)
+		}
+		log.Info("seed postgres",
+			"insertado", inserted,
+			"reset", cfg.SeedReset,
+			"clientes", len(ds.Clients),
+			"duracionMs", time.Since(seedStart).Milliseconds(),
+		)
+		return nil
+	}
+
+	if err := r.clients.SaveAll(ctx, ds.Clients); err != nil {
+		return fmt.Errorf("error guardando clientes seed: %w", err)
+	}
+	if err := r.movements.SaveAll(ctx, ds.Movements); err != nil {
+		return fmt.Errorf("error guardando movimientos seed: %w", err)
+	}
+	if err := r.invoices.SaveAll(ctx, ds.Invoices); err != nil {
+		return fmt.Errorf("error guardando facturas seed: %w", err)
+	}
+	if err := r.purchaseInvoices.SaveAll(ctx, ds.PurchaseInvoices); err != nil {
+		return fmt.Errorf("error guardando facturas de compra seed: %w", err)
+	}
+	if err := r.clientInputs.SaveAll(ctx, ds.ClientInputs); err != nil {
+		return fmt.Errorf("error guardando inputs de clientes seed: %w", err)
+	}
+	if err := r.classifications.SaveAll(ctx, classifications); err != nil {
+		return fmt.Errorf("error guardando clasificaciones iniciales: %w", err)
+	}
+
+	log.Info("seed inicializado",
+		"clientes", len(ds.Clients),
+		"movimientos", len(ds.Movements),
+		"facturas", len(ds.Invoices),
+		"facturasCompra", len(ds.PurchaseInvoices),
+		"clientInputs", len(ds.ClientInputs),
+		"clasificaciones", len(classifications),
+		"duracionMs", time.Since(seedStart).Milliseconds(),
+	)
+	return nil
 }

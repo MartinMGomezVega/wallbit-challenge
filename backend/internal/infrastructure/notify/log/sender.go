@@ -40,4 +40,3 @@ func (s *Sender) Send(ctx context.Context, m notification.OutboundMessage) error
 	)
 	return nil
 }
-

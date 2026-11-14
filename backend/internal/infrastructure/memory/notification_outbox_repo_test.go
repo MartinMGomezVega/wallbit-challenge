@@ -148,4 +148,3 @@ func TestOutboxRepository(t *testing.T) {
 		t.Errorf("expected ErrNotFound, got %v", err)
 	}
 }
-

@@ -56,8 +56,19 @@ func TestHealth(t *testing.T) {
 	}
 }
 
+func testRouterWithPing() http.Handler {
+	rt := newRouter(testDeps())
+	testPing := func(w http.ResponseWriter, r *http.Request) {
+		id, _ := FromContext(r.Context())
+		writeJSON(w, http.StatusOK, map[string]string{"role": id.Role, "clientId": id.ClientID})
+	}
+	rt.accountant("GET /api/v1/accountant/ping", testPing)
+	rt.client("GET /api/v1/me/ping", testPing)
+	return rt.handler()
+}
+
 func TestPermissions(t *testing.T) {
-	h := NewRouter(testDeps())
+	h := testRouterWithPing()
 	cases := []struct {
 		name, path, user string
 		status           int
@@ -113,7 +124,7 @@ func TestRequestLogNoBody(t *testing.T) {
 }
 
 func TestCORS(t *testing.T) {
-	h := NewRouter(testDeps())
+	h := testRouterWithPing()
 	req := httptest.NewRequest("OPTIONS", "/api/v1/accountant/ping", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	req.Header.Set("Access-Control-Request-Method", "GET")

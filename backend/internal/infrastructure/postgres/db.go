@@ -1,0 +1,57 @@
+// Package postgres implementa los puertos de persistencia sobre PostgreSQL usando pgx/v5.
+package postgres
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// DBTX abstrae *pgxpool.Pool y pgx.Tx para ejecutar queries dentro o fuera de una transacción.
+type DBTX interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+type txCtxKey struct{}
+
+// OpenPool abre un pool pgxpool con reintentos exponenciales breves hasta que Postgres responda al Ping.
+func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
+	cfg, err := pgxpool.ParseConfig(databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse database url: %w", err)
+	}
+
+	var lastErr error
+	for attempt := 0; attempt < 15; attempt++ {
+		pool, err := pgxpool.NewWithConfig(ctx, cfg)
+		if err == nil {
+			if pingErr := pool.Ping(ctx); pingErr == nil {
+				return pool, nil
+			} else {
+				lastErr = pingErr
+				pool.Close()
+			}
+		} else {
+			lastErr = err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(500 * time.Millisecond):
+		}
+	}
+	return nil, fmt.Errorf("connect postgres after retries: %w", lastErr)
+}
+
+func conn(ctx context.Context, pool *pgxpool.Pool) DBTX {
+	if tx, ok := ctx.Value(txCtxKey{}).(pgx.Tx); ok && tx != nil {
+		return tx
+	}
+	return pool
+}

@@ -706,3 +706,75 @@ func TestApprovalPublishedSnapshotCriterion3(t *testing.T) {
 		t.Fatalf("reopened.Mono.Fee (cálculo en vivo) debió ser 3500000, got %d", reopened.Mono.Fee.Amount)
 	}
 }
+
+type barrierClientRepo struct {
+	*fakes.ClientRepository
+	wg sync.WaitGroup
+}
+
+func (b *barrierClientRepo) Get(ctx context.Context, id string) (client.Client, error) {
+	b.wg.Done()
+	b.wg.Wait()
+	return b.ClientRepository.Get(ctx, id)
+}
+
+func TestApproveClosing_ConcurrentSameVersion(t *testing.T) {
+	ctx := context.Background()
+	_, _, _, _, _, closingsRepo, clientsRepo, notifRepo, outboxRepo, sender, clk := setupApprovalSuite(t)
+
+	c := closing.NewClosing(
+		"clo_conc", "cli_01", period.MustParse("2026-10"), true, "hash_conc", signal.SeverityGreen,
+		nil, "OK",
+		&tax.MonotributoAssessment{
+			CurrentCategory:   tax.CatA,
+			Fee:               money.New(100000, money.ARS),
+			FeeDueDate:        clk.Now().AddDate(0, 0, 10),
+			BilledInPeriodUSD: money.New(10000, money.USD),
+			BilledInPeriodARS: money.New(10000000, money.ARS),
+		},
+		nil, closing.Reconciliation{}, clk.Now(),
+	)
+	_ = closingsRepo.Save(ctx, c)
+
+	barrierClients := &barrierClientRepo{ClientRepository: clientsRepo}
+	barrierClients.wg.Add(2)
+
+	apprUC := &usecase.ApproveClosing{
+		Closings:      closingsRepo,
+		Clients:       barrierClients,
+		Notifications: notifRepo,
+		Outbox:        outboxRepo,
+		Sender:        sender,
+		Clock:         clk,
+		IDGen:         fakes.NewIDGenerator(),
+	}
+
+	errs := make([]error, 2)
+	var done sync.WaitGroup
+	done.Add(2)
+	for i := 0; i < 2; i++ {
+		go func(idx int) {
+			defer done.Done()
+			_, errs[idx] = apprUC.Execute(ctx, usecase.ApproveClosingRequest{
+				ClosingID: "clo_conc",
+				Version:   1,
+			})
+		}(i)
+	}
+	done.Wait()
+
+	okCount := 0
+	conflictCount := 0
+	for _, err := range errs {
+		if err == nil {
+			okCount++
+		} else if errors.Is(err, domain.ErrVersionConflict) {
+			conflictCount++
+		} else {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+	if okCount != 1 || conflictCount != 1 {
+		t.Fatalf("expected 1 ok and 1 ErrVersionConflict, got ok=%d conflict=%d errs=%v", okCount, conflictCount, errs)
+	}
+}

@@ -69,4 +69,3 @@ func (uc *RecalcPeriod) Execute(ctx context.Context, p period.Period) (int, erro
 
 	return recalculated, nil
 }
-

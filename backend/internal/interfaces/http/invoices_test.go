@@ -254,4 +254,3 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 	})
 }
-

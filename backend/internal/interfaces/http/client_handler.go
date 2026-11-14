@@ -86,4 +86,3 @@ func (h *clientHandler) markNotificationRead(w http.ResponseWriter, r *http.Requ
 		"status": "read",
 	})
 }
-

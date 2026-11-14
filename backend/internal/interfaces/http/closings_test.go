@@ -87,6 +87,8 @@ func setupApprovalTestRouter(t *testing.T) (
 		PurchaseInvoiceRepo: purchRepo,
 		ClientInputRepo:     inputRepo,
 		ClosingRepo:         closingRepo,
+		ClosingQuery:        memory.NewClosingQuery(closingRepo, clientRepo),
+		StatsQuery:          memory.NewStatsQuery(closingRepo),
 		TaxScales:           scales,
 		DueDates:            dueDates,
 		ExchangeRates:       fx,
@@ -796,5 +798,53 @@ func TestPrivacy_OutboundMessagesNeverContainAmounts(t *testing.T) {
 		if notification.ContainsAmounts(m.Body) {
 			t.Errorf("mensaje %d: Body %q contiene montos", i, m.Body)
 		}
+	}
+}
+
+func TestStatsEndpoint(t *testing.T) {
+	router, closingRepo, clientRepo := setupClosingsTestRouter(t)
+	ctx := context.Background()
+	p := period.MustParse("2026-10")
+
+	_ = clientRepo.Save(ctx, client.Client{
+		ID: "cli_st_1", Name: "Stats Client", CUIT: "20-11111111-1",
+		Regime: client.RegimeMonotributo, MonotributoCategory: tax.CatB,
+	})
+	c := closing.NewClosing(
+		"clo_st_1", "cli_st_1", p, true, "h_st", signal.SeverityGreen, nil, "OK",
+		&tax.MonotributoAssessment{
+			CurrentCategory:   tax.CatB,
+			Fee:               money.New(250000, money.ARS),
+			FeeDueDate:        time.Date(2026, 11, 20, 0, 0, 0, 0, period.Location()),
+			BilledInPeriodUSD: money.New(10000, money.USD),
+			BilledInPeriodARS: money.New(15000000, money.ARS),
+		},
+		nil, closing.Reconciliation{}, testNow,
+	)
+	_ = closingRepo.Save(ctx, c)
+
+	// 200 OK
+	rec := do(t, router, "GET", "/api/v1/accountant/periods/2026-10/stats", "accountant", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET stats status = %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+	var st closing.PeriodStats
+	if err := json.Unmarshal(rec.Body.Bytes(), &st); err != nil {
+		t.Fatalf("unmarshal stats: %v", err)
+	}
+	if st.Period != "2026-10" || st.Progress.Total != 1 || st.Totals.ToPayARS.Amount != 250000 {
+		t.Fatalf("unexpected stats: %+v", st)
+	}
+
+	// 422 invalid period
+	recBad := do(t, router, "GET", "/api/v1/accountant/periods/bad-period/stats", "accountant", nil)
+	if recBad.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("GET stats invalid period status = %d, want 422", recBad.Code)
+	}
+
+	// 403 client role
+	recForb := do(t, router, "GET", "/api/v1/accountant/periods/2026-10/stats", "client:cli_st_1", nil)
+	if recForb.Code != http.StatusForbidden {
+		t.Fatalf("GET stats as client status = %d, want 403", recForb.Code)
 	}
 }

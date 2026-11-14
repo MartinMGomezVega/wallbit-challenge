@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MartinMGomezVega/wallbit-challenge/backend/api"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/ports"
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/usecase"
 )
@@ -25,6 +26,9 @@ type Deps struct {
 	ClientInputRepo           ports.ClientInputRepository
 	LatestExclusionDateReader ports.LatestExclusionDateReader
 	ClosingRepo               ports.ClosingRepository
+	ClosingQuery              ports.ClosingQuery
+	StatsQuery                ports.StatsQuery
+	TxManager                 ports.TxManager
 	TaxScales                 ports.TaxScaleProvider
 	DueDates                  ports.DueDateProvider
 	ExchangeRates             ports.ExchangeRateProvider
@@ -39,22 +43,41 @@ type Deps struct {
 }
 
 type router struct {
-	mux  *http.ServeMux
-	deps Deps
+	mux    *http.ServeMux
+	deps   Deps
+	routes []string
 }
 
-func (rt *router) public(pattern string, h http.HandlerFunc) { rt.mux.Handle(pattern, h) }
+func (rt *router) public(pattern string, h http.HandlerFunc) {
+	rt.routes = append(rt.routes, pattern)
+	rt.mux.Handle(pattern, h)
+}
 
 func (rt *router) accountant(pattern string, h http.HandlerFunc) {
+	rt.routes = append(rt.routes, pattern)
 	rt.mux.Handle(pattern, RequireAccountant(h))
 }
 
 func (rt *router) client(pattern string, h http.HandlerFunc) {
+	rt.routes = append(rt.routes, pattern)
 	rt.mux.Handle(pattern, RequireClient(h))
+}
+
+// Routes devuelve las rutas registradas en el router de producción.
+func Routes(deps Deps) []string {
+	rt := newRouter(deps)
+	out := make([]string, len(rt.routes))
+	copy(out, rt.routes)
+	return out
 }
 
 // NewRouter arma el handler HTTP con todas las rutas y middlewares.
 func NewRouter(deps Deps) http.Handler {
+	rt := newRouter(deps)
+	return rt.handler()
+}
+
+func newRouter(deps Deps) *router {
 	if deps.Logger == nil {
 		deps.Logger = slog.New(slog.NewJSONHandler(io.Discard, nil))
 	}
@@ -64,8 +87,8 @@ func NewRouter(deps Deps) http.Handler {
 	rt := &router{mux: http.NewServeMux(), deps: deps}
 
 	rt.public("GET /api/v1/health", rt.health)
-	rt.accountant("GET /api/v1/accountant/ping", ping)
-	rt.client("GET /api/v1/me/ping", ping)
+	rt.mux.HandleFunc("GET /api/openapi.yaml", serveOpenAPI)
+	rt.mux.HandleFunc("GET /docs", serveDocs)
 	rt.accountant("GET /api/v1/accountant/signals/catalog", signalsCatalog)
 
 	var computeClosing *usecase.ComputeClosing
@@ -87,6 +110,7 @@ func NewRouter(deps Deps) http.Handler {
 			ExchangeRates:    deps.ExchangeRates,
 			Clock:            deps.Clock,
 			IDGen:            deps.IDGen,
+			Tx:               deps.TxManager,
 		}
 	}
 
@@ -146,12 +170,14 @@ func NewRouter(deps Deps) http.Handler {
 				Clock:          deps.Clock,
 				IDGen:          deps.IDGen,
 				DispatchOutbox: dispatchOutbox,
+				Tx:             deps.TxManager,
 			}
 
 			approveBatchUC = &usecase.ApproveBatch{
 				ApproveClosing: approveUC,
 				Closings:       deps.ClosingRepo,
 				NumWorkers:     deps.Workers,
+				Tx:             deps.TxManager,
 			}
 
 			sendRemindersUC = &usecase.SendPaymentReminders{
@@ -173,16 +199,16 @@ func NewRouter(deps Deps) http.Handler {
 				ActionNotices: actionNotices,
 			},
 			listClosingsUC: &usecase.ListClosings{
-				Closings: deps.ClosingRepo,
-				Clients:  deps.ClientRepo,
+				Query: deps.ClosingQuery,
 			},
 			listClosingIDsUC: &usecase.ListClosingIDs{
-				Closings: deps.ClosingRepo,
-				Clients:  deps.ClientRepo,
+				Query: deps.ClosingQuery,
 			},
 			closingsSummaryUC: &usecase.ClosingsSummary{
-				Closings: deps.ClosingRepo,
-				Clients:  deps.ClientRepo,
+				Query: deps.ClosingQuery,
+			},
+			getStatsUC: &usecase.GetPeriodStats{
+				Query: deps.StatsQuery,
 			},
 			getDetailUC: &usecase.GetClosingDetail{
 				Closings:        deps.ClosingRepo,
@@ -203,6 +229,9 @@ func NewRouter(deps Deps) http.Handler {
 		rt.accountant("GET /api/v1/accountant/periods/{period}/closings/ids", closH.ids)
 		rt.accountant("GET /api/v1/accountant/periods/{period}/closings", closH.list)
 		rt.accountant("GET /api/v1/accountant/periods/{period}/closings/summary", closH.summary)
+		if deps.StatsQuery != nil {
+			rt.accountant("GET /api/v1/accountant/periods/{period}/stats", closH.stats)
+		}
 		rt.accountant("GET /api/v1/accountant/closings/{id}", closH.detail)
 		if approveUC != nil {
 			rt.accountant("POST /api/v1/accountant/closings/{id}/approve", closH.approve)
@@ -235,6 +264,7 @@ func NewRouter(deps Deps) http.Handler {
 				IDGen:    deps.IDGen,
 				Clock:    deps.Clock,
 				Notifier: deps.ChangeNotifier,
+				Tx:       deps.TxManager,
 			},
 			addInvoiceUC: &usecase.AddInvoice{
 				Clients:  deps.ClientRepo,
@@ -279,6 +309,7 @@ func NewRouter(deps Deps) http.Handler {
 				Exclusions: deps.LatestExclusionDateReader,
 				Clock:      deps.Clock,
 				Notifier:   deps.ChangeNotifier,
+				Tx:         deps.TxManager,
 			},
 			updateRIProfileUC: &usecase.UpdateRIProfile{
 				Clients:  deps.ClientRepo,
@@ -336,10 +367,14 @@ func NewRouter(deps Deps) http.Handler {
 		writeErrorCode(w, http.StatusNotFound, "NOT_FOUND", "Ruta inexistente", nil)
 	})
 
+	return rt
+}
+
+func (rt *router) handler() http.Handler {
 	return Chain(rt.mux,
-		Recover(deps.Logger),
-		RequestLog(deps.Logger, deps.RealNow),
-		CORS(deps.CORSOrigin),
+		Recover(rt.deps.Logger),
+		RequestLog(rt.deps.Logger, rt.deps.RealNow),
+		CORS(rt.deps.CORSOrigin),
 		DemoIdentity,
 	)
 }
@@ -351,7 +386,14 @@ func (rt *router) health(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func ping(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	writeJSON(w, http.StatusOK, map[string]string{"role": id.Role, "clientId": id.ClientID})
+func serveOpenAPI(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/yaml; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(api.Spec)
+}
+
+func serveDocs(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(api.DocsHTML)
 }

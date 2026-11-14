@@ -1,0 +1,3 @@
+ALTER TABLE closings
+  ADD COLUMN IF NOT EXISTS first_published_at TIMESTAMPTZ;
+

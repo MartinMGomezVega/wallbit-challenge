@@ -49,4 +49,3 @@ func TestSignalsCatalogEndpoint(t *testing.T) {
 		}
 	})
 }
-

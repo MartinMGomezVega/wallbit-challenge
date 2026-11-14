@@ -215,4 +215,3 @@ func TestClosingRepositoryConcurrency(t *testing.T) {
 
 	wg.Wait()
 }
-

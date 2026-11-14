@@ -69,9 +69,9 @@ func TestListClosingsAndSummaryAndDetail(t *testing.T) {
 	_ = closingRepo.Save(ctx, cl1)
 
 	// ListClosings
+	closingQuery := fakes.NewClosingQuery(closingRepo, clientRepo)
 	listUC := &usecase.ListClosings{
-		Closings: closingRepo,
-		Clients:  clientRepo,
+		Query: closingQuery,
 	}
 	res, err := listUC.Execute(ctx, usecase.ListClosingsQuery{
 		Period:   p,
@@ -90,8 +90,7 @@ func TestListClosingsAndSummaryAndDetail(t *testing.T) {
 
 	// ClosingsSummary
 	summaryUC := &usecase.ClosingsSummary{
-		Closings: closingRepo,
-		Clients:  clientRepo,
+		Query: closingQuery,
 	}
 	summary, err := summaryUC.Execute(ctx, p, closing.Filter{})
 	if err != nil {
@@ -199,8 +198,7 @@ func TestListClosingsAndSummaryAndDetail(t *testing.T) {
 
 	// ListClosingIDs
 	idsUC := &usecase.ListClosingIDs{
-		Closings: closingRepo,
-		Clients:  clientRepo,
+		Query: closingQuery,
 	}
 	idsRes, err := idsUC.Execute(ctx, usecase.ListClosingIDsQuery{
 		Period: p,

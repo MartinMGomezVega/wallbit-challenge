@@ -49,10 +49,21 @@ type ComputeClosing struct {
 	ExchangeRates    ports.ExchangeRateProvider
 	Clock            ports.Clock
 	IDGen            ports.IDGenerator
+	Tx               ports.TxManager
 }
 
 // Execute liquida el mes para el cliente indicado según el flujo de la spec 007.
 func (uc *ComputeClosing) Execute(ctx context.Context, clientID string, p period.Period) (ComputeResult, error) {
+	var res ComputeResult
+	err := withinTx(ctx, uc.Tx, func(ctx context.Context) error {
+		var err error
+		res, err = uc.execute(ctx, clientID, p)
+		return err
+	})
+	return res, err
+}
+
+func (uc *ComputeClosing) execute(ctx context.Context, clientID string, p period.Period) (ComputeResult, error) {
 	c, err := uc.Clients.Get(ctx, clientID)
 	if err != nil {
 		return ComputeResult{}, err

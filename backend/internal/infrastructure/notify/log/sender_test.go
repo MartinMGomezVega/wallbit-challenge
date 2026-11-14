@@ -58,4 +58,3 @@ func TestSender_LogsMetadataWithoutBody(t *testing.T) {
 		t.Errorf("defaultSender.Send failed: %v", err)
 	}
 }
-

@@ -233,4 +233,3 @@ func (uc *MarkNotificationRead) Execute(ctx context.Context, notificationID, cli
 	now := uc.Clock.Now()
 	return uc.Notifications.MarkRead(ctx, notificationID, now)
 }
-

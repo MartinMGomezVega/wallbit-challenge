@@ -9,4 +9,3 @@ import (
 func signalsCatalog(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, signal.Catalog())
 }
-

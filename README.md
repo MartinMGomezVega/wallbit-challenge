@@ -13,7 +13,7 @@
   <a href="#cómo-correrlo">Cómo correrlo</a> ·
   <a href="#decisiones-de-producto">Decisiones</a> ·
   <a href="#arquitectura">Arquitectura</a> ·
-  <a href="https://<tu-usuario>.github.io/wallbit-challenge/">API (Swagger)</a> ·
+  <a href="https://martinmgomezvega.github.io/wallbit-challenge/">API (Swagger)</a> ·
   <a href="#lo-que-dejé-afuera-y-cómo-lo-haría">Lo que dejé afuera</a> ·
   <a href="NOTA_DE_DECISIONES.md">Nota de decisiones</a>
 </p>
@@ -31,7 +31,7 @@ El día 1 de cada mes, la herramienta arma sola el cierre de cada cliente y lo m
 **Con Docker (recomendado).** Solo necesitás Docker con Compose v2.
 
 ```bash
-git clone https://github.com/<tu-usuario>/wallbit-challenge.git
+git clone https://github.com/MartinMGomezVega/wallbit-challenge.git
 cd wallbit-challenge
 docker compose up --build
 ```
@@ -41,11 +41,11 @@ docker compose up --build
 | App | http://localhost:5173 |
 | API | http://localhost:8080/api/v1 |
 | Swagger local | http://localhost:8080/docs |
-| Swagger publicado | https://&lt;tu-usuario&gt;.github.io/wallbit-challenge/ |
+| Swagger publicado | https://martinmgomezvega.github.io/wallbit-challenge/ |
 
 En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. La "fecha de hoy" del prototipo está fijada en el 5/11/2026 para que siempre se vea lo mismo. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
 
-Arriba a la derecha está **"Ver como"**, que cambia entre el contador y cualquier cliente. No hay login real (ver [lo que dejé afuera](#lo-que-dejé-afuera-y-cómo-lo-haría)).
+Arriba a la derecha, **"Ver como"** cambia entre la vista del contador y la de cualquier cliente.
 
 <details>
 <summary><b>Sin Docker para la app, tests y variables</b></summary>
@@ -244,7 +244,7 @@ PENDING_CLIENT_INPUT ──cliente confirma──► READY_FOR_REVIEW ──cont
 
 ## API
 
-La documentación completa está en **[Swagger](https://<tu-usuario>.github.io/wallbit-challenge/)** (también en `http://localhost:8080/docs`). El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
+La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (también en `http://localhost:8080/docs`). El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
 
 Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<clientId>`.
 
@@ -300,10 +300,9 @@ Todos los nombres, CUITs y empresas son inventados.
 No entraba en el alcance del challenge, pero son los próximos pasos para llevarlo a producción.
 
 ### Login y roles
-Hoy hay un selector "Ver como" y un header `X-Demo-User`. Para producción:
-- **Contador (back-office):** **AWS Cognito** u otro proveedor de identidad, con MFA obligatorio y un grupo `accountant`. El backend valida el JWT en un middleware que reemplaza al de demo, y cada aprobación queda atada a la identidad real del contador matriculado. Si Wallbit ya usa un SSO corporativo (Google Workspace, Okta), Cognito se federa con ese y el contador entra con su cuenta de la empresa.
-- **Cliente:** **no** crearía usuarios nuevos. El cliente ya tiene cuenta en Wallbit, así que esta parte viviría dentro de la app de Wallbit y usaría su login existente.
-- Lo que tendría en cuenta de Cognito: la UI de login se personaliza poco, migrar después es difícil y cobra por usuario activo. Para un back-office con pocos usuarios internos, igual encaja bien si Wallbit está en AWS.
+Hoy la identidad es un selector de demo ("Ver como") y un header `X-Demo-User`. Para producción:
+- **Contador:** login real con MFA obligatorio y roles. El backend validaría el token en un middleware que reemplaza al de demo, y cada aprobación quedaría atada a la identidad del contador matriculado que firmó.
+- **Cliente:** no crearía cuentas nuevas. El cliente ya tiene cuenta en Wallbit, así que esta parte viviría dentro de la app de Wallbit y usaría la sesión que ya tiene.
 
 ### Base de datos en la nube y datos reales
 Hoy Postgres corre en Docker y los datos salen de un generador. Para producción:
@@ -335,7 +334,7 @@ Ingresos Brutos (varía por provincia), declaraciones juradas anuales, notas de 
 
 ## Calidad
 
-- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend ⟨xx⟩% · frontend ⟨xx⟩%.
+- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.1% · frontend 98.4%.
 - Backend: tests table-driven del dominio, `httptest` para los handlers, `-race` para el cierre concurrente, un benchmark del cálculo de Monotributo y un test end-to-end que verifica que cada cliente de demo cae en su situación.
 - Integración: los repositorios Postgres pasan las mismas suites de contrato que los de memoria, más tests de transacciones y de concurrencia optimista.
 - Frontend: Vitest + Testing Library + MSW, y `vitest-axe` para accesibilidad en las pantallas principales.
@@ -347,7 +346,7 @@ Ingresos Brutos (varía por provincia), declaraciones juradas anuales, notas de 
 | Semana | Foco |
 |---|---|
 | 1 | Movimientos reales y reglas de clasificación calibradas con el contador; escalas y vencimientos reales. |
-| 2 | Carga de facturas y conciliación; login del contador; piloto interno con 20 clientes. |
+| 2 | Carga de facturas y conciliación; piloto interno con 20 clientes. |
 | 3 | Liquidación de Monotributo, señales, tablero y modal de revisión. |
 | 4 | RI y transición; aprobación auditada; avisos in-app y por email. |
 | 5 | Piloto con 100 clientes reales; ajustar umbrales; medir con el Resumen. |

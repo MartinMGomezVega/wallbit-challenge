@@ -109,6 +109,32 @@ func (r *ClosingRepository) Save(_ context.Context, c closing.Closing) error {
 	return nil
 }
 
+// SaveIfVersion persiste un cierre solo si la versión actual coincide con expectedVersion y no fue ya aprobado/notificado en esa versión.
+func (r *ClosingRepository) SaveIfVersion(_ context.Context, c closing.Closing, expectedVersion int) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	existing, ok := r.byID[c.ID]
+	if !ok {
+		return domain.ErrNotFound
+	}
+	if existing.Version != expectedVersion {
+		return domain.ErrVersionConflict
+	}
+	if (c.Status == closing.StatusApproved || c.Status == closing.StatusNotified) &&
+		(existing.Status == closing.StatusApproved || existing.Status == closing.StatusNotified) {
+		return domain.ErrVersionConflict
+	}
+
+	key := fmt.Sprintf("%s:%s", c.ClientID, c.Period.String())
+	if oldID, ok := r.byClientPeriod[key]; ok && oldID != c.ID {
+		delete(r.byID, oldID)
+	}
+	r.byID[c.ID] = c
+	r.byClientPeriod[key] = c.ID
+	return nil
+}
+
 // LatestExclusionDate devuelve la fecha de exclusión más reciente detectada en los cierres del cliente.
 func (r *ClosingRepository) LatestExclusionDate(_ context.Context, clientID string) (*time.Time, error) {
 	r.mu.RLock()

@@ -19,6 +19,7 @@ type closingsHandler struct {
 	listClosingsUC    *usecase.ListClosings
 	listClosingIDsUC  *usecase.ListClosingIDs
 	closingsSummaryUC *usecase.ClosingsSummary
+	getStatsUC        *usecase.GetPeriodStats
 	getDetailUC       *usecase.GetClosingDetail
 	approveUC         *usecase.ApproveClosing
 	approveBatchUC    *usecase.ApproveBatch
@@ -197,6 +198,24 @@ func (h *closingsHandler) summary(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, sum)
 }
 
+// stats maneja GET /api/v1/accountant/periods/{period}/stats
+func (h *closingsHandler) stats(w http.ResponseWriter, r *http.Request) {
+	pStr := r.PathValue("period")
+	p, err := period.Parse(pStr)
+	if err != nil {
+		writeErrorCode(w, http.StatusUnprocessableEntity, "INVALID_PERIOD", "Formato de período inválido (esperado YYYY-MM)", nil)
+		return
+	}
+
+	res, err := h.getStatsUC.Execute(r.Context(), p)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
 // detail maneja GET /api/v1/accountant/closings/{id}
 func (h *closingsHandler) detail(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
@@ -290,4 +309,3 @@ func (h *closingsHandler) runReminders(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, map[string]int{"reminded": count})
 }
-

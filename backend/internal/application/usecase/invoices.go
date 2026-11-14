@@ -30,15 +30,11 @@ type ImportInvoicesCSV struct {
 	IDGen    ports.IDGenerator
 	Clock    ports.Clock
 	Notifier ports.ChangeNotifier
+	Tx       ports.TxManager
 }
 
 // Execute parsea, valida y persiste comprobantes del CSV.
 func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.Reader) (ImportResult, error) {
-	c, err := uc.Clients.Get(ctx, clientID)
-	if err != nil {
-		return ImportResult{}, err
-	}
-
 	rows, warnings, lineErrors, err := invoice.ParseMisComprobantes(r)
 	if err != nil {
 		return ImportResult{}, domain.NewError(domain.ErrValidation, "INVALID_CSV_HEADERS", err.Error())
@@ -48,65 +44,76 @@ func (uc *ImportInvoicesCSV) Execute(ctx context.Context, clientID string, r io.
 	skippedDuplicates := 0
 	affectedPeriods := make(map[string]period.Period)
 
-	for _, row := range rows {
-		// Validar si el tipo es permitido para el régimen del cliente en la fecha de emisión
-		regime := c.RegimeAt(row.IssueDate)
-		if regime == client.RegimeMonotributo && row.Type != invoice.TypeC && row.Type != invoice.TypeE {
-			lineErrors = append(lineErrors, invoice.LineIssue{
-				Line:    row.LineNumber,
-				Message: fmt.Sprintf("Comprobante %s no permitido para Monotributo a la fecha de emisión", row.Type),
-			})
-			continue
-		}
-		if regime == client.RegimeRI && row.Type != invoice.TypeA && row.Type != invoice.TypeB && row.Type != invoice.TypeE {
-			lineErrors = append(lineErrors, invoice.LineIssue{
-				Line:    row.LineNumber,
-				Message: fmt.Sprintf("Comprobante %s no permitido para Responsable Inscripto a la fecha de emisión", row.Type),
-			})
-			continue
-		}
-
-		key := invoice.Key{
-			ClientID:    clientID,
-			Type:        row.Type,
-			PointOfSale: row.PointOfSale,
-			Number:      row.Number,
-		}
-
-		exists, err := uc.Invoices.Exists(ctx, clientID, key)
+	err = withinTx(ctx, uc.Tx, func(ctx context.Context) error {
+		c, err := uc.Clients.Get(ctx, clientID)
 		if err != nil {
-			return ImportResult{}, err
-		}
-		if exists {
-			skippedDuplicates++
-			continue
+			return err
 		}
 
-		inv := invoice.Invoice{
-			ID:           uc.IDGen.New("inv"),
-			ClientID:     clientID,
-			Type:         row.Type,
-			PointOfSale:  row.PointOfSale,
-			Number:       row.Number,
-			IssueDate:    row.IssueDate,
-			Currency:     row.Currency,
-			NetAmount:    row.NetAmount,
-			VatAmount:    row.VatAmount,
-			TotalAmount:  row.TotalAmount,
-			FXRate:       row.FXRate,
-			ReceiverName: row.ReceiverName,
-			ReceiverDoc:  row.ReceiverDoc,
-			Source:       invoice.SourceCSV,
-			CreatedAt:    uc.Clock.Now(),
-		}
+		for _, row := range rows {
+			// Validar si el tipo es permitido para el régimen del cliente en la fecha de emisión
+			regime := c.RegimeAt(row.IssueDate)
+			if regime == client.RegimeMonotributo && row.Type != invoice.TypeC && row.Type != invoice.TypeE {
+				lineErrors = append(lineErrors, invoice.LineIssue{
+					Line:    row.LineNumber,
+					Message: fmt.Sprintf("Comprobante %s no permitido para Monotributo a la fecha de emisión", row.Type),
+				})
+				continue
+			}
+			if regime == client.RegimeRI && row.Type != invoice.TypeA && row.Type != invoice.TypeB && row.Type != invoice.TypeE {
+				lineErrors = append(lineErrors, invoice.LineIssue{
+					Line:    row.LineNumber,
+					Message: fmt.Sprintf("Comprobante %s no permitido para Responsable Inscripto a la fecha de emisión", row.Type),
+				})
+				continue
+			}
 
-		if err := uc.Invoices.Save(ctx, inv); err != nil {
-			return ImportResult{}, err
-		}
+			key := invoice.Key{
+				ClientID:    clientID,
+				Type:        row.Type,
+				PointOfSale: row.PointOfSale,
+				Number:      row.Number,
+			}
 
-		imported++
-		p := period.FromTime(inv.IssueDate)
-		affectedPeriods[p.String()] = p
+			exists, err := uc.Invoices.Exists(ctx, clientID, key)
+			if err != nil {
+				return err
+			}
+			if exists {
+				skippedDuplicates++
+				continue
+			}
+
+			inv := invoice.Invoice{
+				ID:           uc.IDGen.New("inv"),
+				ClientID:     clientID,
+				Type:         row.Type,
+				PointOfSale:  row.PointOfSale,
+				Number:       row.Number,
+				IssueDate:    row.IssueDate,
+				Currency:     row.Currency,
+				NetAmount:    row.NetAmount,
+				VatAmount:    row.VatAmount,
+				TotalAmount:  row.TotalAmount,
+				FXRate:       row.FXRate,
+				ReceiverName: row.ReceiverName,
+				ReceiverDoc:  row.ReceiverDoc,
+				Source:       invoice.SourceCSV,
+				CreatedAt:    uc.Clock.Now(),
+			}
+
+			if err := uc.Invoices.Save(ctx, inv); err != nil {
+				return err
+			}
+
+			imported++
+			p := period.FromTime(inv.IssueDate)
+			affectedPeriods[p.String()] = p
+		}
+		return nil
+	})
+	if err != nil {
+		return ImportResult{}, err
 	}
 
 	// Notificar recálculo para cada período afectado

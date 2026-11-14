@@ -75,4 +75,3 @@ func ComputeHash(mono *tax.MonotributoAssessment, ri *tax.RIAssessment, signals 
 	sum := sha256.Sum256(bytes)
 	return hex.EncodeToString(sum[:])
 }
-

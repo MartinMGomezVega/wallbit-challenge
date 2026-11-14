@@ -61,4 +61,3 @@ func (r *ClientInputRepository) SaveAll(_ context.Context, inputs []clientinput.
 	}
 	return nil
 }
-

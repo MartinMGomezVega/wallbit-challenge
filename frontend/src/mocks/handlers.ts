@@ -890,4 +890,64 @@ export const handlers = [
   http.post('/api/v1/me/periods/:period/confirm', () => {
     return HttpResponse.json({ confirmedAt: new Date().toISOString() });
   }),
+
+  // GET /api/v1/accountant/periods/:period/stats
+  http.get('/api/v1/accountant/periods/:period/stats', ({ params }) => {
+    const period = String(params.period ?? '2026-10');
+    return HttpResponse.json({
+      period,
+      progress: {
+        total: 300,
+        byStatus: {
+          PENDING_CLIENT_INPUT: 30,
+          READY_FOR_REVIEW: 190,
+          APPROVED: 20,
+          NOTIFIED: 60,
+        },
+        approvedPct: 2666,
+        pendingReview: { RED: 21, YELLOW: 56, GREEN: 143 },
+        estimatedReviewMinutes: 1056,
+      },
+      totals: {
+        billedUSD: { amount: 10000000, currency: 'USD' },
+        billedARS: { amount: 15000000000, currency: 'ARS' },
+        toPayARS: { amount: 500000000, currency: 'ARS' },
+        toPayByDueDate: [
+          {
+            date: '2026-11-20',
+            amount: { amount: 500000000, currency: 'ARS' },
+            clients: 255,
+          },
+        ],
+      },
+      risk: {
+        bySeverity: { RED: 21, YELLOW: 56, GREEN: 223 },
+        bySignal: [
+          {
+            code: 'MISSING_INVOICES',
+            label: 'Faltan facturas',
+            severity: 'RED',
+            count: 14,
+          },
+          {
+            code: 'NEAR_K_CAP',
+            label: 'Cerca del tope K',
+            severity: 'YELLOW',
+            count: 9,
+          },
+        ],
+        byCategory: [
+          { category: 'A', clients: 12 },
+          { category: 'K', clients: 9 },
+          { category: 'RI', clients: 45 },
+        ],
+        nearKCap: 9,
+      },
+      success: {
+        greenPct: 7433,
+        notifiedBeforeDay10Pct: 2666,
+        paidOnTimePct: 6250,
+      },
+    });
+  }),
 ];

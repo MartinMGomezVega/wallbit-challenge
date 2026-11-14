@@ -420,6 +420,29 @@ func (f *ClosingRepository) Save(_ context.Context, c closing.Closing) error {
 	return nil
 }
 
+func (f *ClosingRepository) SaveIfVersion(_ context.Context, c closing.Closing, expectedVersion int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	existing, ok := f.ByID[c.ID]
+	if !ok {
+		return domain.ErrNotFound
+	}
+	if existing.Version != expectedVersion {
+		return domain.ErrVersionConflict
+	}
+	if (c.Status == closing.StatusApproved || c.Status == closing.StatusNotified) &&
+		(existing.Status == closing.StatusApproved || existing.Status == closing.StatusNotified) {
+		return domain.ErrVersionConflict
+	}
+	key := fmt.Sprintf("%s:%s", c.ClientID, c.Period.String())
+	if oldID, ok := f.ByCP[key]; ok && oldID != c.ID {
+		delete(f.ByID, oldID)
+	}
+	f.ByID[c.ID] = c
+	f.ByCP[key] = c.ID
+	return nil
+}
+
 func (f *ClosingRepository) LatestExclusionDate(_ context.Context, clientID string) (*time.Time, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
@@ -647,4 +670,90 @@ func (f *NotificationSender) Send(_ context.Context, m notification.OutboundMess
 	}
 	f.Sent = append(f.Sent, m)
 	return nil
+}
+
+// TxManager es un fake de ports.TxManager para tests unitarios.
+type TxManager struct{}
+
+// NewTxManager crea un TxManager fake.
+func NewTxManager() *TxManager {
+	return &TxManager{}
+}
+
+func (f *TxManager) WithinTx(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+}
+
+// ClosingQuery es un fake de ports.ClosingQuery sobre ClosingRepository y ClientRepository.
+type ClosingQuery struct {
+	Closings *ClosingRepository
+	Clients  *ClientRepository
+}
+
+// NewClosingQuery crea un fake de ClosingQuery.
+func NewClosingQuery(closings *ClosingRepository, clients *ClientRepository) *ClosingQuery {
+	return &ClosingQuery{Closings: closings, Clients: clients}
+}
+
+func (f *ClosingQuery) rows(ctx context.Context, p period.Period) ([]closing.Row, error) {
+	list, err := f.Closings.ListByPeriod(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	rows := make([]closing.Row, 0, len(list))
+	for _, c := range list {
+		cli, err := f.Clients.Get(ctx, c.ClientID)
+		if err != nil {
+			continue
+		}
+		rows = append(rows, closing.BuildRow(c, cli))
+	}
+	return rows, nil
+}
+
+func (f *ClosingQuery) Page(ctx context.Context, p period.Period, filter closing.Filter, s closing.Sort, page ports.PageRequest) (ports.PageResult, error) {
+	rows, err := f.rows(ctx, p)
+	if err != nil {
+		return ports.PageResult{}, err
+	}
+	filtered := closing.Apply(rows, filter, s)
+	total := len(filtered)
+	pNum := page.Page
+	if pNum < 1 {
+		pNum = 1
+	}
+	pSize := page.PageSize
+	if pSize < 1 {
+		pSize = 50
+	}
+	start := (pNum - 1) * pSize
+	if start >= total {
+		return ports.PageResult{Items: []closing.Row{}, Total: total}, nil
+	}
+	end := start + pSize
+	if end > total {
+		end = total
+	}
+	return ports.PageResult{Items: filtered[start:end], Total: total}, nil
+}
+
+func (f *ClosingQuery) IDs(ctx context.Context, p period.Period, filter closing.Filter, s closing.Sort) ([]string, error) {
+	rows, err := f.rows(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	filtered := closing.Apply(rows, filter, s)
+	ids := make([]string, len(filtered))
+	for i, r := range filtered {
+		ids[i] = r.ClosingID
+	}
+	return ids, nil
+}
+
+func (f *ClosingQuery) Summary(ctx context.Context, p period.Period, filter closing.Filter) (closing.Summary, error) {
+	rows, err := f.rows(ctx, p)
+	if err != nil {
+		return closing.Summary{}, err
+	}
+	return closing.ComputeSummary(closing.Apply(rows, filter, closing.Sort{})), nil
 }

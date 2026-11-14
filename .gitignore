@@ -3,6 +3,7 @@ coverage/
 dist/
 coverage.out
 coverage.filtered.out
+*.out
 *.log
 .DS_Store
 /backend/bin/

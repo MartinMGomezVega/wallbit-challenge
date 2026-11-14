@@ -81,4 +81,3 @@ func (r *PurchaseInvoiceRepository) ByClientBetween(ctx context.Context, clientI
 	}
 	return out, nil
 }
-

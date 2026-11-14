@@ -337,4 +337,3 @@ func parseCurrency(s string) (money.Currency, bool) {
 		return "", false
 	}
 }
-

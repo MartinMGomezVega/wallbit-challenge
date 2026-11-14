@@ -28,53 +28,59 @@ type ChangeRegime struct {
 	Exclusions ports.LatestExclusionDateReader
 	Clock      ports.Clock
 	Notifier   ports.ChangeNotifier
+	Tx         ports.TxManager
 }
 
 func (uc *ChangeRegime) Execute(ctx context.Context, in ChangeRegimeInput) (client.Client, error) {
-	c, err := uc.Clients.Get(ctx, in.ClientID)
-	if err != nil {
-		return client.Client{}, err
-	}
-
-	loc := period.Location()
-	effAR := in.EffectiveDate.In(loc)
-	effDayStr := effAR.Format("2006-01-02")
-
-	// Si hay lector de fecha de exclusión y no está forzado, verificar coincidencia
-	if uc.Exclusions != nil {
-		latestExcl, err := uc.Exclusions.LatestExclusionDate(ctx, in.ClientID)
+	var c client.Client
+	err := withinTx(ctx, uc.Tx, func(ctx context.Context) error {
+		var err error
+		c, err = uc.Clients.Get(ctx, in.ClientID)
 		if err != nil {
-			return client.Client{}, err
+			return err
 		}
-		if latestExcl != nil {
-			exclAR := latestExcl.In(loc)
-			exclDayStr := exclAR.Format("2006-01-02")
-			if exclDayStr != effDayStr {
-				if !in.Force {
-					return client.Client{}, domain.NewError(
-						domain.ErrValidation,
-						"EFFECTIVE_DATE_MISMATCH",
-						fmt.Sprintf("la fecha efectiva (%s) no coincide con la fecha de exclusión (%s)", effDayStr, exclDayStr),
-					)
-				}
-				// Si está forzado, registrar en la nota
-				forcedTag := fmt.Sprintf("[Forzado por contador; exclusión sugerida: %s]", exclDayStr)
-				if in.Note != "" {
-					in.Note = fmt.Sprintf("%s %s", in.Note, forcedTag)
-				} else {
-					in.Note = forcedTag
+
+		loc := period.Location()
+		effAR := in.EffectiveDate.In(loc)
+		effDayStr := effAR.Format("2006-01-02")
+
+		// Si hay lector de fecha de exclusión y no está forzado, verificar coincidencia
+		if uc.Exclusions != nil {
+			latestExcl, err := uc.Exclusions.LatestExclusionDate(ctx, in.ClientID)
+			if err != nil {
+				return err
+			}
+			if latestExcl != nil {
+				exclAR := latestExcl.In(loc)
+				exclDayStr := exclAR.Format("2006-01-02")
+				if exclDayStr != effDayStr {
+					if !in.Force {
+						return domain.NewError(
+							domain.ErrValidation,
+							"EFFECTIVE_DATE_MISMATCH",
+							fmt.Sprintf("la fecha efectiva (%s) no coincide con la fecha de exclusión (%s)", effDayStr, exclDayStr),
+						)
+					}
+					// Si está forzado, registrar en la nota
+					forcedTag := fmt.Sprintf("[Forzado por contador; exclusión sugerida: %s]", exclDayStr)
+					if in.Note != "" {
+						in.Note = fmt.Sprintf("%s %s", in.Note, forcedTag)
+					} else {
+						in.Note = forcedTag
+					}
 				}
 			}
 		}
-	}
 
-	now := uc.Clock.Now()
+		now := uc.Clock.Now()
 
-	if err := c.ChangeRegime(in.To, in.EffectiveDate, "EXCLUSION_K_CAP", in.Note, now); err != nil {
-		return client.Client{}, err
-	}
+		if err := c.ChangeRegime(in.To, in.EffectiveDate, "EXCLUSION_K_CAP", in.Note, now); err != nil {
+			return err
+		}
 
-	if err := uc.Clients.Save(ctx, c); err != nil {
+		return uc.Clients.Save(ctx, c)
+	})
+	if err != nil {
 		return client.Client{}, err
 	}
 

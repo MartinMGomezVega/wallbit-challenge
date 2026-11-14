@@ -24,6 +24,9 @@ type Config struct {
 	FXClient       string
 	MockLatency    time.Duration
 	CORSOrigin     string
+	Storage        string
+	DatabaseURL    string
+	SeedReset      bool
 }
 
 // Getenv permite inyectar el lookup de variables (tests).
@@ -41,10 +44,25 @@ func LoadFrom(get Getenv) (Config, error) {
 		return def
 	}
 	c := Config{
-		Port:       str("PORT", "8080"),
-		ARCAClient: str("ARCA_CLIENT", "mock"),
-		FXClient:   str("FX_CLIENT", "mock"),
-		CORSOrigin: str("CORS_ORIGIN", "http://localhost:5173"),
+		Port:        str("PORT", "8080"),
+		ARCAClient:  str("ARCA_CLIENT", "mock"),
+		FXClient:    str("FX_CLIENT", "mock"),
+		CORSOrigin:  str("CORS_ORIGIN", "http://localhost:5173"),
+		Storage:     str("STORAGE", "memory"),
+		DatabaseURL: str("DATABASE_URL", ""),
+	}
+	if sr := str("SEED_RESET", "false"); sr != "" {
+		b, err := strconv.ParseBool(sr)
+		if err != nil {
+			return Config{}, fmt.Errorf("SEED_RESET inválido: %w", err)
+		}
+		c.SeedReset = b
+	}
+	if c.Storage != "memory" && c.Storage != "postgres" {
+		return Config{}, fmt.Errorf("STORAGE=%q no soportado (memory o postgres)", c.Storage)
+	}
+	if c.Storage == "postgres" && c.DatabaseURL == "" {
+		return Config{}, fmt.Errorf("DATABASE_URL requerido cuando STORAGE=postgres")
 	}
 	if now := str("APP_NOW", DefaultAppNow); now != "" {
 		t, err := time.Parse(time.RFC3339, now)
