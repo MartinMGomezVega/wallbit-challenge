@@ -322,6 +322,7 @@ Base: `http://localhost:8080/v1`. Diseño REST por recursos: el rol lo decide la
 | Paula Rojas (demo) | Esperando sus facturas: check-in en la vista del cliente o en el modal → Facturas → Importar. |
 
 Todos los nombres, CUITs y empresas son inventados.
+La interfaz tiene un enfoque mobile-first porque está pensada para integrarse de forma nativa en la app de Wallbit. Para esta demo construí el flujo usando React y TypeScript, pero en un escenario a producción lo implementaría en Flutter (stack en el que tengo experiencia) o me adaptaría sin problemas a la tecnología mobile que ya utilice el equipo.
 
 ---
 
@@ -383,4 +384,4 @@ Apliqué **Spec-Driven Development (SDD)**: antes de escribir código, document�
 - `plan.md`: decisiones técnicas, de producto y diseño de la solución.
 - `tasks.md`: plan de implementación desglosado paso a paso.
 
-Separar especificaciones, plan y tareas por feature me permitió tener control total sobre el alcance, los tests y el comportamiento de la herramienta antes de pasar al código. Me apoyé en **Claude** para investigar la normativa 2026 y redactar las specs, y en **Gemini (Google Antigravity)** para ejecutar la implementación tarea por tarea. Las decisiones de producto, el diseño de arquitectura, la revisión de código y los tests son míos.
+Separar especificaciones, plan y tareas por feature me permitió tener control total sobre el alcance, los tests y el comportamiento de la herramienta antes de pasar al código.
