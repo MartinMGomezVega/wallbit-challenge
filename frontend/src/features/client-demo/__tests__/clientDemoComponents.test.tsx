@@ -10,7 +10,7 @@ import { PhoneFrame } from '../PhoneFrame';
 import { InReview } from '../InReview';
 import { DEMO_CLIENTS } from '../demoClients';
 import * as clientApi from '../api';
-import { ApiError } from '../../../shared/api/http';
+import { ApiError } from '../../../shared/http/http';
 import type { ClientClosing, ClientInvoice } from '../schemas';
 
 describe('client-demo isolated components', () => {

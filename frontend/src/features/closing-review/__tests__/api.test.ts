@@ -52,7 +52,7 @@ describe('closing-review api', () => {
     expect(resDefault.comment).toBe('Modificado por el contador');
   });
 
-  it('confirmRegimeTransition calls the regime-change endpoint', async () => {
+  it('confirmRegimeTransition calls the regime-changes endpoint', async () => {
     const res = await confirmRegimeTransition('cli_01', '2026-10-14', true, 'Nota explicativa');
     expect(res).toBeDefined();
 
@@ -60,7 +60,7 @@ describe('closing-review api', () => {
     expect(resDefault).toBeDefined();
   });
 
-  it('approveClosing calls approve endpoint with version and optional clientNote', async () => {
+  it('approveClosing calls approvals endpoint with version and optional clientNote', async () => {
     const res = await approveClosing('cls_01', 1, 'Nota para el cliente');
     expect(res.closing.id).toBe('cls_01');
     expect(res.closing.status).toBe('APPROVED');
@@ -69,7 +69,7 @@ describe('closing-review api', () => {
     expect(resWithoutNote.closing.id).toBe('cls_01');
   });
 
-  it('approveBatch calls approve-batch endpoint with items', async () => {
+  it('approveBatch calls approvals batch endpoint with items', async () => {
     const res = await approveBatch('2026-10', [
       { id: 'cls_01', version: 1 },
       { id: 'cls_02', version: 1 },

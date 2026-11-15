@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/MartinMGomezVega/wallbit-challenge/backend/internal/application/usecase"
@@ -14,10 +15,10 @@ type clientHandler struct {
 	markNotificationReadUC *usecase.MarkNotificationRead
 }
 
-// GET /api/v1/me
+// GET /v1/clients/{clientId}
 func (h *clientHandler) getMe(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	me, err := h.getMeUC.Execute(r.Context(), id.ClientID)
+	clientID := r.PathValue("clientId")
+	me, err := h.getMeUC.Execute(r.Context(), clientID)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -25,10 +26,10 @@ func (h *clientHandler) getMe(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, me)
 }
 
-// GET /api/v1/me/closings
+// GET /v1/clients/{clientId}/closings
 func (h *clientHandler) listMyClosings(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	closings, err := h.listMyClosingsUC.Execute(r.Context(), id.ClientID)
+	clientID := r.PathValue("clientId")
+	closings, err := h.listMyClosingsUC.Execute(r.Context(), clientID)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -36,11 +37,15 @@ func (h *clientHandler) listMyClosings(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, closings)
 }
 
-// POST /api/v1/me/closings/{id}/paid
+// PUT /v1/closings/{closingId}/payment
 func (h *clientHandler) markPaid(w http.ResponseWriter, r *http.Request) {
 	id, _ := FromContext(r.Context())
-	closingID := r.PathValue("id")
-	c, err := h.markClosingPaidUC.Execute(r.Context(), closingID, id.ClientID)
+	closingID := r.PathValue("closingId")
+	callerClientID := id.ClientID
+	if id.Role == RoleAccountant {
+		callerClientID = ""
+	}
+	c, err := h.markClosingPaidUC.Execute(r.Context(), closingID, callerClientID)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -51,10 +56,10 @@ func (h *clientHandler) markPaid(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GET /api/v1/me/notifications
+// GET /v1/clients/{clientId}/notifications
 func (h *clientHandler) listNotifications(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	notifs, err := h.listMyNotificationsUC.Execute(r.Context(), id.ClientID)
+	clientID := r.PathValue("clientId")
+	notifs, err := h.listMyNotificationsUC.Execute(r.Context(), clientID)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -62,11 +67,20 @@ func (h *clientHandler) listNotifications(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, notifs)
 }
 
-// POST /api/v1/me/notifications/{id}/read
+// PATCH /v1/clients/{clientId}/notifications/{notificationId}
 func (h *clientHandler) markNotificationRead(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	notifID := r.PathValue("id")
-	if err := h.markNotificationReadUC.Execute(r.Context(), notifID, id.ClientID); err != nil {
+	clientID := r.PathValue("clientId")
+	notifID := r.PathValue("notificationId")
+
+	var req struct {
+		Read bool `json:"read"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || !req.Read {
+		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Cuerpo JSON inválido, se requiere {\"read\": true}", nil)
+		return
+	}
+
+	if err := h.markNotificationReadUC.Execute(r.Context(), notifID, clientID); err != nil {
 		writeError(w, err)
 		return
 	}

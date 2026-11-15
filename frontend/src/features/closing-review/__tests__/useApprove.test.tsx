@@ -36,7 +36,7 @@ describe('useApprove', () => {
 
   it('llama a onError si la mutación falla', async () => {
     server.use(
-      http.post('/api/v1/accountant/closings/:id/approve', () => {
+      http.post('/v1/closings/:id/approvals', () => {
         return HttpResponse.json(
           { error: { code: 'VERSION_CONFLICT', message: 'Conflicto' } },
           { status: 409 }

@@ -3,7 +3,7 @@ import { ClosingDetailDTO } from '../schemas';
 import { formatMoney, formatDate } from '../../../shared/format';
 import { CheckCircle2, AlertCircle, FileText, ArrowRightLeft, UploadCloud } from 'lucide-react';
 import { ImportInvoicesDialog } from '../import/ImportInvoicesDialog';
-import { ConfirmOnBehalfForm } from '../confirm/ConfirmOnBehalfForm';
+import { ConfirmOnBehalfForm } from '../confirmation/ConfirmOnBehalfForm';
 
 export interface InvoicesSectionProps {
   detail: ClosingDetailDTO;

@@ -49,7 +49,7 @@ describe('client-demo api', () => {
     expect(res).toEqual(mockProfile);
 
     const [url, init] = getFetchCall(0);
-    expect(url).toBe('/api/v1/me');
+    expect(url).toBe('/v1/clients/cli_demo_15');
     expect((init.headers as Headers).get('X-Demo-User')).toBe('client:cli_demo_15');
   });
 
@@ -107,11 +107,11 @@ describe('client-demo api', () => {
 
     const resWithPeriod = await getClientInvoices('cli_demo_15', '2026-10');
     expect(resWithPeriod).toEqual(mockInvoices);
-    expect(getFetchCall(0)[0]).toBe('/api/v1/me/invoices?period=2026-10');
+    expect(getFetchCall(0)[0]).toBe('/v1/clients/cli_demo_15/invoices?period=2026-10');
 
     const resWithoutPeriod = await getClientInvoices('cli_demo_15');
     expect(resWithoutPeriod).toEqual(mockInvoices);
-    expect(getFetchCall(1)[0]).toBe('/api/v1/me/invoices');
+    expect(getFetchCall(1)[0]).toBe('/v1/clients/cli_demo_15/invoices');
   });
 
   it('createClientInvoice sends JSON payload and returns created invoice', async () => {
@@ -144,7 +144,7 @@ describe('client-demo api', () => {
     expect(res.id).toBe('inv_99');
 
     const [url, init] = getFetchCall(0);
-    expect(url).toBe('/api/v1/me/invoices');
+    expect(url).toBe('/v1/clients/cli_demo_15/invoices');
     expect(init.method).toBe('POST');
     expect((init.headers as Headers).get('Content-Type')).toBe('application/json');
     expect((init.headers as Headers).get('X-Demo-User')).toBe('client:cli_demo_15');
@@ -171,7 +171,7 @@ describe('client-demo api', () => {
     expect(res).toEqual(mockResult);
 
     const [url, init] = getFetchCall(0);
-    expect(url).toBe('/api/v1/me/invoices/import');
+    expect(url).toBe('/v1/clients/cli_demo_15/invoice-imports');
     expect(init.method).toBe('POST');
     expect(init.body).toBeInstanceOf(FormData);
     expect((init.headers as Headers).get('X-Demo-User')).toBe('client:cli_demo_15');
@@ -199,9 +199,10 @@ describe('client-demo api', () => {
 
     const res = await setClientExternalIncome('cli_demo_15', '2026-10', payload);
     expect(res.period).toBe('2026-10');
+    expect(getFetchCall(0)[0]).toBe('/v1/clients/cli_demo_15/periods/2026-10/external-income');
   });
 
-  it('confirmClientPeriod sends POST to /me/periods/:period/confirm', async () => {
+  it('confirmClientPeriod sends POST to /v1/clients/:id/periods/:period/confirmation', async () => {
     const mockRes = {
       period: '2026-10',
       confirmedAt: '2026-11-14T20:00:00Z',
@@ -219,9 +220,10 @@ describe('client-demo api', () => {
 
     const res = await confirmClientPeriod('cli_demo_15', '2026-10');
     expect(res.confirmedAt).toBe('2026-11-14T20:00:00Z');
+    expect(getFetchCall(0)[0]).toBe('/v1/clients/cli_demo_15/periods/2026-10/confirmation');
   });
 
-  it('markClientClosingPaid sends POST to /me/closings/:period/pay', async () => {
+  it('markClientClosingPaid sends PUT to /v1/closings/:id/payment', async () => {
     const mockRes = {
       closingId: 'cls_1',
       paidAt: '2026-11-14T20:00:00Z',
@@ -235,7 +237,10 @@ describe('client-demo api', () => {
       ),
     );
 
-    const res = await markClientClosingPaid('cli_demo_15', '2026-10');
+    const res = await markClientClosingPaid('cli_demo_15', 'cls_1');
     expect(res.paidAt).toBe('2026-11-14T20:00:00Z');
+    const [url, init] = getFetchCall(0);
+    expect(url).toBe('/v1/closings/cls_1/payment');
+    expect(init.method).toBe('PUT');
   });
 });

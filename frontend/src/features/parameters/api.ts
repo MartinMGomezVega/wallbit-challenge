@@ -1,4 +1,4 @@
-import { apiFetch } from '../../shared/api/http';
+import { apiFetch } from '../../shared/http/http';
 import {
   ParametersDTO,
   ParametersDTOSchema,
@@ -7,13 +7,13 @@ import {
 } from './schemas';
 
 export async function getParameters(): Promise<ParametersDTO> {
-  return apiFetch('/api/v1/accountant/parameters', ParametersDTOSchema);
+  return apiFetch('/v1/parameters', ParametersDTOSchema);
 }
 
 export async function updateParameters(
   params: ParametersDTO
 ): Promise<PutParametersResponse> {
-  return apiFetch('/api/v1/accountant/parameters', PutParametersResponseSchema, {
+  return apiFetch('/v1/parameters', PutParametersResponseSchema, {
     method: 'PUT',
     body: JSON.stringify(params),
   });

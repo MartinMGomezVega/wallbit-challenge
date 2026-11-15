@@ -17,7 +17,7 @@ Modelar clientes y movimientos de Wallbit, clasificar automáticamente cada movi
 ### Clasificación
 4. `movement.Classify(m, knownPayers set[string])` aplica R1..R9 en orden; tests: **un caso por regla** + caso donde R1 gana sobre R6 (transferencia propia desde el exterior).
 5. `knownPayers` = nombres normalizados de receptores de facturas emitidas por el cliente antes del inicio del período (lo arma 003; en esta feature se recibe como parámetro y la clasificación inicial al arrancar usa un set vacío; 007 reclasifica con el set real).
-6. Override: `PATCH /api/v1/accountant/movements/{id}/classification` body `{ "kind": "INCOME"|"NOT_INCOME", "note": "..." }` → `200` con la clasificación (`rule: "MANUAL_OVERRIDE"`, `overriddenBy: "accountant"`). `kind: "UNCLASSIFIED"` → 422. Movimiento inexistente → 404. (El recálculo del cierre se conecta en 007.)
+6. Override: `PUT /v1/movements/{movementId}/classification` body `{ "kind": "INCOME"|"NOT_INCOME", "note": "..." }` → `200` con la clasificación (`rule: "MANUAL_OVERRIDE"`, `overriddenBy: "accountant"`). `kind: "UNCLASSIFIED"` → 422. Movimiento inexistente → 404. (El recálculo del cierre se conecta en 007.)
 
 ### Seed
 7. Determinístico: misma `SEED` y `SEED_CLIENTS` ⇒ mismos datos (test compara hash del dataset).

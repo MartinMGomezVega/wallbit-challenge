@@ -7,7 +7,7 @@ No es un dashboard decorativo: **cada número lleva a la tabla filtrada** que lo
 
 ## Criterios de aceptación
 ### Backend
-1. `GET /api/v1/accountant/periods/{period}/stats` →
+1. `GET /v1/periods/{period}/stats` →
    ```json
    {
      "period": "2026-10",
@@ -55,7 +55,7 @@ No es un dashboard decorativo: **cada número lleva a la tabla filtrada** que lo
    - `paidOnTimePct` = cierres notificados con `paidAt` ≤ su vencimiento más cercano / cierres notificados (`paidOnTimeCount`, `notifiedCount`).
 3. Puerto `StatsQuery.PeriodStats(ctx, period)`: implementación en memoria (Go) y en Postgres (SQL con agregaciones). **Misma suite de contrato** para ambas (013).
 4. Tests: cada definición del criterio 2 con casos borde (período vacío, todos verdes, sin notificados).
-5. `GET /api/v1/accountant/periods` devuelve `{ "periods": ["2026-10", "2026-09"] }` con los períodos disponibles ordenados descendente. El selector `PeriodSelect` del header consume este endpoint dinámicamente.
+5. `GET /v1/periods` devuelve `{ "periods": ["2026-10", "2026-09"] }` con los períodos disponibles ordenados descendente. El selector `PeriodSelect` del header consume este endpoint dinámicamente.
 
 ### Frontend
 6. Ruta `/contador/resumen`; navegación del header: **Cierres · Resumen · Parámetros**. Título `"Resumen de octubre 2026"` (mes en minúscula, sin `capitalize`), `<title>`: `"Resumen · Wallbit Contabilidad"`. Lee `period` de la URL (controlado por el `PeriodSelect` global del header; no renderiza selector propio). En datos semilla, seleccionar septiembre muestra el período cerrado con las métricas de éxito históricas (`notifiedBeforeDay10Pct > 0` y `paidOnTimePct > 0`).

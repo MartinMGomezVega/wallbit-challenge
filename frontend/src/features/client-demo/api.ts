@@ -1,4 +1,4 @@
-import { apiFetch, jsonBody } from '../../shared/api/http';
+import { apiFetch, jsonBody } from '../../shared/http/http';
 import {
   ClientProfileSchema,
   ClientProfile,
@@ -38,27 +38,29 @@ export interface SetExternalIncomeInput {
 }
 
 export async function getClientProfile(clientId: string): Promise<ClientProfile> {
-  return apiFetch('/api/v1/me', ClientProfileSchema, {}, { as: clientId });
+  return apiFetch(`/v1/clients/${encodeURIComponent(clientId)}`, ClientProfileSchema, {}, { as: clientId });
 }
 
 export async function getClientClosings(clientId: string): Promise<ClientClosing[]> {
-  return apiFetch('/api/v1/me/closings', ClientClosingsResponseSchema, {}, { as: clientId });
+  return apiFetch(`/v1/clients/${encodeURIComponent(clientId)}/closings`, ClientClosingsResponseSchema, {}, { as: clientId });
 }
 
 export async function getClientInvoices(clientId: string, period?: string): Promise<ClientInvoice[]> {
-  const path = period ? `/api/v1/me/invoices?period=${encodeURIComponent(period)}` : '/api/v1/me/invoices';
+  const path = period
+    ? `/v1/clients/${encodeURIComponent(clientId)}/invoices?period=${encodeURIComponent(period)}`
+    : `/v1/clients/${encodeURIComponent(clientId)}/invoices`;
   return apiFetch(path, ClientInvoicesResponseSchema, {}, { as: clientId });
 }
 
 export async function createClientInvoice(clientId: string, data: CreateInvoiceInput): Promise<ClientInvoice> {
-  return apiFetch('/api/v1/me/invoices', ClientInvoiceSchema, jsonBody('POST', data), { as: clientId });
+  return apiFetch(`/v1/clients/${encodeURIComponent(clientId)}/invoices`, ClientInvoiceSchema, jsonBody('POST', data), { as: clientId });
 }
 
 export async function importClientInvoicesCSV(clientId: string, file: File): Promise<ImportResult> {
   const formData = new FormData();
   formData.append('file', file);
   return apiFetch(
-    '/api/v1/me/invoices/import',
+    `/v1/clients/${encodeURIComponent(clientId)}/invoice-imports`,
     ImportResultSchema,
     {
       method: 'POST',
@@ -74,7 +76,7 @@ export async function setClientExternalIncome(
   data: SetExternalIncomeInput,
 ): Promise<ClientPeriodInputDTO> {
   return apiFetch(
-    `/api/v1/me/periods/${encodeURIComponent(period)}/external-income`,
+    `/v1/clients/${encodeURIComponent(clientId)}/periods/${encodeURIComponent(period)}/external-income`,
     ClientPeriodInputDTOSchema,
     jsonBody('PUT', data),
     { as: clientId },
@@ -83,7 +85,7 @@ export async function setClientExternalIncome(
 
 export async function confirmClientPeriod(clientId: string, period: string): Promise<ClientPeriodInputDTO> {
   return apiFetch(
-    `/api/v1/me/periods/${encodeURIComponent(period)}/confirm`,
+    `/v1/clients/${encodeURIComponent(clientId)}/periods/${encodeURIComponent(period)}/confirmation`,
     ClientPeriodInputDTOSchema,
     { method: 'POST' },
     { as: clientId },
@@ -92,9 +94,9 @@ export async function confirmClientPeriod(clientId: string, period: string): Pro
 
 export async function markClientClosingPaid(clientId: string, closingId: string): Promise<MarkPaidResponse> {
   return apiFetch(
-    `/api/v1/me/closings/${encodeURIComponent(closingId)}/paid`,
+    `/v1/closings/${encodeURIComponent(closingId)}/payment`,
     MarkPaidResponseSchema,
-    { method: 'POST' },
+    { method: 'PUT' },
     { as: clientId },
   );
 }

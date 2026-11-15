@@ -118,27 +118,27 @@ func TestRunEndpoint(t *testing.T) {
 	})
 
 	// 1. Sin auth -> 401
-	rec := do(t, router, "POST", "/api/v1/accountant/periods/2026-10/run", "", nil)
+	rec := do(t, router, "POST", "/v1/periods/2026-10/closing-runs", "", nil)
 	if rec.Code != 401 {
 		t.Fatalf("esperaba 401 sin auth, got %d", rec.Code)
 	}
 
 	// 2. Con rol cliente -> 403
-	rec = do(t, router, "POST", "/api/v1/accountant/periods/2026-10/run", "client:cli_1", nil)
+	rec = do(t, router, "POST", "/v1/periods/2026-10/closing-runs", "client:cli_1", nil)
 	if rec.Code != 403 {
 		t.Fatalf("esperaba 403 para cliente, got %d", rec.Code)
 	}
 
 	// 3. Período inválido -> 422
-	rec = do(t, router, "POST", "/api/v1/accountant/periods/invalid-period/run", "accountant", nil)
+	rec = do(t, router, "POST", "/v1/periods/invalid-period/closing-runs", "accountant", nil)
 	if rec.Code != 422 {
 		t.Fatalf("esperaba 422 para período inválido, got %d", rec.Code)
 	}
 
-	// 4. Período válido como contador -> 200
-	rec = do(t, router, "POST", "/api/v1/accountant/periods/2026-10/run", "accountant", nil)
-	if rec.Code != 200 {
-		t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
+	// 4. Período válido como contador -> 201
+	rec = do(t, router, "POST", "/v1/periods/2026-10/closing-runs", "accountant", nil)
+	if rec.Code != 201 {
+		t.Fatalf("esperaba 201, got %d (%s)", rec.Code, rec.Body.String())
 	}
 	var sum usecase.RunSummary
 	if err := json.Unmarshal(rec.Body.Bytes(), &sum); err != nil {
@@ -211,13 +211,13 @@ func TestListAndSummaryEndpoints(t *testing.T) {
 	_ = closingRepo.Save(ctx, c2)
 
 	// 1. GET /closings con período inválido -> 422
-	rec := do(t, router, "GET", "/api/v1/accountant/periods/bad-period/closings", "accountant", nil)
+	rec := do(t, router, "GET", "/v1/periods/bad-period/closings", "accountant", nil)
 	if rec.Code != 422 {
 		t.Fatalf("esperaba 422 para período inválido, got %d", rec.Code)
 	}
 
 	// 2. GET /closings lista completa (2 ítems)
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/2026-10/closings", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -234,7 +234,7 @@ func TestListAndSummaryEndpoints(t *testing.T) {
 	}
 
 	// 3. Filtro por severidad: severity=RED -> solo cli_2
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings?severity=RED", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/2026-10/closings?severity=RED", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200 con filtro severity, got %d", rec.Code)
 	}
@@ -245,7 +245,7 @@ func TestListAndSummaryEndpoints(t *testing.T) {
 	}
 
 	// 4. Filtro por régimen: regime=MONOTRIBUTO -> solo cli_1
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings?regime=MONOTRIBUTO", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/2026-10/closings?regime=MONOTRIBUTO", "accountant", nil)
 	var monoList usecase.ListClosingsResult
 	_ = json.Unmarshal(rec.Body.Bytes(), &monoList)
 	if monoList.Total != 1 || monoList.Items[0].ClientID != "cli_1" {
@@ -253,7 +253,7 @@ func TestListAndSummaryEndpoints(t *testing.T) {
 	}
 
 	// 5. Paginación: page=1&pageSize=1 -> total=2, totalPages=2, len=1
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings?page=1&pageSize=1", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/2026-10/closings?page=1&pageSize=1", "accountant", nil)
 	var p1List usecase.ListClosingsResult
 	_ = json.Unmarshal(rec.Body.Bytes(), &p1List)
 	if p1List.Total != 2 || p1List.TotalPages != 2 || len(p1List.Items) != 1 {
@@ -261,7 +261,7 @@ func TestListAndSummaryEndpoints(t *testing.T) {
 	}
 
 	// 6. GET /summary -> total=2, bySeverity{RED:1, GREEN:1, YELLOW:0}
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings/summary", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/2026-10/closings/summary", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200 en summary, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -283,7 +283,7 @@ func TestDetailEndpoint(t *testing.T) {
 	p := period.MustParse("2026-10")
 
 	// 1. Cierre inexistente -> 404
-	rec := do(t, router, "GET", "/api/v1/accountant/closings/nonexistent", "accountant", nil)
+	rec := do(t, router, "GET", "/v1/closings/nonexistent", "accountant", nil)
 	if rec.Code != 404 {
 		t.Fatalf("esperaba 404 para cierre inexistente, got %d", rec.Code)
 	}
@@ -319,7 +319,7 @@ func TestDetailEndpoint(t *testing.T) {
 	)
 	_ = closingRepo.Save(ctx, c)
 
-	rec = do(t, router, "GET", "/api/v1/accountant/closings/clo_det", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/closings/clo_det", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200 para detalle, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -339,13 +339,13 @@ func TestClosingIDsEndpoint(t *testing.T) {
 	p := period.MustParse("2026-10")
 
 	// 1. Sin auth -> 401
-	rec := do(t, router, "GET", "/api/v1/accountant/periods/2026-10/closings/ids", "", nil)
+	rec := do(t, router, "GET", "/v1/periods/2026-10/closings/ids", "", nil)
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("esperaba 401 sin auth, got %d", rec.Code)
 	}
 
 	// 2. Período inválido -> 422
-	rec = do(t, router, "GET", "/api/v1/accountant/periods/invalid/closings/ids", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/periods/invalid/closings/ids", "accountant", nil)
 	if rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("esperaba 422 con período inválido, got %d", rec.Code)
 	}
@@ -410,7 +410,7 @@ func TestClosingIDsEndpoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// A. Obtener IDs directos de /closings/ids
-			idsURL := "/api/v1/accountant/periods/2026-10/closings/ids"
+			idsURL := "/v1/periods/2026-10/closings/ids"
 			if tc.query != "" {
 				idsURL += "?" + tc.query
 			}
@@ -428,7 +428,7 @@ func TestClosingIDsEndpoint(t *testing.T) {
 			var paginatedIDs []string
 			page := 1
 			for {
-				pageURL := "/api/v1/accountant/periods/2026-10/closings?page=" + strconv.Itoa(page) + "&pageSize=2"
+				pageURL := "/v1/periods/2026-10/closings?page=" + strconv.Itoa(page) + "&pageSize=2"
 				if tc.query != "" {
 					pageURL += "&" + tc.query
 				}
@@ -497,9 +497,9 @@ func TestApproveClosing_Individual_Success_And_Warnings(t *testing.T) {
 
 	// Aprobación exitosa
 	body := `{"version": 2, "clientNote": "Todo en orden para este mes"}`
-	rec := do(t, router, "POST", "/api/v1/accountant/closings/clo_appr_1/approve", "accountant", strings.NewReader(body))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("esperaba 200 en approve, got %d: %s", rec.Code, rec.Body.String())
+	rec := do(t, router, "POST", "/v1/closings/clo_appr_1/approvals", "accountant", strings.NewReader(body))
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("esperaba 201 en approve, got %d: %s", rec.Code, rec.Body.String())
 	}
 
 	var res approveResponse
@@ -554,9 +554,9 @@ func TestApproveClosing_Individual_Success_And_Warnings(t *testing.T) {
 	}
 	_ = closingRepo.Save(ctx, clo2)
 
-	rec2 := do(t, router, "POST", "/api/v1/accountant/closings/clo_appr_2/approve", "accountant", strings.NewReader(`{"version": 1}`))
-	if rec2.Code != http.StatusOK {
-		t.Fatalf("esperaba 200 en approve con warning, got %d: %s", rec2.Code, rec2.Body.String())
+	rec2 := do(t, router, "POST", "/v1/closings/clo_appr_2/approvals", "accountant", strings.NewReader(`{"version": 1}`))
+	if rec2.Code != http.StatusCreated {
+		t.Fatalf("esperaba 201 en approve con warning, got %d: %s", rec2.Code, rec2.Body.String())
 	}
 
 	var res2 approveResponse
@@ -591,13 +591,13 @@ func TestApproveClosing_Individual_Errors(t *testing.T) {
 	_ = closingRepo.Save(ctx, clo)
 
 	// 1. Sin autenticación -> 401
-	rec401 := do(t, router, "POST", "/api/v1/accountant/closings/clo_err_1/approve", "", strings.NewReader(`{"version": 2}`))
+	rec401 := do(t, router, "POST", "/v1/closings/clo_err_1/approvals", "", strings.NewReader(`{"version": 2}`))
 	if rec401.Code != http.StatusUnauthorized {
 		t.Errorf("esperaba 401 sin auth, got %d", rec401.Code)
 	}
 
 	// 2. Versión incorrecta -> 409 VERSION_CONFLICT
-	recConflict := do(t, router, "POST", "/api/v1/accountant/closings/clo_err_1/approve", "accountant", strings.NewReader(`{"version": 99}`))
+	recConflict := do(t, router, "POST", "/v1/closings/clo_err_1/approvals", "accountant", strings.NewReader(`{"version": 99}`))
 	if recConflict.Code != http.StatusConflict {
 		t.Errorf("esperaba 409 en conflicto de versión, got %d", recConflict.Code)
 	}
@@ -610,13 +610,13 @@ func TestApproveClosing_Individual_Errors(t *testing.T) {
 	// 3. Nota de más de 500 caracteres -> 422 VALIDATION_ERROR
 	longNote := strings.Repeat("a", 501)
 	reqLong := `{"version": 2, "clientNote": "` + longNote + `"}`
-	recVal := do(t, router, "POST", "/api/v1/accountant/closings/clo_err_1/approve", "accountant", strings.NewReader(reqLong))
+	recVal := do(t, router, "POST", "/v1/closings/clo_err_1/approvals", "accountant", strings.NewReader(reqLong))
 	if recVal.Code != http.StatusUnprocessableEntity {
 		t.Errorf("esperaba 422 por nota larga, got %d", recVal.Code)
 	}
 
 	// 4. Cierre inexistente -> 404 NOT_FOUND
-	rec404 := do(t, router, "POST", "/api/v1/accountant/closings/clo_inexistente/approve", "accountant", strings.NewReader(`{"version": 1}`))
+	rec404 := do(t, router, "POST", "/v1/closings/clo_inexistente/approvals", "accountant", strings.NewReader(`{"version": 1}`))
 	if rec404.Code != http.StatusNotFound {
 		t.Errorf("esperaba 404 para cierre inexistente, got %d", rec404.Code)
 	}
@@ -627,7 +627,7 @@ func TestApproveClosing_Individual_Errors(t *testing.T) {
 	cloNotified.Status = closing.StatusNotified
 	_ = closingRepo.Save(ctx, cloNotified)
 
-	recAlready := do(t, router, "POST", "/api/v1/accountant/closings/clo_err_notified/approve", "accountant", strings.NewReader(`{"version": 2}`))
+	recAlready := do(t, router, "POST", "/v1/closings/clo_err_notified/approvals", "accountant", strings.NewReader(`{"version": 2}`))
 	if recAlready.Code != http.StatusConflict {
 		t.Errorf("esperaba 409 por ALREADY_APPROVED, got %d", recAlready.Code)
 	}
@@ -672,9 +672,9 @@ func TestApproveBatch_Endpoint_And_Race(t *testing.T) {
 		]
 	}`
 
-	rec := do(t, router, "POST", "/api/v1/accountant/periods/2026-10/closings/approve-batch", "accountant", strings.NewReader(batchPayload))
+	rec := do(t, router, "POST", "/v1/periods/2026-10/approvals", "accountant", strings.NewReader(batchPayload))
 	if rec.Code != http.StatusOK {
-		t.Fatalf("esperaba 200 en approve-batch, got %d: %s", rec.Code, rec.Body.String())
+		t.Fatalf("esperaba 200 en approvals batch, got %d: %s", rec.Code, rec.Body.String())
 	}
 
 	var batchRes usecase.ApproveBatchResult
@@ -738,9 +738,9 @@ func TestSendPaymentReminders_Endpoint(t *testing.T) {
 	}
 	_ = closingRepo.Save(ctx, c)
 
-	rec := do(t, router, "POST", "/api/v1/accountant/reminders/run", "accountant", nil)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("esperaba 200 en reminders/run, got %d: %s", rec.Code, rec.Body.String())
+	rec := do(t, router, "POST", "/v1/reminder-runs", "accountant", nil)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("esperaba 201 en reminder-runs, got %d: %s", rec.Code, rec.Body.String())
 	}
 
 	var res map[string]int
@@ -782,10 +782,10 @@ func TestPrivacy_OutboundMessagesNeverContainAmounts(t *testing.T) {
 	_ = closingRepo.Save(ctx, c)
 
 	// Aprobar
-	_ = do(t, router, "POST", "/api/v1/accountant/closings/clo_priv_1/approve", "accountant", strings.NewReader(`{"version": 1}`))
+	_ = do(t, router, "POST", "/v1/closings/clo_priv_1/approvals", "accountant", strings.NewReader(`{"version": 1}`))
 
 	// Correr recordatorios
-	_ = do(t, router, "POST", "/api/v1/accountant/reminders/run", "accountant", nil)
+	_ = do(t, router, "POST", "/v1/reminder-runs", "accountant", nil)
 
 	if len(sender.Sent) == 0 {
 		t.Fatalf("esperaba mensajes salientes en sender, no hubo ninguno")
@@ -824,7 +824,7 @@ func TestStatsEndpoint(t *testing.T) {
 	_ = closingRepo.Save(ctx, c)
 
 	// 200 OK
-	rec := do(t, router, "GET", "/api/v1/accountant/periods/2026-10/stats", "accountant", nil)
+	rec := do(t, router, "GET", "/v1/periods/2026-10/stats", "accountant", nil)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("GET stats status = %d, want 200: %s", rec.Code, rec.Body.String())
 	}
@@ -837,13 +837,13 @@ func TestStatsEndpoint(t *testing.T) {
 	}
 
 	// 422 invalid period
-	recBad := do(t, router, "GET", "/api/v1/accountant/periods/bad-period/stats", "accountant", nil)
+	recBad := do(t, router, "GET", "/v1/periods/bad-period/stats", "accountant", nil)
 	if recBad.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("GET stats invalid period status = %d, want 422", recBad.Code)
 	}
 
 	// 403 client role
-	recForb := do(t, router, "GET", "/api/v1/accountant/periods/2026-10/stats", "client:cli_st_1", nil)
+	recForb := do(t, router, "GET", "/v1/periods/2026-10/stats", "client:cli_st_1", nil)
 	if recForb.Code != http.StatusForbidden {
 		t.Fatalf("GET stats as client status = %d, want 403", recForb.Code)
 	}
@@ -858,7 +858,7 @@ func TestGetPeriods(t *testing.T) {
 	_ = cr.Save(ctx, closing.NewClosing("clo_p1", "cli_p1", pSep, true, "h1", signal.SeverityGreen, nil, "d", nil, nil, closing.Reconciliation{}, testNow))
 	_ = cr.Save(ctx, closing.NewClosing("clo_p2", "cli_p1", pOct, true, "h2", signal.SeverityGreen, nil, "d", nil, nil, closing.Reconciliation{}, testNow))
 
-	rec := do(t, h, "GET", "/api/v1/accountant/periods", "accountant", nil)
+	rec := do(t, h, "GET", "/v1/periods", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("status %d: %s", rec.Code, rec.Body.String())
 	}

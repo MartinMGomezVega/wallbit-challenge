@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Clock } from 'lucide-react';
 import { z } from 'zod';
-import { apiFetch } from '../api/http';
+import { apiFetch } from '../http/http';
 import { formatDate } from '../format/date';
 import { Tooltip } from './Tooltip';
 
@@ -16,7 +16,7 @@ export const SIMULATED_DATE_TOOLTIP =
 export function SimulatedDateBadge() {
   const { data } = useQuery({
     queryKey: ['health-now'],
-    queryFn: () => apiFetch('/api/v1/health', HealthSchema),
+    queryFn: () => apiFetch('/health', HealthSchema),
     staleTime: 5 * 60 * 1000,
   });
 

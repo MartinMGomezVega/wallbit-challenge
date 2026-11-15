@@ -5,7 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { getParameters, updateParameters } from './api';
 import { ParametersDTO } from './schemas';
-import { ApiError } from '../../shared/api/http';
+import { ApiError } from '../../shared/http/http';
 import { Toast } from '../../shared/ui/Toast';
 import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 

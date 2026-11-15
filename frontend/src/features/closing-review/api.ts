@@ -1,4 +1,4 @@
-import { apiFetch } from '../../shared/api/http';
+import { apiFetch } from '../../shared/http/http';
 import {
   ClosingIDsResponse,
   ClosingIDsResponseSchema,
@@ -37,14 +37,14 @@ export async function getClosingIds(
   const search = sp.toString();
   const qs = search ? `?${search}` : '';
   return apiFetch(
-    `/api/v1/accountant/periods/${period}/closings/ids${qs}`,
+    `/v1/periods/${period}/closings/ids${qs}`,
     ClosingIDsResponseSchema
   );
 }
 
 export async function getClosingDetail(closingId: string): Promise<ClosingDetailDTO> {
   return apiFetch(
-    `/api/v1/accountant/closings/${closingId}`,
+    `/v1/closings/${closingId}`,
     ClosingDetailDTOSchema
   );
 }
@@ -55,10 +55,10 @@ export async function updateMovementClassification(
   comment: string = 'Modificado por el contador'
 ): Promise<UpdateClassificationResponse> {
   return apiFetch(
-    `/api/v1/accountant/movements/${movementId}/classification`,
+    `/v1/movements/${movementId}/classification`,
     UpdateClassificationResponseSchema,
     {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify({ nature, comment }),
     }
   );
@@ -71,7 +71,7 @@ export async function confirmRegimeTransition(
   note?: string
 ): Promise<unknown> {
   return apiFetch(
-    `/api/v1/accountant/clients/${clientId}/regime-change`,
+    `/v1/clients/${clientId}/regime-changes`,
     z.unknown(),
     {
       method: 'POST',
@@ -91,7 +91,7 @@ export async function approveClosing(
   clientNote?: string
 ): Promise<ApproveClosingResponse> {
   return apiFetch(
-    `/api/v1/accountant/closings/${closingId}/approve`,
+    `/v1/closings/${closingId}/approvals`,
     ApproveClosingResponseSchema,
     {
       method: 'POST',
@@ -108,7 +108,7 @@ export async function approveBatch(
   items: Array<{ id: string; version: number }>
 ): Promise<ApproveBatchResponse> {
   return apiFetch(
-    `/api/v1/accountant/periods/${period}/closings/approve-batch`,
+    `/v1/periods/${period}/approvals`,
     ApproveBatchResponseSchema,
     {
       method: 'POST',
@@ -124,7 +124,7 @@ export async function importInvoicesAsAccountant(
   const formData = new FormData();
   formData.append('file', file);
   return apiFetch(
-    `/api/v1/accountant/clients/${clientId}/invoices/import`,
+    `/v1/clients/${clientId}/invoice-imports`,
     ImportResultSchema,
     {
       method: 'POST',
@@ -147,7 +147,7 @@ export async function confirmInputOnBehalf(
   payload: ConfirmInputOnBehalfPayload
 ): Promise<ClientPeriodInputDTO> {
   return apiFetch(
-    `/api/v1/accountant/clients/${clientId}/periods/${period}/confirm-input`,
+    `/v1/clients/${clientId}/periods/${period}/confirmation`,
     ClientPeriodInputDTOSchema,
     {
       method: 'POST',

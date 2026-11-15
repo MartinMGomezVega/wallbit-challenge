@@ -23,17 +23,17 @@ Recibir lo que Wallbit no tiene (facturas emitidas, facturas de compra para RI, 
 5. Encabezados (orden indistinto, match por nombre normalizado): `Fecha`, `Tipo`, `Punto de Venta`, `Número Desde`, `Número Hasta`, `Cód. Autorización`, `Tipo Doc. Receptor`, `Nro. Doc. Receptor`, `Denominación Receptor`, `Tipo Cambio`, `Moneda`, `Imp. Neto Gravado`, `Imp. Neto No Gravado`, `Imp. Op. Exentas`, `IVA`, `Imp. Total`.
 6. Separador `;` o `,` (autodetectado por el encabezado). Fecha `dd/mm/yyyy`. Números con coma decimal y punto de miles (`1.234,56`). `Tipo` como `"19 - Factura E"` → se toma el código numérico: `1→A`, `6→B`, `11→C`, `19→E`. Notas de crédito/débito (`2,3,7,8,12,13,20,21`) se **saltean con advertencia** "Notas de crédito/débito fuera de alcance".
 7. `Moneda`: `DOL|USD|U$S` → USD; `$|PES|ARS` → ARS. Montos en la moneda de la factura.
-8. `POST /api/v1/me/invoices/import` (multipart, campo `file`, máx 2 MB) → `200 { imported, skippedDuplicates, warnings[{line, message}], errors[{line, message}] }`. Las filas con error no se importan; las válidas sí (importación parcial). Archivo sin encabezados válidos → 422.
+8. `POST /v1/clients/{clientId}/invoice-imports` (multipart, campo `file`, máx 2 MB) → `201 { imported, skippedDuplicates, warnings[{line, message}], errors[{line, message}] }`. Las filas con error no se importan; las válidas sí (importación parcial). Archivo sin encabezados válidos → 422.
 9. Idempotente: importar dos veces el mismo CSV → la segunda vez `imported: 0`, `skippedDuplicates: N`.
 
 ### Carga manual y lectura
-10. `POST /api/v1/me/invoices` (JSON) con validación: tipo permitido según régimen a la fecha (MONO: C/E; RI: A/B/E), fecha no futura respecto del Clock, montos > 0, `fxRate` opcional. Duplicado → 409.
-11. `GET /api/v1/me/invoices?period=2026-10` → lista del cliente. `GET /api/v1/accountant/clients/{id}/invoices?period=` → lo mismo para el contador.
-12. `POST /api/v1/me/purchase-invoices` (solo RI; MONO → 403 con `code: "NOT_ALLOWED_FOR_REGIME"`).
+10. `POST /v1/clients/{clientId}/invoices` (JSON) con validación: tipo permitido según régimen a la fecha (MONO: C/E; RI: A/B/E), fecha no futura respecto del Clock, montos > 0, `fxRate` opcional. Duplicado → 409.
+11. `GET /v1/clients/{clientId}/invoices?period=2026-10` → lista de facturas (unificado para cliente y contador).
+12. `POST /v1/clients/{clientId}/purchase-invoices` (solo RI; MONO → 403 con `code: "NOT_ALLOWED_FOR_REGIME"`).
 
 ### Inputs del período
-13. `PUT /api/v1/me/periods/{period}/external-income` body `{ "items": [{ "amount": {...USD}, "description": "..." }] }` o `{ "none": true }`.
-14. `POST /api/v1/me/periods/{period}/confirm` → setea `ConfirmedAt`. Requiere haber respondido external-income (si no → 422 `EXTERNAL_INCOME_NOT_ANSWERED`).
+13. `PUT /v1/clients/{clientId}/periods/{period}/external-income` body `{ "items": [{ "amount": {...USD}, "description": "..." }] }` o `{ "none": true }`.
+14. `POST /v1/clients/{clientId}/periods/{period}/confirmation` → setea `ConfirmedAt`. Requiere haber respondido external-income (si no → 422 `EXTERNAL_INCOME_NOT_ANSWERED`).
 15. Toda escritura de esta feature emite `ClosingInputsChanged{ClientID, Period}`.
 
 ### Conciliación

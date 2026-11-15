@@ -1,7 +1,7 @@
-import { apiFetch } from '../../shared/api/http';
+import { apiFetch } from '../../shared/http/http';
 import { PeriodStats, PeriodStatsSchema } from './schemas';
 
 export async function getPeriodStats(period: string): Promise<PeriodStats> {
-  return apiFetch(`/api/v1/accountant/periods/${encodeURIComponent(period)}/stats`, PeriodStatsSchema);
+  return apiFetch(`/v1/periods/${encodeURIComponent(period)}/stats`, PeriodStatsSchema);
 }
 

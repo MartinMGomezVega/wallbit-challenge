@@ -7,7 +7,7 @@
 - [x] **T010.5** `ApproveBatch` + handler (criterio 3). Tests de lote mixto con `-race`.
 - [x] **T010.6** `draftMessage` en el detalle (criterio 5).
 - [x] **T010.7** `CreateActionRequiredNotices` conectado al job (criterio 9) y `CLOSING_UPDATED` (criterio 10). Tests.
-- [x] **T010.8** `SendPaymentReminders` + scheduler + `POST /reminders/run`. Tests de bordes (justo en el umbral, vencido, ya pagado, ya recordado).
+- [x] **T010.8** `SendPaymentReminders` + scheduler + `POST /v1/reminder-runs`. Tests de bordes (justo en el umbral, vencido, ya pagado, ya recordado).
 - [x] **T010.9** Test de privacidad: ningún `OutboundMessage` generado en el e2e contiene montos (criterio 7).
 - [x] **T010.10** Front: botones de aprobar en el modal, nota para el cliente, sección "Aviso al cliente", atajo `A`, manejo de 409. Tests.
 - [x] **T010.11** Front: `BatchApproveDialog` desde la barra de selección. Tests.

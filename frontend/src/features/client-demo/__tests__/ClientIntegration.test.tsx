@@ -5,7 +5,7 @@ import { routes } from '../../../app/router';
 import { Providers, createQueryClient } from '../../../app/providers';
 import { server } from '../../../mocks/server';
 import { http, HttpResponse } from 'msw';
-import meClosingsReadyMonoFixture from '../../../test/fixtures/api/me_closings_ready_mono.json';
+import meClosingsReadyMonoFixture from '../../../test/fixtures/v1/me_closings_ready_mono.json';
 
 describe('ClientIntegration (circuito completo de Paula - Criterio 13)', () => {
   it('circuito interactivo: Paula carga factura, responde No, confirma a En revisión, contador aprueba y Paula ve la tarjeta validada', async () => {
@@ -13,7 +13,7 @@ describe('ClientIntegration (circuito completo de Paula - Criterio 13)', () => {
     let step = 1; // 1: ACTION_REQUIRED, 2: IN_REVIEW, 3: READY
 
     server.use(
-      http.get('/api/v1/me/closings', ({ request }) => {
+      http.get('/v1/clients/:id/closings', ({ request }) => {
         const user = request.headers.get('X-Demo-User') ?? '';
         if (user.includes('cli_demo_15')) {
           if (step === 1) {
@@ -78,11 +78,11 @@ describe('ClientIntegration (circuito completo de Paula - Criterio 13)', () => {
         return HttpResponse.json([]);
       }),
 
-      http.put('/api/v1/me/periods/2026-10/external-income', () => {
+      http.put('/v1/clients/:id/periods/2026-10/external-income', () => {
         return HttpResponse.json({ clientId: 'cli_demo_15', period: '2026-10', externalIncome: [], declaredNoExternalIncome: true });
       }),
 
-      http.post('/api/v1/me/periods/2026-10/confirm', () => {
+      http.post('/v1/clients/:id/periods/2026-10/confirmation', () => {
         step = 2; // Avanza a IN_REVIEW
         return HttpResponse.json({ clientId: 'cli_demo_15', period: '2026-10', confirmedBy: 'CLIENT' });
       }),

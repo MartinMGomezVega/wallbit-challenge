@@ -1,14 +1,14 @@
 # 017 — Plan
 
 ## Prerrequisitos
-- 016 completa y commiteada (importador del contador, fixes del modal: schemas de RI y aprobación).
-- La API del cliente (011) existe: `/me`, `/me/closings`, `/me/invoices` (GET/POST), `/me/invoices/import`, `/me/periods/{period}/external-income`, `/me/periods/{period}/confirm`, `/me/closings/{id}/paid`.
+- 016 completa y commiteada (importador del contador, schemas de RI y aprobación).
+- La API del cliente (011) existe: `/v1/clients/{clientId}`, `/v1/clients/{clientId}/closings`, facturas (GET/POST), importación, external-income, confirmación, `/v1/closings/{closingId}/payment`.
 
 ## Backend
 - `internal/config`: `AccountantDisplayName`, `AccountantLicense`.
 - `domain/closing`: ampliar `Published` con `ValidatedBy{Name, License}`, `Regime`, `Category *tax.Category`, `PctOfCategoryCapBp *int64`, `CategoryCapARS *money.Money`, `Billed12mARS money.Money`. `NotifyClosing` / `Publish` los completan desde el assessment de la versión aprobada y la config.
 - Seed: aprobar y notificar octubre de `cli_demo_01` y `cli_demo_09` reutilizando `ApproveClosing` (no escribir estados a mano), con el reloj fijo en 2026-11-04 10:00.
-- Fixtures de `/me/**`.
+- Fixtures de cliente.
 - OpenAPI: `Published` con los campos nuevos.
 
 ## Frontend
@@ -28,7 +28,7 @@ src/features/client-demo/
 ├── ValidatedSummaryCard.tsx
 └── __tests__/
 ```
-- `shared/api/http.ts`: `apiFetch(path, schema, init, { as?: string })` → header `client:<id>` si viene `as`; si no, `accountant`. Test de ambos casos.
+- `shared/http/http.ts`: `apiFetch(path, schema, init, { as?: string })` → header `client:<id>` si viene `as`; si no, `accountant`. Test de ambos casos.
 - Router: `/cliente/:clientId` y `/cliente` → `/cliente/cli_demo_15`.
 - Reutilizar `ImportResultView` y el parseo del importador de 016.
 - Estilo: tokens de `ui-guidelines.md`, base 15 px, tarjetas blancas sobre `#F1F1F1` dentro del marco, botones de 40 px de alto.

@@ -13,8 +13,8 @@
 - `domain/clientinput`: `ConfirmBy(by, note, now)` con validación de la nota cuando `by == ACCOUNTANT`.
 - `usecase.ConfirmInputOnBehalf{Inputs, Closings, Clock, Notifier, Tx}`.
 - `interfaces/http`:
-  - `POST /api/v1/accountant/clients/{id}/invoices/import` (reusar el helper multipart de `invoices_handler.go`);
-  - `POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input`.
+  - `POST /v1/clients/{clientId}/invoice-imports` (reusar el helper multipart de `invoices_handler.go`);
+  - `POST /v1/clients/{clientId}/periods/{period}/confirmation`.
 - Postgres: columnas `invoices.uploaded_by TEXT NOT NULL DEFAULT 'CLIENT'`, `client_period_inputs.confirmed_by TEXT`, `client_period_inputs.confirmation_note TEXT`. Actualizar repos y seed loader.
 - Fixtures para el front: respuestas reales de los dos endpoints nuevos.
 
@@ -24,7 +24,7 @@ features/closing-review/
 ├── import/ImportInvoicesDialog.tsx
 ├── import/ImportResultView.tsx
 ├── import/useImportInvoices.ts        # mutation multipart (FormData, sin setear Content-Type)
-├── confirm/ConfirmOnBehalfForm.tsx
+├── confirmation/ConfirmOnBehalfForm.tsx
 ├── api.ts                              # importInvoicesAsAccountant, confirmInputOnBehalf
 └── schemas.ts                          # ImportResultSchema, uploadedBy, confirmedBy
 ```

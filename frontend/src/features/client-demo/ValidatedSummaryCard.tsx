@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ClientClosing } from './schemas';
 import { markClientClosingPaid } from './api';
-import { ApiError } from '../../shared/api/http';
+import { ApiError } from '../../shared/http/http';
 
 interface ValidatedSummaryCardProps {
   closing: ClientClosing;

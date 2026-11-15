@@ -14,15 +14,15 @@ Que el contador pueda **cargar las facturas de un cliente en su nombre** desde e
 
 ## Criterios de aceptación
 ### Backend
-1. `POST /api/v1/accountant/clients/{id}/invoices/import` (multipart, campo `file`, máx 2 MB). Reutiliza el caso de uso `ImportInvoicesCSV` (mismo parser, validación, deduplicación e idempotencia que `/me/invoices/import`). Responde el mismo `ImportResult`.
+1. `POST /v1/clients/{clientId}/invoice-imports` (multipart, campo `file`, máx 2 MB). Reutiliza el caso de uso `ImportInvoicesCSV` (mismo parser, validación, deduplicación e idempotencia). Responde 201 con el `ImportResult`.
 2. Cada factura guarda `uploadedBy`: `CLIENT`, `ACCOUNTANT` o `SEED`. Las importadas por este endpoint quedan como `ACCOUNTANT`. Migración Postgres nueva con default `CLIENT` para las existentes que no son del seed.
-3. `POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input` con body `{ "externalIncome": { "none": true } | { "items": [...] }, "note": "Me lo confirmó por mail el 06/11" }`:
+3. `POST /v1/clients/{clientId}/periods/{period}/confirmation` con body `{ "externalIncome": { "none": true } | { "items": [...] }, "note": "Me lo confirmó por mail el 06/11" }`:
    - `note` es obligatoria (1 a 300 caracteres): es la evidencia de por qué confirma el contador. Si falta → 422 `NOTE_REQUIRED`;
    - setea el input del período como respondido y confirmado, con `confirmedBy: "ACCOUNTANT"` y la nota guardada;
    - mueve el cierre de `PENDING_CLIENT_INPUT` a `READY_FOR_REVIEW`;
    - si el período ya estaba confirmado → 409 `ALREADY_CONFIRMED`.
 4. Ambas operaciones emiten `ClosingInputsChanged` y recalculan el cierre. Si el cierre estaba aprobado o notificado, queda en una versión nueva `READY_FOR_REVIEW` (regla de `domain-context.md §10`).
-5. El detalle del cierre (`GET /accountant/closings/{id}`) expone `uploadedBy` en cada factura y `confirmedBy` y `confirmationNote` en el input del cliente.
+5. El detalle del cierre (`GET /v1/closings/{closingId}`) expone `uploadedBy` en cada factura y `confirmedBy` y `confirmationNote` en el input del cliente.
 6. OpenAPI: los dos endpoints nuevos, `uploadedBy` en `Invoice`, y `confirmedBy` y `confirmationNote` en `ClientInput`. Ambos entran en el test de contrato de rutas.
 
 ### Frontend (modal de revisión, pestaña "Facturas y conciliación")

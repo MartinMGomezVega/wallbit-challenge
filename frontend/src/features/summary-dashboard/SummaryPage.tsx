@@ -10,7 +10,7 @@ import { DueDatesBarChart } from './charts/DueDatesBarChart';
 import { ServiceHealth } from './ServiceHealth';
 import { formatDate, formatPeriodName } from '../../shared/format/date';
 import { formatMoney } from '../../shared/format/money';
-import { ApiError } from '../../shared/api/http';
+import { ApiError } from '../../shared/http/http';
 import { useDocumentTitle } from '../../shared/hooks/useDocumentTitle';
 
 const DEFAULT_PERIOD = '2026-10';

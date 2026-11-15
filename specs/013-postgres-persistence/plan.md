@@ -4,7 +4,7 @@
 - Módulo: `github.com/MartinMGomezVega/wallbit-challenge/backend`. Hoy no tiene dependencias externas.
 - Puertos en `internal/application/ports/repositories.go`. Los repos Postgres implementan **esas interfaces tal como están** (incluyendo `SaveAll`, `ByClient`, `ListAll`, `ByMovementIDs`, `LatestExclusionDate`, etc.). No renombrar métodos existentes.
 - Repos en memoria: `internal/infrastructure/memory/*`. Se mantienen.
-- `cmd/api/main.go` construye los repos en memoria y carga el seed directamente en `run()`. Hay que extraer esa construcción a una función `buildRepos(cfg)` que elija `memory` o `postgres`, y mover la carga del seed al `seed_loader` (Postgres) o a un loader equivalente en memoria.
+- `cmd/api` (`main.go`) construye los repos en memoria y carga el seed directamente en `run()`. Hay que extraer esa construcción a una función `buildRepos(cfg)` que elija `memory` o `postgres`, y mover la carga del seed al `seed_loader` (Postgres) o a un loader equivalente en memoria.
 - `internal/application/usecase/list_closings.go`: `buildClosingRows` + `closing.Apply` + `closing.ComputeSummary` arman listado, IDs y summary en memoria. Se reemplaza por el puerto `ClosingQuery` (la versión en memoria **reutiliza** exactamente esas funciones).
 - `internal/application/usecase/approval.go`: hoy compara la versión leyendo el cierre y después guarda (no es atómico). Se agrega `ClosingRepository.SaveIfVersion(ctx, c, expectedVersion) error` (devuelve `domain.ErrVersionConflict`); memoria lo resuelve bajo lock, Postgres con `UPDATE ... WHERE id = $1 AND version = $2`.
 - `internal/config/config.go`: agregar `Storage`, `DatabaseURL`, `SeedReset` (con tests como los existentes).
@@ -125,7 +125,7 @@ services:
 volumes: { pgdata: {} }
 ```
 - `backend/Dockerfile`: multi-stage `golang:1.23-alpine` → `CGO_ENABLED=0 go build -o /api ./cmd/api` → `gcr.io/distroless/static` (usuario no root).
-- `frontend/Dockerfile`: `node:20-alpine` (`npm ci && npm run build`) → `nginx:alpine` con `nginx.conf` (`location /api/ { proxy_pass http://api:8080; }`, `try_files $uri /index.html` para el router).
+- `frontend/Dockerfile`: `node:20-alpine` (`npm ci && npm run build`) → `nginx:alpine` con `nginx.conf` (`location /v1/ { proxy_pass http://api:8080; }`, `try_files $uri /index.html` para el router).
 - Credenciales de demo en el compose (documentado: solo local).
 
 ## Makefile

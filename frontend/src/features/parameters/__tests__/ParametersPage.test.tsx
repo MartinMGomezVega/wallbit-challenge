@@ -220,7 +220,7 @@ describe('ParametersPage', () => {
 
   it('con cambios y error al guardar en Guardar y salir se queda en la pantalla y muestra error', async () => {
     server.use(
-      http.put('/api/v1/accountant/parameters', () => {
+      http.put('/v1/parameters', () => {
         return new HttpResponse(null, { status: 500 });
       })
     );
@@ -317,7 +317,7 @@ describe('ParametersPage', () => {
 
   it('muestra mensaje de error cuando falla la carga inicial', async () => {
     server.use(
-      http.get('/api/v1/accountant/parameters', () => {
+      http.get('/v1/parameters', () => {
         return new HttpResponse(null, { status: 500 });
       })
     );

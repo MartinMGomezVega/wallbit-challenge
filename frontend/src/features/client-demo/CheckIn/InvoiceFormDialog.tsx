@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createClientInvoice } from '../api';
-import { ApiError } from '../../../shared/api/http';
+import { ApiError } from '../../../shared/http/http';
 
 interface InvoiceFormDialogProps {
   isOpen: boolean;

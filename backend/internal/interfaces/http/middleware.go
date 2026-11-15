@@ -97,23 +97,54 @@ func DemoIdentity(next http.Handler) http.Handler {
 
 // RequireAccountant exige rol contador.
 func RequireAccountant(next http.Handler) http.Handler {
-	return requireRole(RoleAccountant, next)
-}
-
-// RequireClient exige rol cliente.
-func RequireClient(next http.Handler) http.Handler {
-	return requireRole(RoleClient, next)
-}
-
-func requireRole(role string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, ok := FromContext(r.Context())
 		if !ok {
 			writeErrorCode(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Falta el header X-Demo-User", nil)
 			return
 		}
-		if id.Role != role {
+		if id.Role != RoleAccountant {
 			writeErrorCode(w, http.StatusForbidden, "FORBIDDEN", "No tenés permiso para este recurso", nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RequireClientResource permite acceso a accountant o al cliente dueño del recurso {clientId}.
+func RequireClientResource(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, ok := FromContext(r.Context())
+		if !ok {
+			writeErrorCode(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Falta el header X-Demo-User", nil)
+			return
+		}
+		if id.Role == RoleAccountant {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if id.Role == RoleClient {
+			clientID := r.PathValue("clientId")
+			if clientID == "" {
+				clientID = r.PathValue("id")
+			}
+			if clientID != "" && clientID != id.ClientID {
+				writeErrorCode(w, http.StatusForbidden, "FORBIDDEN", "No tenés permiso para este recurso", nil)
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+		writeErrorCode(w, http.StatusForbidden, "FORBIDDEN", "No tenés permiso para este recurso", nil)
+	})
+}
+
+// RequireAuthenticated exige estar autenticado con un rol válido (accountant o client).
+func RequireAuthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, ok := FromContext(r.Context())
+		if !ok {
+			writeErrorCode(w, http.StatusUnauthorized, "UNAUTHENTICATED", "Falta el header X-Demo-User", nil)
 			return
 		}
 		next.ServeHTTP(w, r)

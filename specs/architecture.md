@@ -18,7 +18,7 @@ wallbit-challenge/
 ## 2. Backend (Go)
 
 ### 2.1 Stack
-- Go ≥ 1.23. **Solo stdlib** salvo excepciones listadas: `net/http` con routing por patrones (`mux.HandleFunc("GET /api/v1/accountant/closings/{id}", ...)`), `log/slog`, `encoding/json`, `embed`, `math/big`, `testing`.
+- Go ≥ 1.23. **Solo stdlib** salvo excepciones listadas: `net/http` con routing por patrones (`mux.HandleFunc("GET /v1/closings/{closingId}", ...)`), `log/slog`, `encoding/json`, `embed`, `math/big`, `testing`.
 - Sin framework web, sin ORM. Sin dependencias externas en `domain` ni `application`.
 - Dependencias permitidas: `github.com/jackc/pgx/v5` (solo en `infrastructure/postgres`, desde 013). Cualquier otra se justifica en el `plan.md` de la feature.
 - Persistencia: **PostgreSQL 17** por defecto (013); repositorios en memoria para tests unitarios y `STORAGE=memory`.
@@ -27,7 +27,7 @@ wallbit-challenge/
 
 ```
 backend/
-├── cmd/api/main.go                  # wiring: config → infra → use cases → http
+├── cmd/api (entrypoint: main.go)     # wiring: config → infra → use cases → http
 ├── internal/
 │   ├── domain/                      # entidades, value objects, reglas puras. SIN imports de otras capas.
 │   │   ├── money/                   # Money, Rate, conversión, bp
@@ -86,10 +86,10 @@ backend/
 
 ### 2.5 Identidad de demo
 - Header `X-Demo-User`: `accountant` o `client:<clientId>`. Middleware lo valida y lo pone en el `context`.
-- Endpoints `/api/v1/accountant/**` requieren `accountant`. Endpoints `/api/v1/me/**` requieren `client:*`.
+- Endpoints de contador bajo `/v1/**` requieren `accountant`. Endpoints de cliente (`/v1/clients/{clientId}/**`) requieren `client:<clientId>`.
 
 ### 2.6 API
-- Prefijo `/api/v1`. JSON camelCase. Fechas ISO-8601. Dinero como `{ "amount": <entero en centavos>, "currency": "ARS" }`.
+- Base `/v1` (sin prefijo `/api`). JSON camelCase. Fechas ISO-8601. Dinero como `{ "amount": <entero en centavos>, "currency": "ARS" }`.
 - Ningún endpoint devuelve `null` donde va un array u objeto (los slices vacíos se serializan como `[]` y los mapas como `{}`).
 - Error: `{ "error": { "code": "VALIDATION_ERROR", "message": "...", "fields": {"x": "..."} } }`.
 - Listados: `?page=1&pageSize=50` → `{ "items": [...], "total": 300, "page": 1, "pageSize": 50 }`.
@@ -101,7 +101,7 @@ backend/
 - Tests de integración (`//go:build integration`) contra el Postgres del compose: `make test-integration`. Las suites de contrato de `ports/repotest` corren contra memoria (unitarios) y contra Postgres (integración) para garantizar el mismo comportamiento.
 - Tests de handlers con `httptest`.
 - Test de concurrencia del job con `-race`.
-- Fixtures de contrato: `make fixtures` genera respuestas reales del backend en `frontend/src/test/fixtures/api/` para que el frontend las valide con Zod. La suite de fixtures cubre **todas las formas del detalle del cierre** (Monotributo estándar, Monotributo con exclusión, Responsable Inscripto, notificado, pendiente de confirmación e historial con reapertura) y **las respuestas de todos los endpoints que modifican datos** (aprobación individual, aprobación en lote, pase a RI, importación de facturas por cliente y por contador, y confirmación de período).
+- Fixtures de contrato: `make fixtures` genera respuestas reales del backend en `frontend/src/test/fixtures/v1/` para que el frontend las valide con Zod. La suite de fixtures cubre **todas las formas del detalle del cierre** (Monotributo estándar, Monotributo con exclusión, Responsable Inscripto, notificado, pendiente de confirmación e historial con reapertura) y **las respuestas de todos los endpoints que modifican datos** (aprobación individual, aprobación en lote, pase a RI, importación de facturas por cliente y por contador, y confirmación de período).
 
 ## 3. Frontend (React + TS)
 
@@ -118,7 +118,7 @@ backend/
 frontend/src/
 ├── app/                 # router, providers (QueryClient), layout, PeriodSelect
 ├── shared/
-│   ├── api/             # http client (fetch + X-Demo-User + zod), schemas comunes (Money)
+│   ├── http/            # http client (fetch + X-Demo-User + zod), schemas comunes (Money)
 │   ├── ui/              # Button, Tooltip, Badge, SeverityIndicator, Dialog, Table primitives, EmptyState
 │   ├── format/          # money, date, percent (es-AR)
 │   └── hooks/
@@ -147,7 +147,7 @@ frontend/src/
 | `make dev` | Postgres en Docker + backend local (`go run ./cmd/api`) + frontend (`npm run dev`). |
 | `make dev-memory` | Backend en memoria + frontend, sin Docker. |
 | `make test` | Regenera `make fixtures` y corre tests unitarios backend (`-race`) y frontend. No requiere Docker. |
-| `make fixtures` | Genera fixtures reales del backend en `frontend/src/test/fixtures/api/`. |
+| `make fixtures` | Genera fixtures reales del backend en `frontend/src/test/fixtures/v1/`. |
 | `make coverage` | Coverage de ambos; falla si alguno < 90%. |
 | `make test-integration` | Tests de integración contra Postgres. |
 | `make reset-db` | Borra el volumen de Postgres. |

@@ -60,7 +60,7 @@ describe('ClientDemoPage', () => {
 
     // Simular error 409 en el backend
     server.use(
-      http.post('/api/v1/me/invoices', () => {
+      http.post('/v1/clients/:id/invoices', () => {
         return HttpResponse.json(
           { error: { code: 'INVOICE_ALREADY_EXISTS', message: 'Ya existe una factura con este tipo, punto de venta y número' } },
           { status: 409 },
@@ -93,7 +93,7 @@ describe('ClientDemoPage', () => {
 
     // Mock transición a IN_REVIEW al recargar
     server.use(
-      http.get('/api/v1/me/closings', () => {
+      http.get('/v1/clients/:id/closings', () => {
         return HttpResponse.json([
           {
             closingId: 'clo_000300',
@@ -152,7 +152,7 @@ describe('ClientDemoPage', () => {
   it('muestra mensaje de error y permite reintentar cuando falla la carga', async () => {
     let failOnce = true;
     server.use(
-      http.get('/api/v1/me/closings', () => {
+      http.get('/v1/clients/:id/closings', () => {
         if (failOnce) {
           failOnce = false;
           return HttpResponse.json({ error: { code: 'SERVER_ERROR', message: 'Falla al cargar datos' } }, { status: 500 });
@@ -179,7 +179,7 @@ describe('ClientDemoPage', () => {
 
   it('muestra estado vacío cuando no hay cierre para este mes', async () => {
     server.use(
-      http.get('/api/v1/me/closings', () => {
+      http.get('/v1/clients/:id/closings', () => {
         return HttpResponse.json([]);
       }),
     );

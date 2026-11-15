@@ -5,7 +5,7 @@ Mostrar, dentro de la misma app y claramente marcada como **demo**, cómo vive e
 
 > el cliente hace el check-in → el contador revisa y aprueba → el cliente ve el resumen **validado por el contador**.
 
-Es una maqueta interactiva que funciona contra la **API real del cliente** (`/api/v1/me/**`, spec 011). No es una segunda aplicación. El foco del prototipo sigue siendo la herramienta del contador.
+Es una maqueta interactiva que funciona contra la **API real del cliente** (`/v1/clients/{clientId}/**`, spec 011). No es una segunda aplicación. El foco del prototipo sigue siendo la herramienta del contador.
 
 ## Decisiones
 - **Switch en el header:** `Contador | Cliente (demo)`. La vista del cliente se muestra dentro de un **marco de celular** con la leyenda "Así se vería dentro de la app de Wallbit".
@@ -35,8 +35,8 @@ Es una maqueta interactiva que funciona contra la **API real del cliente** (`/ap
    - `billed12mARS`.
    El cliente **solo** ve estos datos del snapshot, nunca el cálculo vigente. Es JSONB: no hace falta migración, pero los cierres publicados antes de esta feature no tienen los campos nuevos y el front los trata como opcionales.
 3. Seed: los cierres de **octubre** de `cli_demo_01` y `cli_demo_09` quedan **aprobados y notificados** (aprobación del 04/11/2026 10:00 con la nota interna "Cierre de octubre (dato semilla)"). El resto de los demos no cambia. Actualizar el e2e de 007 y la tabla del README.
-4. `GET /api/v1/me/closings` devuelve los períodos del cliente (octubre y septiembre) con `state` y `published`. Si hace falta, se completa la spec 011 (no se agregan endpoints).
-5. Fixtures reales para el front: `/me`, `/me/closings` (uno por cada estado), `/me/invoices`, `POST /me/invoices`, `POST /me/invoices/import`, `PUT external-income`, `POST confirm`, `POST paid`.
+4. `GET /v1/clients/{clientId}/closings` devuelve los períodos del cliente (octubre y septiembre) con `state` y `published`. Si hace falta, se completa la spec 011 (no se agregan endpoints).
+5. Fixtures reales para el front: perfil, cierres (uno por cada estado), facturas, importación, external-income, confirmación, pago.
 
 ### Frontend: navegación
 6. Switch `Contador | Cliente (demo)` en el header (a la derecha, antes del período). "Cliente (demo)" lleva a `/cliente/:clientId` (default Paula Rojas). Arriba del marco de celular, un selector con los 5 clientes de la tabla y a su derecha el badge de fecha simulada (`Hoy: dd/MM/yyyy · fecha simulada`).
@@ -47,7 +47,7 @@ Es una maqueta interactiva que funciona contra la **API real del cliente** (`/ap
 9. **Check-in** (`state = ACTION_REQUIRED`), título "Cierre de octubre":
    1. **"Comprobantes que emitiste en octubre"**:
       - tabla con Fecha · Tipo · Número (punto de venta–número) · Cliente · Monto;
-      - botón **"Alta de comprobante"**, que abre un formulario con: Fecha, Tipo (Monotributo: Factura E / Factura C; RI: E / A / B), Punto de venta, Número, Cliente (denominación) y, opcional, su documento, Moneda (USD/ARS), Monto total y Tipo de cambio (opcional, "si lo informaste en la factura"). Validaciones iguales a `POST /me/invoices`; errores 422 bajo cada campo; 409 → "Ese comprobante ya está cargado";
+      - botón **"Alta de comprobante"**, que abre un formulario con: Fecha, Tipo (Monotributo: Factura E / Factura C; RI: E / A / B), Punto de venta, Número, Cliente (denominación) y, opcional, su documento, Moneda (USD/ARS), Monto total y Tipo de cambio (opcional, "si lo informaste en la factura"). Validaciones iguales a `POST /v1/clients/{clientId}/invoices`; errores 422 bajo cada campo; 409 → "Ese comprobante ya está cargado";
       - link alternativo **"Importar CSV de Mis Comprobantes"** con el resultado de la importación;
       - no se ofrece borrar comprobantes (la API no lo tiene; queda fuera de alcance).
    2. **"¿Cobraste algo fuera de Wallbit en octubre?"**: No / Sí (líneas de monto US$ + descripción).
@@ -59,7 +59,7 @@ Es una maqueta interactiva que funciona contra la **API real del cliente** (`/ap
     - **Qué tenés que pagar este mes:** cada concepto con monto y vencimiento, más el total;
     - el **cuerpo del mensaje publicado** (incluye los agregados, por ejemplo el de exclusión);
     - badge **"✓ Validado por C.P. Mariana Quiroga · Matrícula de ejemplo · 04/11/2026"**;
-    - botón **"Ya pagué"** (`POST /me/closings/{id}/paid`) → badge "Pagado el dd/MM".
+    - botón **"Ya pagué"** (`PUT /v1/closings/{closingId}/payment`) → badge "Pagado el dd/MM".
 12. Cliente sin cierre del período: estado vacío "Todavía no hay un cierre para este mes".
 
 ### Demo en vivo (criterio de aceptación del circuito)

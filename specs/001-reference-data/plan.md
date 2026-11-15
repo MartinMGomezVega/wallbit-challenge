@@ -46,7 +46,7 @@ type ParametersRepository interface { Get(ctx) (parameters.AccountantParameters,
 - `infrastructure/memory/parameters_repo.go`: inicializa con `Defaults()`.
 
 ## HTTP
-- `GET /api/v1/accountant/parameters`, `PUT /api/v1/accountant/parameters`.
+- `GET /v1/parameters`, `PUT /v1/parameters`.
 - DTO con bp como número y `missingInvoiceMinUsd` como Money DTO.
 - Use cases: `usecase.GetParameters`, `usecase.UpdateParameters` (valida, setea `UpdatedAt` con Clock y `UpdatedBy` = "accountant").
 

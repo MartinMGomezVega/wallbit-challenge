@@ -15,7 +15,7 @@ import { ExternalIncomeStep, ExternalIncomeItemForm } from './CheckIn/ExternalIn
 import { ConfirmStep } from './CheckIn/ConfirmStep';
 import { InReview } from './InReview';
 import { ValidatedSummaryCard } from './ValidatedSummaryCard';
-import { ApiError } from '../../shared/api/http';
+import { ApiError } from '../../shared/http/http';
 import { SimulatedDateBadge } from '../../shared/ui';
 
 export function ClientDemoPage() {
@@ -113,7 +113,7 @@ export function ClientDemoPage() {
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <SimulatedDateBadge />
             <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/20">
-              API Real /api/v1/me/**
+              API Real /v1/clients/{'{id}'}/**
             </span>
           </div>
         </div>

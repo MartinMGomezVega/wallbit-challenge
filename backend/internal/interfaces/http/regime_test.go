@@ -48,7 +48,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 
 	t.Run("403 Forbidden si no es contador", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"RI","effectiveDate":"2026-10-14"}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body)
 		req.Header.Set("X-Demo-User", "client:cli_mono")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -60,7 +60,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 
 	t.Run("404 Not Found si cliente no existe", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"RI","effectiveDate":"2026-10-14"}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_none/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_none/regime-changes", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -72,7 +72,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 
 	t.Run("422 Unprocessable Entity si fecha no coincide y force = false", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"RI","effectiveDate":"2026-10-20","force":false}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -87,15 +87,18 @@ func TestRegimeChangeHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("200 OK con fecha coincidente", func(t *testing.T) {
+	t.Run("201 Created con fecha coincidente", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"RI","effectiveDate":"2026-10-14","note":"Exclusión tope K"}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		if w.Code != http.StatusOK {
-			t.Fatalf("status = %d, want 200: %s", w.Code, w.Body.String())
+		if w.Code != http.StatusCreated {
+			t.Fatalf("status = %d, want 201: %s", w.Code, w.Body.String())
+		}
+		if loc := w.Header().Get("Location"); loc != "/v1/clients/cli_mono" {
+			t.Errorf("Location = %q, want /v1/clients/cli_mono", loc)
 		}
 		var updated client.Client
 		_ = json.NewDecoder(w.Body).Decode(&updated)
@@ -106,7 +109,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 
 	t.Run("409 Conflict si ya es RI", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"RI","effectiveDate":"2026-10-14"}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -118,7 +121,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 
 	t.Run("422 si to no es RI o fecha inválida", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"to":"OTHER","effectiveDate":"2026-10-14"}`)
-		req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body)
+		req := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -128,7 +131,7 @@ func TestRegimeChangeHandler(t *testing.T) {
 		}
 
 		body2 := bytes.NewBufferString(`{"to":"RI","effectiveDate":"invalid-date"}`)
-		req2 := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_mono/regime-change", body2)
+		req2 := httptest.NewRequest("POST", "/v1/clients/cli_mono/regime-changes", body2)
 		req2.Header.Set("X-Demo-User", "accountant")
 		w2 := httptest.NewRecorder()
 		handler.ServeHTTP(w2, req2)
@@ -165,7 +168,7 @@ func TestUpdateRIProfileHandler(t *testing.T) {
 				{"period": "2026-10", "amount": {"amount": 15000000, "currency": "ARS"}, "dueDate": "2026-11-15T00:00:00Z"}
 			]
 		}`)
-		req := httptest.NewRequest("PUT", "/api/v1/accountant/clients/cli_ri/ri-profile", body)
+		req := httptest.NewRequest("PUT", "/v1/clients/cli_ri/ri-profile", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -177,7 +180,7 @@ func TestUpdateRIProfileHandler(t *testing.T) {
 
 	t.Run("403 Forbidden si no es contador", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"selfEmployedMonthlyContribution": {"amount": 5000000, "currency": "ARS"}}`)
-		req := httptest.NewRequest("PUT", "/api/v1/accountant/clients/cli_ri/ri-profile", body)
+		req := httptest.NewRequest("PUT", "/v1/clients/cli_ri/ri-profile", body)
 		req.Header.Set("X-Demo-User", "client:cli_mono")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -189,7 +192,7 @@ func TestUpdateRIProfileHandler(t *testing.T) {
 
 	t.Run("404 Not Found si cliente no existe", func(t *testing.T) {
 		body := bytes.NewBufferString(`{"selfEmployedMonthlyContribution": {"amount": 5000000, "currency": "ARS"}}`)
-		req := httptest.NewRequest("PUT", "/api/v1/accountant/clients/cli_none/ri-profile", body)
+		req := httptest.NewRequest("PUT", "/v1/clients/cli_none/ri-profile", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -203,7 +206,7 @@ func TestUpdateRIProfileHandler(t *testing.T) {
 		body := bytes.NewBufferString(`{
 			"selfEmployedMonthlyContribution": {"amount": -100, "currency": "ARS"}
 		}`)
-		req := httptest.NewRequest("PUT", "/api/v1/accountant/clients/cli_ri/ri-profile", body)
+		req := httptest.NewRequest("PUT", "/v1/clients/cli_ri/ri-profile", body)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -215,7 +218,7 @@ func TestUpdateRIProfileHandler(t *testing.T) {
 		body2 := bytes.NewBufferString(`{
 			"incomeTaxAdvances": [{"period": "invalid-period", "amount": {"amount": 100, "currency": "ARS"}}]
 		}`)
-		req2 := httptest.NewRequest("PUT", "/api/v1/accountant/clients/cli_ri/ri-profile", body2)
+		req2 := httptest.NewRequest("PUT", "/v1/clients/cli_ri/ri-profile", body2)
 		req2.Header.Set("X-Demo-User", "accountant")
 		w2 := httptest.NewRecorder()
 		handler.ServeHTTP(w2, req2)

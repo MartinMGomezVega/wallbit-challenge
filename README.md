@@ -29,11 +29,12 @@ El día 1 de cada mes, la herramienta arma sola el cierre de cada cliente y lo m
 ## Cómo correrlo
 
 > [!IMPORTANT]
-> El prototipo corre con fecha simulada al 05/11/2026 (APP_NOW). El cierre de
-> octubre 2026 ya está generado y estamos en el período de revisión del contador.
-> Para usar la fecha real del sistema, iniciá con APP_NOW=.
+> El prototipo vive en un "hoy" fijo: **05/11/2026** (`APP_NOW`). Así la demo muestra
+> siempre el mismo momento: el cierre de octubre recién armado, septiembre ya cerrado y
+> los vencimientos de noviembre por delante. Se puede cambiar con la variable `APP_NOW`
+> (vacía = reloj real).
 
-**Con Docker (recomendado).** Solo necesitás Docker.
+**Con Docker (recomendado).**
 
 ```bash
 git clone https://github.com/MartinMGomezVega/wallbit-challenge.git
@@ -44,11 +45,11 @@ docker compose up --build
 | Qué | Dónde |
 |---|---|
 | App completa | http://localhost:5173 |
-| API | http://localhost:8080/api/v1 |
+| API | http://localhost:8080/v1 |
 | Swagger local | http://localhost:8080/docs |
 | Swagger publicado | https://martinmgomezvega.github.io/wallbit-challenge/ |
 
-En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes (mockeados)** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. La "fecha de hoy" del prototipo está fijada en el 5/11/2026 para que siempre se vea lo mismo. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
+En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 clientes (mockeados)** con 13 meses de movimientos y facturas (datos inventados y determinísticos) y se corre el cierre de **octubre 2026**. Los arranques siguientes reutilizan los datos. Para empezar de cero: `make reset-db`.
 
 <details>
 <summary><b>Sin Docker para la app, tests y variables</b></summary>
@@ -97,10 +98,7 @@ make lint
 
 Lo dimensioné así: con 500 clientes, si el 70% sale verde y se revisa en ~2 minutos, y el 30% necesita ~10, son unas **37 horas por mes**. Entra en una semana de trabajo del contador.
 
-### Por qué reglas y no IA para clasificar
-Las reglas son **explicables**: cada movimiento muestra qué regla lo clasificó, por ejemplo "Empresa del exterior → ingreso", y el contador puede auditarlas y corregirlas. Además respetan que **los datos no salgan de Wallbit**, porque no se mandan a un modelo externo. Cubren el caso típico (cobros de empresas del exterior, transferencias propias, gastos con tarjeta, conversiones a stablecoins). Lo dudoso queda "sin clasificar" y aparece en amarillo: prefiero pedirle 10 segundos al contador antes que adivinar un número impositivo.
-
-### El semáforo
+### Funcionamiento del semáforo
 - 🔴 **Requiere acción:** excede el tope de la categoría K, facturas C después de la exclusión, cobros sin factura, depósitos por encima del tope.
 - 🟡 **Revisar:** cerca del tope K o de su categoría, debe recategorizar, cobro fuera de lo habitual, movimientos sin clasificar, cobros declarados fuera de Wallbit, facturas sin cobro, gastos con tarjeta altos, puede bajar de categoría.
 - 🟢 **Todo ok:** no requiere cambios.
@@ -131,10 +129,10 @@ Vive dentro de la app de Wallbit. Así la pensé:
 3. **Espera:** "Tu contador está revisando tu cierre".
 4. **Con la firma:** "Facturaste US$ X. Pagás $ Y antes del 20/11", con "Ya pagué" y un recordatorio antes del vencimiento.
 
-Email y push nunca llevan montos ni CUIT, y nada impositivo sale sin la firma del contador. En el prototipo, esta experiencia es la API `/api/v1/me/**` (se puede probar desde Swagger), y el contador ve en el modal el aviso exacto que recibe el cliente. A futuro, la factura se emite desde Wallbit y el paso 2 desaparece. Para la demo, el switch **Cliente (demo)** muestra esta experiencia con 5 clientes de ejemplo.
+Email y push nunca llevan montos ni CUIT, y nada impositivo sale sin la firma del contador. En el prototipo, esta experiencia es la API `/v1/clients/{clientId}/**` (se puede probar desde Swagger), y el contador ve en el modal el aviso exacto que recibe el cliente. A futuro, la factura se emite desde Wallbit y el paso 2 desaparece. Para la demo, el switch **Cliente (demo)** muestra esta experiencia con 5 clientes de ejemplo.
 
 ### Monotributo y Responsable Inscripto
-Incluí RI porque **es a donde va el freelancer que crece**: si factura más que el tope de la categoría K, queda excluido del Monotributo desde ese día. La herramienta calcula el acumulado de 12 meses día por día y detecta **la fecha exacta** en que se cruzó el tope. Esa fecha importa: desde ahí debería haber facturado como RI. El contador confirma el pase y la herramienta empieza a calcular IVA, autónomos y anticipos.
+Incluí RI porque si facturás más que el tope de la categoría K, quedás excluido del Monotributo desde ese día. La herramienta calcula el acumulado de 12 meses día por día y detecta **la fecha exacta** en que se cruzó el tope. Esa fecha es clave: desde ahí debería haber facturado como RI. El contador confirma el pase y la herramienta empieza a calcular IVA, autónomos y anticipos.
 
 ### Decisiones que son del contador, no mías
 Algunas cosas las fuentes no las resuelven igual, o dependen del criterio profesional. Esas quedaron como **parámetros editables**:
@@ -232,6 +230,7 @@ frontend/src/
     ├── closings-dashboard/   tablero, filtros, chips, aprobación en lote
     ├── closing-review/       modal con cola Anterior / Siguiente
     ├── summary-dashboard/    Resumen del cierre
+    ├── client-demo/          vista demo del cliente (check-in y resumen validado)
     └── parameters/           parámetros del contador
 ```
 
@@ -239,24 +238,64 @@ TanStack Query y TanStack Table, React Router (con el estado en la URL), Tailwin
 
 ### Estados del cierre
 
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "Esperando al cliente<br/><small>PENDING_CLIENT_INPUT</small>" as PENDING
+    state "Para revisar<br/><small>READY_FOR_REVIEW</small>" as READY
+    state "Aprobado<br/><small>APPROVED</small>" as APPROVED
+    state "Notificado<br/><small>NOTIFIED</small>" as NOTIFIED
+
+    [*] --> PENDING: 1. Día 1
+    PENDING --> READY: 2. Confirma
+    PENDING --> APPROVED: 3. Aprueba igual
+    READY --> APPROVED: 4. Aprueba
+    APPROVED --> NOTIFIED: 5. Publica y avisa
+    NOTIFIED --> READY: 6. Cambian los datos
+    APPROVED --> READY: 6. Cambian los datos
+
+    classDef pending fill:#F5F5F5,stroke:#A3A3A3,color:#171717
+    classDef ready fill:#E6F4FF,stroke:#006FC0,color:#005FA8
+    classDef approved fill:#F0F9FF,stroke:#0369A1,color:#0369A1
+    classDef notified fill:#ECFDF5,stroke:#059669,color:#047857
+    class PENDING pending
+    class READY ready
+    class APPROVED approved
+    class NOTIFIED notified
 ```
-PENDING_CLIENT_INPUT ──cliente confirma──► READY_FOR_REVIEW ──contador aprueba──► APPROVED ──aviso──► NOTIFIED
-          └──────────── el contador puede aprobar igual ─────────────┘        ▲                       │
-                                                         cambio de datos ─────┴───────────────────────┘
-```
+
+| # | Transición | Quién la dispara |
+|---|---|---|
+| 1 | El job del día 1 arma el cierre. Si el cliente ya había confirmado, nace directo en *Para revisar*. | El sistema |
+| 2 | "Ya cargué todo": facturas subidas y cobros externos declarados. | El cliente, o el contador en su nombre (con nota de cómo se lo confirmó) |
+| 3 | El contador puede aprobar sin la confirmación del cliente, pero uno por uno y con aviso. Nunca en lote. | El contador |
+| 4 | Aprobación individual, o en lote si el cierre es verde. | El contador |
+| 5 | Se publica el resumen y se encola el aviso en la **misma transacción** que la aprobación, así que *Aprobado* dura un instante. | El sistema |
+| 6 | Si cambia un dato (factura nueva, reclasificación), el cierre vuelve a *Para revisar* con **versión nueva**. La aprobación anterior queda en el historial y el cliente sigue viendo lo publicado hasta la nueva firma. | El sistema |
+
+Tres reglas que no se ven en el diagrama:
+- **Recalcular no siempre cambia el estado.** En *Esperando* o *Para revisar*, cada cambio de datos o de parámetros recalcula el cierre y genera una versión nueva, sin moverlo de estado. Cambiar parámetros nunca toca un cierre aprobado.
+- **Aprobar exige ver la última versión.** Si el cierre cambió mientras el contador lo miraba, la aprobación se rechaza y se le pide refrescar.
+- **"Ya pagué" no es un estado.** Es una marca (`paidAt`) sobre un cierre notificado. Así el estado cuenta en qué etapa está el cierre y el pago se mide aparte.
 
 ---
 
 ## API
 
-La documentación completa está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (requiere habilitar Pages una vez en *Settings → Pages → Source: GitHub Actions* en repo público o plan pago). En GitHub Pages es solo documentación; para probar los endpoints usá `http://localhost:8080/docs`. El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml) y un test verifica que cada ruta del router esté documentada.
+La documentación está en **[Swagger](https://martinmgomezvega.github.io/wallbit-challenge/)** (solo lectura). Para probar los endpoints, usá el Swagger local: `http://localhost:8080/docs`. El contrato vive en [`backend/api/openapi.yaml`](backend/api/openapi.yaml), y un test verifica que cada ruta del router esté documentada.
 
-Identidad de demo por header: `X-Demo-User: accountant` o `X-Demo-User: client:<clientId>`.
+Base: `http://localhost:8080/v1`. Diseño REST por recursos: el rol lo decide la identidad, no la URL. En la demo, la identidad va en el header `X-Demo-User`: `accountant` accede a todo y `client:<clientId>` solo a sus propios recursos.
 
-| Para | Endpoints principales |
+| Recurso | Endpoints |
 |---|---|
-| Contador | `GET /accountant/periods/{period}/closings` (+ `/summary`, `/ids`, `/stats`) · `GET /accountant/closings/{id}` · `POST .../approve` · `POST .../approve-batch` · `PATCH /accountant/movements/{id}/classification` · `POST /accountant/clients/{id}/regime-change` · `GET/PUT /accountant/parameters` · `POST /accountant/clients/{id}/invoices/import` · `POST .../periods/{period}/confirm-input` |
-| Cliente | `GET /me/closings` · `POST /me/invoices/import` · `PUT /me/periods/{period}/external-income` · `POST /me/periods/{period}/confirm` · `POST /me/closings/{id}/paid` · `GET /me/notifications` |
+| Períodos y cierres | `GET /v1/periods` · `POST /v1/periods/{period}/closing-runs` · `GET /v1/periods/{period}/closings` (+ `/summary`, `/ids`) · `GET /v1/periods/{period}/stats` · `GET /v1/closings/{closingId}` |
+| Aprobaciones y pagos | `POST /v1/closings/{closingId}/approvals` · `POST /v1/periods/{period}/approvals` (lote) · `PUT /v1/closings/{closingId}/payment` |
+| Clientes | `GET /v1/clients/{clientId}` · `GET /v1/clients/{clientId}/closings` · `POST /v1/clients/{clientId}/regime-changes` · `PUT /v1/clients/{clientId}/ri-profile` |
+| Facturas e inputs del período | `GET·POST /v1/clients/{clientId}/invoices` · `POST /v1/clients/{clientId}/invoice-imports` · `POST /v1/clients/{clientId}/purchase-invoices` · `PUT /v1/clients/{clientId}/periods/{period}/external-income` · `POST /v1/clients/{clientId}/periods/{period}/confirmation` |
+| Movimientos | `PUT /v1/movements/{movementId}/classification` |
+| Notificaciones | `GET /v1/clients/{clientId}/notifications` · `PATCH /v1/clients/{clientId}/notifications/{notificationId}` |
+| Configuración y sistema | `GET·PUT /v1/parameters` · `GET /v1/signal-types` · `POST /v1/reminder-runs` · `GET /health` · `GET /v1/openapi.yaml` |
 
 ---
 
@@ -337,28 +376,11 @@ Ingresos Brutos (varía por provincia), declaraciones juradas anuales, notas de 
 
 ---
 
-## Calidad
-
-- Tests unitarios con **coverage ≥ 90%** en backend y frontend (`make coverage` falla por debajo). Último resultado: backend 90.2% · frontend 97.0%.
-- Backend: tests table-driven del dominio, `httptest` para los handlers, `-race` para el cierre concurrente, un benchmark del cálculo de Monotributo y un test end-to-end que verifica que cada cliente de demo cae en su situación.
-- Integración: los repositorios Postgres pasan las mismas suites de contrato que los de memoria, más tests de transacciones y de concurrencia optimista.
-- Frontend: Vitest + Testing Library + MSW, fixtures reales de todas las formas del detalle y de las respuestas de los endpoints que modifican datos validados con Zod (`make fixtures`), y `vitest-axe` para accesibilidad en las pantallas principales.
-
----
-
-## Si tuviera las 6 semanas
-
-| Semana | Foco |
-|---|---|
-| 1 | Movimientos reales y reglas de clasificación calibradas con el contador; escalas y vencimientos reales. |
-| 2 | Carga de facturas y conciliación; piloto interno con 20 clientes. |
-| 3 | Liquidación de Monotributo, señales, tablero y modal de revisión. |
-| 4 | RI y transición; aprobación auditada; avisos in-app y por email. |
-| 5 | Piloto con 100 clientes reales; ajustar umbrales; medir con el Resumen. |
-| 6 | Base gestionada, backups, observabilidad y lanzamiento. |
-
----
-
 ## Cómo trabajé
 
-Trabajé con **Spec-Driven Development**: antes de escribir código, escribí las specs en [`specs/`](specs/). Ahí está el contexto del dominio, la arquitectura, las guías de UI y una carpeta por feature con `spec.md`, `plan.md` y `tasks.md`. Usé **Claude** para investigar la normativa 2026 y escribir las specs conmigo, y **Gemini en Google Antigravity** para implementarlas tarea por tarea. Las decisiones de producto, la revisión del código y los tests son míos.
+Apliqué **Spec-Driven Development (SDD)**: antes de escribir código, documenté en [`specs/`](specs/) el contexto del dominio, la arquitectura y las guías de UI. Luego estructuré cada feature en su propia carpeta con tres artefactos:
+- `spec.md`: especificaciones funcionales y reglas de negocio.
+- `plan.md`: decisiones técnicas, de producto y diseño de la solución.
+- `tasks.md`: plan de implementación desglosado paso a paso.
+
+Separar especificaciones, plan y tareas por feature me permitió tener control total sobre el alcance, los tests y el comportamiento de la herramienta antes de pasar al código. Me apoyé en **Claude** para investigar la normativa 2026 y redactar las specs, y en **Gemini (Google Antigravity)** para ejecutar la implementación tarea por tarea. Las decisiones de producto, el diseño de arquitectura, la revisión de código y los tests son míos.

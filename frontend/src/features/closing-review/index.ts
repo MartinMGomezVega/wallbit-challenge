@@ -15,5 +15,5 @@ export * from './sections/HistorySection';
 export * from './import/ImportInvoicesDialog';
 export * from './import/ImportResultView';
 export * from './import/useImportInvoices';
-export * from './confirm/ConfirmOnBehalfForm';
+export * from './confirmation/ConfirmOnBehalfForm';
 

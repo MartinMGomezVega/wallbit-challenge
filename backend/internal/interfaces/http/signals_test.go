@@ -16,7 +16,7 @@ func TestSignalsCatalogEndpoint(t *testing.T) {
 	handler := NewRouter(Deps{Clock: clk})
 
 	t.Run("403 Forbidden si no es contador", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/accountant/signals/catalog", nil)
+		req := httptest.NewRequest("GET", "/v1/signal-types", nil)
 		req.Header.Set("X-Demo-User", "client:cli_1")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
@@ -27,7 +27,7 @@ func TestSignalsCatalogEndpoint(t *testing.T) {
 	})
 
 	t.Run("200 OK devuelve los 13 ítems del catálogo", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/accountant/signals/catalog", nil)
+		req := httptest.NewRequest("GET", "/v1/signal-types", nil)
 		req.Header.Set("X-Demo-User", "accountant")
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)

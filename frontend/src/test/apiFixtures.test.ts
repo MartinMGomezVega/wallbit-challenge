@@ -24,35 +24,35 @@ import {
   MarkPaidResponseSchema,
 } from '../features/client-demo/schemas';
 
-import closingsFixture from './fixtures/api/closings.json';
-import closingsSummaryFixture from './fixtures/api/closings_summary.json';
-import closingsIdsFixture from './fixtures/api/closings_ids.json';
-import closingDetailFixture from './fixtures/api/closing_detail.json';
-import closingDetailMonoFixture from './fixtures/api/closing_detail_mono.json';
-import closingDetailMonoExcludedFixture from './fixtures/api/closing_detail_mono_excluded.json';
-import closingDetailRIFixture from './fixtures/api/closing_detail_ri.json';
-import closingDetailNotifiedFixture from './fixtures/api/closing_detail_notified.json';
-import closingDetailPendingInputFixture from './fixtures/api/closing_detail_pending_input.json';
-import closingDetailReopenedFixture from './fixtures/api/closing_detail_reopened.json';
-import statsFixture from './fixtures/api/stats.json';
-import signalsCatalogFixture from './fixtures/api/signals_catalog.json';
-import parametersFixture from './fixtures/api/parameters.json';
-import approveResponseFixture from './fixtures/api/approve_response.json';
-import approveBatchResponseFixture from './fixtures/api/approve_batch_response.json';
-import regimeChangeResponseFixture from './fixtures/api/regime_change_response.json';
-import invoicesImportClientResponseFixture from './fixtures/api/invoices_import_client_response.json';
-import invoicesImportAccountantResponseFixture from './fixtures/api/invoices_import_accountant_response.json';
-import confirmInputResponseFixture from './fixtures/api/confirm_input_response.json';
-import meProfileFixture from './fixtures/api/me_profile.json';
-import meClosingsActionRequiredFixture from './fixtures/api/me_closings_action_required.json';
-import meClosingsInReviewFixture from './fixtures/api/me_closings_in_review.json';
-import meClosingsReadyMonoFixture from './fixtures/api/me_closings_ready_mono.json';
-import meClosingsReadyRIFixture from './fixtures/api/me_closings_ready_ri.json';
-import meInvoicesFixture from './fixtures/api/me_invoices.json';
-import meInvoicesPostResponseFixture from './fixtures/api/me_invoices_post_response.json';
-import meExternalIncomeResponseFixture from './fixtures/api/me_external_income_response.json';
-import meConfirmResponseFixture from './fixtures/api/me_confirm_response.json';
-import mePaidResponseFixture from './fixtures/api/me_paid_response.json';
+import closingsFixture from './fixtures/v1/closings.json';
+import closingsSummaryFixture from './fixtures/v1/closings_summary.json';
+import closingsIdsFixture from './fixtures/v1/closings_ids.json';
+import closingDetailFixture from './fixtures/v1/closing_detail.json';
+import closingDetailMonoFixture from './fixtures/v1/closing_detail_mono.json';
+import closingDetailMonoExcludedFixture from './fixtures/v1/closing_detail_mono_excluded.json';
+import closingDetailRIFixture from './fixtures/v1/closing_detail_ri.json';
+import closingDetailNotifiedFixture from './fixtures/v1/closing_detail_notified.json';
+import closingDetailPendingInputFixture from './fixtures/v1/closing_detail_pending_input.json';
+import closingDetailReopenedFixture from './fixtures/v1/closing_detail_reopened.json';
+import statsFixture from './fixtures/v1/stats.json';
+import signalsCatalogFixture from './fixtures/v1/signals_catalog.json';
+import parametersFixture from './fixtures/v1/parameters.json';
+import approveResponseFixture from './fixtures/v1/approve_response.json';
+import approveBatchResponseFixture from './fixtures/v1/approve_batch_response.json';
+import regimeChangeResponseFixture from './fixtures/v1/regime_change_response.json';
+import invoicesImportClientResponseFixture from './fixtures/v1/invoices_import_client_response.json';
+import invoicesImportAccountantResponseFixture from './fixtures/v1/invoices_import_accountant_response.json';
+import confirmInputResponseFixture from './fixtures/v1/confirm_input_response.json';
+import meProfileFixture from './fixtures/v1/me_profile.json';
+import meClosingsActionRequiredFixture from './fixtures/v1/me_closings_action_required.json';
+import meClosingsInReviewFixture from './fixtures/v1/me_closings_in_review.json';
+import meClosingsReadyMonoFixture from './fixtures/v1/me_closings_ready_mono.json';
+import meClosingsReadyRIFixture from './fixtures/v1/me_closings_ready_ri.json';
+import meInvoicesFixture from './fixtures/v1/me_invoices.json';
+import meInvoicesPostResponseFixture from './fixtures/v1/me_invoices_post_response.json';
+import meExternalIncomeResponseFixture from './fixtures/v1/me_external_income_response.json';
+import meConfirmResponseFixture from './fixtures/v1/me_confirm_response.json';
+import mePaidResponseFixture from './fixtures/v1/me_paid_response.json';
 
 describe('API contract fixtures (backend -> Zod)', () => {
   it('valida closings.json con ClosingsListResponseSchema', () => {

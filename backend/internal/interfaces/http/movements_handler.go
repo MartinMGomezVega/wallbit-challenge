@@ -46,11 +46,7 @@ type movementsHandler struct {
 }
 
 func (h *movementsHandler) overrideClassification(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ID de movimiento requerido", nil)
-		return
-	}
+	id := r.PathValue("movementId")
 
 	var req overrideClassificationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

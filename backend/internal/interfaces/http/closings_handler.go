@@ -15,6 +15,7 @@ import (
 )
 
 type closingsHandler struct {
+	closingRepo       ports.ClosingRepository
 	closingQuery      ports.ClosingQuery
 	runClosingUC      *usecase.RunMonthlyClosing
 	listClosingsUC    *usecase.ListClosings
@@ -28,7 +29,7 @@ type closingsHandler struct {
 	clock             ports.Clock
 }
 
-// periods maneja GET /api/v1/accountant/periods
+// periods maneja GET /v1/periods
 func (h *closingsHandler) periods(w http.ResponseWriter, r *http.Request) {
 	if h.closingQuery == nil {
 		writeJSON(w, http.StatusOK, map[string][]string{"periods": {}})
@@ -125,7 +126,7 @@ func parseClosingFilter(r *http.Request) (closing.Filter, closing.Sort, int, int
 	return filter, s, page, pageSize
 }
 
-// run maneja POST /api/v1/accountant/periods/{period}/run
+// run maneja POST /v1/periods/{period}/closing-runs
 func (h *closingsHandler) run(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -140,10 +141,11 @@ func (h *closingsHandler) run(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, summary)
+	w.Header().Set("Location", "/v1/periods/"+p.String()+"/closings")
+	writeJSON(w, http.StatusCreated, summary)
 }
 
-// list maneja GET /api/v1/accountant/periods/{period}/closings
+// list maneja GET /v1/periods/{period}/closings
 func (h *closingsHandler) list(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -169,7 +171,7 @@ func (h *closingsHandler) list(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
-// ids maneja GET /api/v1/accountant/periods/{period}/closings/ids (spec 009 criterio 1).
+// ids maneja GET /v1/periods/{period}/closings/ids (spec 009 criterio 1).
 func (h *closingsHandler) ids(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -193,7 +195,7 @@ func (h *closingsHandler) ids(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
-// summary maneja GET /api/v1/accountant/periods/{period}/closings/summary
+// summary maneja GET /v1/periods/{period}/closings/summary
 func (h *closingsHandler) summary(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -213,7 +215,7 @@ func (h *closingsHandler) summary(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, sum)
 }
 
-// stats maneja GET /api/v1/accountant/periods/{period}/stats
+// stats maneja GET /v1/periods/{period}/stats
 func (h *closingsHandler) stats(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -231,12 +233,23 @@ func (h *closingsHandler) stats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
-// detail maneja GET /api/v1/accountant/closings/{id}
+// detail maneja GET /v1/closings/{closingId}
 func (h *closingsHandler) detail(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ID de cierre requerido", nil)
-		return
+	id := r.PathValue("closingId")
+
+	ident, _ := FromContext(r.Context())
+	if ident.Role == RoleClient {
+		if h.closingRepo != nil {
+			c, err := h.closingRepo.Get(r.Context(), id)
+			if err != nil {
+				writeError(w, err)
+				return
+			}
+			if c.ClientID != ident.ClientID {
+				writeErrorCode(w, http.StatusForbidden, "FORBIDDEN", "No tenés permiso para este recurso", nil)
+				return
+			}
+		}
 	}
 
 	det, err := h.getDetailUC.Execute(r.Context(), id)
@@ -258,13 +271,9 @@ type approveResponse struct {
 	Warning string `json:"warning,omitempty"`
 }
 
-// approve maneja POST /api/v1/accountant/closings/{id}/approve (spec 010 criterio 1 y 2).
+// approve maneja POST /v1/closings/{closingId}/approvals (spec 010 criterio 1 y 2).
 func (h *closingsHandler) approve(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	if id == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ID de cierre requerido", nil)
-		return
-	}
+	id := r.PathValue("closingId")
 
 	var req approveRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -289,13 +298,14 @@ func (h *closingsHandler) approve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, approveResponse{
+	w.Header().Set("Location", "/v1/closings/"+id)
+	writeJSON(w, http.StatusCreated, approveResponse{
 		ClosingDetailDTO: det,
 		Warning:          res.Warning,
 	})
 }
 
-// approveBatch maneja POST /api/v1/accountant/periods/{period}/closings/approve-batch (spec 010 criterio 3).
+// approveBatch maneja POST /v1/periods/{period}/approvals (spec 010 criterio 3).
 func (h *closingsHandler) approveBatch(w http.ResponseWriter, r *http.Request) {
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -319,7 +329,7 @@ func (h *closingsHandler) approveBatch(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
-// runReminders maneja POST /api/v1/accountant/reminders/run (spec 010 criterio 11).
+// runReminders maneja POST /v1/reminder-runs (spec 010 criterio 11).
 func (h *closingsHandler) runReminders(w http.ResponseWriter, r *http.Request) {
 	now := h.clock.Now()
 	count, err := h.sendRemindersUC.Execute(r.Context(), now)
@@ -328,5 +338,5 @@ func (h *closingsHandler) runReminders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]int{"reminded": count})
+	writeJSON(w, http.StatusCreated, map[string]int{"reminded": count})
 }

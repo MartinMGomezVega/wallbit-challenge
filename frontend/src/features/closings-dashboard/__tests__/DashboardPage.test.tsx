@@ -114,7 +114,7 @@ describe('DashboardPage', () => {
 
   it('muestra estado vacío cuando no hay cierres con los filtros aplicados y permite limpiar filtros', async () => {
     server.use(
-      http.get('/api/v1/accountant/periods/:period/closings', () => {
+      http.get('/v1/periods/:period/closings', () => {
         return HttpResponse.json({
           items: [],
           total: 0,
@@ -138,7 +138,7 @@ describe('DashboardPage', () => {
 
   it('muestra mensaje de error con botón de reintentar si la API falla', async () => {
     server.use(
-      http.get('/api/v1/accountant/periods/:period/closings', () => {
+      http.get('/v1/periods/:period/closings', () => {
         return new HttpResponse(null, { status: 500 });
       })
     );

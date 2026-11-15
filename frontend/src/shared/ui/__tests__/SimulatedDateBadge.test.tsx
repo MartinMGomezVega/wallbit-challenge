@@ -21,7 +21,7 @@ function renderWithClient(ui: React.ReactElement) {
 describe('SimulatedDateBadge', () => {
   it('muestra la fecha fija de /health con "fecha simulada"', async () => {
     server.use(
-      http.get('/api/v1/health', () =>
+      http.get('/health', () =>
         HttpResponse.json({ status: 'ok', now: '2026-11-05T09:00:00-03:00' })
       )
     );
@@ -40,7 +40,7 @@ describe('SimulatedDateBadge', () => {
     const todayFormatted = formatDate(localDateStr, 'full');
 
     server.use(
-      http.get('/api/v1/health', () =>
+      http.get('/health', () =>
         HttpResponse.json({ status: 'ok', now: localDateStr })
       )
     );
@@ -57,7 +57,7 @@ describe('SimulatedDateBadge', () => {
   it('el tooltip se activa y es accesible por foco de teclado', async () => {
     const user = userEvent.setup();
     server.use(
-      http.get('/api/v1/health', () =>
+      http.get('/health', () =>
         HttpResponse.json({ status: 'ok', now: '2026-11-05T09:00:00-03:00' })
       )
     );

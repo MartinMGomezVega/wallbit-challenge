@@ -3,7 +3,7 @@ import { ClientInvoice } from '../schemas';
 import { InvoiceFormDialog } from './InvoiceFormDialog';
 import { importClientInvoicesCSV } from '../api';
 import { ImportResult } from '../schemas';
-import { ApiError } from '../../../shared/api/http';
+import { ApiError } from '../../../shared/http/http';
 
 interface InvoicesStepProps {
   clientId: string;

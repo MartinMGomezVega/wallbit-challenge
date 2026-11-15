@@ -12,37 +12,37 @@ describe('apiFetch', () => {
 
   it('realiza una petición exitosa y parsea con zod', async () => {
     server.use(
-      http.get('/api/v1/test', ({ request }) => {
+      http.get('/v1/test', ({ request }) => {
         expect(request.headers.get('X-Demo-User')).toBe('accountant');
         return HttpResponse.json({ status: 'ok', count: 42 });
       }),
     );
 
-    const res = await apiFetch('/api/v1/test', schema);
+    const res = await apiFetch('/v1/test', schema);
     expect(res).toEqual({ status: 'ok', count: 42 });
   });
 
   it('usa client:<id> cuando se pasa la opción as', async () => {
     server.use(
-      http.get('/api/v1/test-client-as', ({ request }) => {
+      http.get('/v1/test-client-as', ({ request }) => {
         expect(request.headers.get('X-Demo-User')).toBe('client:cli_demo_15');
         return HttpResponse.json({ status: 'ok', count: 10 });
       }),
     );
 
-    const res = await apiFetch('/api/v1/test-client-as', schema, {}, { as: 'cli_demo_15' });
+    const res = await apiFetch('/v1/test-client-as', schema, {}, { as: 'cli_demo_15' });
     expect(res).toEqual({ status: 'ok', count: 10 });
   });
 
   it('agrega Content-Type application/json automáticamente si hay body string sin header', async () => {
     server.use(
-      http.post('/api/v1/test-body', async ({ request }) => {
+      http.post('/v1/test-body', async ({ request }) => {
         expect(request.headers.get('Content-Type')).toBe('application/json');
         return HttpResponse.json({ status: 'ok' });
       }),
     );
 
-    const res = await apiFetch('/api/v1/test-body', schema, {
+    const res = await apiFetch('/v1/test-body', schema, {
       method: 'POST',
       body: '{"foo":"bar"}',
     });
@@ -51,13 +51,13 @@ describe('apiFetch', () => {
 
   it('respeta Content-Type explícito si se provee', async () => {
     server.use(
-      http.post('/api/v1/test-custom-ct', async ({ request }) => {
+      http.post('/v1/test-custom-ct', async ({ request }) => {
         expect(request.headers.get('Content-Type')).toBe('text/plain');
         return HttpResponse.json({ status: 'ok' });
       }),
     );
 
-    const res = await apiFetch('/api/v1/test-custom-ct', schema, {
+    const res = await apiFetch('/v1/test-custom-ct', schema, {
       method: 'POST',
       body: 'plain text',
       headers: { 'Content-Type': 'text/plain' },
@@ -67,7 +67,7 @@ describe('apiFetch', () => {
 
   it('maneja errores estándar de la API con código y campos', async () => {
     server.use(
-      http.post('/api/v1/test-err', () => {
+      http.post('/v1/test-err', () => {
         return HttpResponse.json(
           {
             error: {
@@ -81,7 +81,7 @@ describe('apiFetch', () => {
       }),
     );
 
-    await expect(apiFetch('/api/v1/test-err', schema, jsonBody('POST', {}))).rejects.toSatisfy(
+    await expect(apiFetch('/v1/test-err', schema, jsonBody('POST', {}))).rejects.toSatisfy(
       (err: unknown) => {
         return (
           err instanceof ApiError &&
@@ -96,36 +96,36 @@ describe('apiFetch', () => {
 
   it('maneja error HTTP sin payload estructurado', async () => {
     server.use(
-      http.get('/api/v1/test-500', () => {
+      http.get('/v1/test-500', () => {
         return new HttpResponse('Error no JSON', { status: 500 });
       }),
     );
 
-    await expect(apiFetch('/api/v1/test-500', schema)).rejects.toSatisfy(
+    await expect(apiFetch('/v1/test-500', schema)).rejects.toSatisfy(
       (err: unknown) => err instanceof ApiError && err.status === 500 && err.code === 'HTTP_ERROR',
     );
   });
 
   it('maneja esquema de respuesta inválido (INVALID_RESPONSE)', async () => {
     server.use(
-      http.get('/api/v1/test-bad-schema', () => {
+      http.get('/v1/test-bad-schema', () => {
         return HttpResponse.json({ status: 123 }); // esperaba string
       }),
     );
 
-    await expect(apiFetch('/api/v1/test-bad-schema', schema)).rejects.toSatisfy(
+    await expect(apiFetch('/v1/test-bad-schema', schema)).rejects.toSatisfy(
       (err: unknown) => err instanceof ApiError && err.code === 'INVALID_RESPONSE',
     );
   });
 
   it('maneja error de red (NETWORK_ERROR)', async () => {
     server.use(
-      http.get('/api/v1/test-network', () => {
+      http.get('/v1/test-network', () => {
         return HttpResponse.error();
       }),
     );
 
-    await expect(apiFetch('/api/v1/test-network', schema)).rejects.toSatisfy(
+    await expect(apiFetch('/v1/test-network', schema)).rejects.toSatisfy(
       (err: unknown) => err instanceof ApiError && err.code === 'NETWORK_ERROR',
     );
   });

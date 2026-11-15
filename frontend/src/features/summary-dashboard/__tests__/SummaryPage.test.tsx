@@ -142,7 +142,7 @@ describe('SummaryPage', () => {
 
   it('muestra estado vacío cuando no hay cierres en el período', async () => {
     server.use(
-      http.get('/api/v1/accountant/periods/:period/stats', ({ params }) => {
+      http.get('/v1/periods/:period/stats', ({ params }) => {
         return HttpResponse.json({
           period: String(params.period),
           progress: {
@@ -180,7 +180,7 @@ describe('SummaryPage', () => {
     const user = userEvent.setup();
     let shouldFail = true;
     server.use(
-      http.get('/api/v1/accountant/periods/:period/stats', () => {
+      http.get('/v1/periods/:period/stats', () => {
         if (shouldFail) {
           return HttpResponse.json(
             { error: { code: 'INTERNAL_ERROR', message: 'Fallo temporal' } },

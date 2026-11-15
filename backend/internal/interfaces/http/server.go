@@ -60,9 +60,14 @@ func (rt *router) accountant(pattern string, h http.HandlerFunc) {
 	rt.mux.Handle(pattern, RequireAccountant(h))
 }
 
-func (rt *router) client(pattern string, h http.HandlerFunc) {
+func (rt *router) clientResource(pattern string, h http.HandlerFunc) {
 	rt.routes = append(rt.routes, pattern)
-	rt.mux.Handle(pattern, RequireClient(h))
+	rt.mux.Handle(pattern, RequireClientResource(h))
+}
+
+func (rt *router) authenticated(pattern string, h http.HandlerFunc) {
+	rt.routes = append(rt.routes, pattern)
+	rt.mux.Handle(pattern, RequireAuthenticated(h))
 }
 
 // Routes devuelve las rutas registradas en el router de producción.
@@ -88,11 +93,11 @@ func newRouter(deps Deps) *router {
 	}
 	rt := &router{mux: http.NewServeMux(), deps: deps}
 
-	rt.public("GET /api/v1/health", rt.health)
-	rt.mux.HandleFunc("GET /api/openapi.yaml", serveOpenAPI)
+	rt.public("GET /health", rt.health)
+	rt.public("GET /v1/openapi.yaml", serveOpenAPI)
 	rt.mux.HandleFunc("GET /docs", serveDocs)
 	rt.mux.HandleFunc("GET /favicon.svg", serveFavicon)
-	rt.accountant("GET /api/v1/accountant/signals/catalog", signalsCatalog)
+	rt.accountant("GET /v1/signal-types", signalsCatalog)
 
 	var computeClosing *usecase.ComputeClosing
 	if deps.ClientRepo != nil && deps.MovementRepo != nil && deps.ClassificationRepo != nil &&
@@ -133,8 +138,8 @@ func newRouter(deps Deps) *router {
 				RecalcPeriod: recalcPeriod,
 			},
 		}
-		rt.accountant("GET /api/v1/accountant/parameters", paramH.get)
-		rt.accountant("PUT /api/v1/accountant/parameters", paramH.update)
+		rt.accountant("GET /v1/parameters", paramH.get)
+		rt.accountant("PUT /v1/parameters", paramH.update)
 	}
 
 	if deps.ClosingRepo != nil && deps.ClientRepo != nil {
@@ -197,6 +202,7 @@ func newRouter(deps Deps) *router {
 		}
 
 		closH := &closingsHandler{
+			closingRepo:  deps.ClosingRepo,
 			closingQuery: deps.ClosingQuery,
 			runClosingUC: &usecase.RunMonthlyClosing{
 				Clients:       deps.ClientRepo,
@@ -231,23 +237,23 @@ func newRouter(deps Deps) *router {
 			sendRemindersUC: sendRemindersUC,
 			clock:           deps.Clock,
 		}
-		rt.accountant("GET /api/v1/accountant/periods", closH.periods)
-		rt.accountant("POST /api/v1/accountant/periods/{period}/run", closH.run)
-		rt.accountant("GET /api/v1/accountant/periods/{period}/closings/ids", closH.ids)
-		rt.accountant("GET /api/v1/accountant/periods/{period}/closings", closH.list)
-		rt.accountant("GET /api/v1/accountant/periods/{period}/closings/summary", closH.summary)
+		rt.accountant("GET /v1/periods", closH.periods)
+		rt.accountant("POST /v1/periods/{period}/closing-runs", closH.run)
+		rt.accountant("GET /v1/periods/{period}/closings/ids", closH.ids)
+		rt.accountant("GET /v1/periods/{period}/closings", closH.list)
+		rt.accountant("GET /v1/periods/{period}/closings/summary", closH.summary)
 		if deps.StatsQuery != nil {
-			rt.accountant("GET /api/v1/accountant/periods/{period}/stats", closH.stats)
+			rt.accountant("GET /v1/periods/{period}/stats", closH.stats)
 		}
-		rt.accountant("GET /api/v1/accountant/closings/{id}", closH.detail)
+		rt.authenticated("GET /v1/closings/{closingId}", closH.detail)
 		if approveUC != nil {
-			rt.accountant("POST /api/v1/accountant/closings/{id}/approve", closH.approve)
+			rt.accountant("POST /v1/closings/{closingId}/approvals", closH.approve)
 		}
 		if approveBatchUC != nil {
-			rt.accountant("POST /api/v1/accountant/periods/{period}/closings/approve-batch", closH.approveBatch)
+			rt.accountant("POST /v1/periods/{period}/approvals", closH.approveBatch)
 		}
 		if sendRemindersUC != nil {
-			rt.accountant("POST /api/v1/accountant/reminders/run", closH.runReminders)
+			rt.accountant("POST /v1/reminder-runs", closH.runReminders)
 		}
 	}
 
@@ -260,7 +266,7 @@ func newRouter(deps Deps) *router {
 				Notifier:        deps.ChangeNotifier,
 			},
 		}
-		rt.accountant("PATCH /api/v1/accountant/movements/{id}/classification", movH.overrideClassification)
+		rt.accountant("PUT /v1/movements/{movementId}/classification", movH.overrideClassification)
 	}
 
 	if deps.InvoiceRepo != nil && deps.ClientRepo != nil {
@@ -307,15 +313,12 @@ func newRouter(deps Deps) *router {
 			},
 		}
 
-		rt.client("POST /api/v1/me/invoices/import", invH.importCSV)
-		rt.client("POST /api/v1/me/invoices", invH.createInvoice)
-		rt.client("GET /api/v1/me/invoices", invH.listMeInvoices)
-		rt.accountant("GET /api/v1/accountant/clients/{id}/invoices", invH.listClientInvoicesAccountant)
-		rt.accountant("POST /api/v1/accountant/clients/{id}/invoices/import", invH.importCSVAccountant)
-		rt.accountant("POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input", invH.confirmInputAccountant)
-		rt.client("POST /api/v1/me/purchase-invoices", invH.createPurchaseInvoice)
-		rt.client("PUT /api/v1/me/periods/{period}/external-income", invH.setExternalIncome)
-		rt.client("POST /api/v1/me/periods/{period}/confirm", invH.confirmPeriod)
+		rt.clientResource("POST /v1/clients/{clientId}/invoice-imports", invH.importCSV)
+		rt.clientResource("POST /v1/clients/{clientId}/invoices", invH.createInvoice)
+		rt.clientResource("GET /v1/clients/{clientId}/invoices", invH.listClientInvoices)
+		rt.clientResource("POST /v1/clients/{clientId}/purchase-invoices", invH.createPurchaseInvoice)
+		rt.clientResource("PUT /v1/clients/{clientId}/periods/{period}/external-income", invH.setExternalIncome)
+		rt.clientResource("POST /v1/clients/{clientId}/periods/{period}/confirmation", invH.confirmPeriodInput)
 	}
 
 	if deps.ClientRepo != nil {
@@ -333,8 +336,8 @@ func newRouter(deps Deps) *router {
 				Notifier: deps.ChangeNotifier,
 			},
 		}
-		rt.accountant("POST /api/v1/accountant/clients/{id}/regime-change", regimeH.changeRegime)
-		rt.accountant("PUT /api/v1/accountant/clients/{id}/ri-profile", regimeH.updateRIProfile)
+		rt.accountant("POST /v1/clients/{clientId}/regime-changes", regimeH.changeRegime)
+		rt.accountant("PUT /v1/clients/{clientId}/ri-profile", regimeH.updateRIProfile)
 
 		cliH := &clientHandler{
 			getMeUC: &usecase.GetMe{Clients: deps.ClientRepo},
@@ -362,22 +365,22 @@ func newRouter(deps Deps) *router {
 			}
 		}
 
-		rt.client("GET /api/v1/me", cliH.getMe)
+		rt.clientResource("GET /v1/clients/{clientId}", cliH.getMe)
 		if cliH.listMyClosingsUC != nil {
-			rt.client("GET /api/v1/me/closings", cliH.listMyClosings)
+			rt.clientResource("GET /v1/clients/{clientId}/closings", cliH.listMyClosings)
 		}
 		if cliH.markClosingPaidUC != nil {
-			rt.client("POST /api/v1/me/closings/{id}/paid", cliH.markPaid)
+			rt.authenticated("PUT /v1/closings/{closingId}/payment", cliH.markPaid)
 		}
 		if cliH.listMyNotificationsUC != nil {
-			rt.client("GET /api/v1/me/notifications", cliH.listNotifications)
+			rt.clientResource("GET /v1/clients/{clientId}/notifications", cliH.listNotifications)
 		}
 		if cliH.markNotificationReadUC != nil {
-			rt.client("POST /api/v1/me/notifications/{id}/read", cliH.markNotificationRead)
+			rt.clientResource("PATCH /v1/clients/{clientId}/notifications/{notificationId}", cliH.markNotificationRead)
 		}
 	}
 
-	rt.mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+	rt.mux.HandleFunc("/v1/", func(w http.ResponseWriter, r *http.Request) {
 		writeErrorCode(w, http.StatusNotFound, "NOT_FOUND", "Ruta inexistente", nil)
 	})
 

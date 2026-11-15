@@ -142,7 +142,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		NotificationSender:        &fakes.NotificationSender{},
 	})
 
-	outDir := filepath.Join("..", "..", "..", "..", "frontend", "src", "test", "fixtures", "api")
+	outDir := filepath.Join("..", "..", "..", "..", "frontend", "src", "test", "fixtures", "v1")
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		t.Fatalf("mkdir fixtures: %v", err)
 	}
@@ -215,12 +215,12 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		return buf.Bytes()
 	}
 
-	closingsBytes := writeFixture("closings.json", "/api/v1/accountant/periods/2026-10/closings?page=1&pageSize=50")
-	writeFixture("closings_summary.json", "/api/v1/accountant/periods/2026-10/closings/summary")
-	writeFixture("closings_ids.json", "/api/v1/accountant/periods/2026-10/closings/ids")
-	writeFixture("stats.json", "/api/v1/accountant/periods/2026-10/stats")
-	writeFixture("signals_catalog.json", "/api/v1/accountant/signals/catalog")
-	writeFixture("parameters.json", "/api/v1/accountant/parameters")
+	closingsBytes := writeFixture("closings.json", "/v1/periods/2026-10/closings?page=1&pageSize=50")
+	writeFixture("closings_summary.json", "/v1/periods/2026-10/closings/summary")
+	writeFixture("closings_ids.json", "/v1/periods/2026-10/closings/ids")
+	writeFixture("stats.json", "/v1/periods/2026-10/stats")
+	writeFixture("signals_catalog.json", "/v1/signal-types")
+	writeFixture("parameters.json", "/v1/parameters")
 
 	getClosing := func(clientID string, per period.Period) closing.Closing {
 		c, found, err := closingRepo.ByClientPeriod(ctx, clientID, per)
@@ -232,26 +232,26 @@ func TestWriteFrontendFixtures(t *testing.T) {
 
 	// 1. Monotributo estándar (cli_demo_01)
 	cloMono := getClosing("cli_demo_01", p)
-	monoBytes := writeFixture("closing_detail_mono.json", "/api/v1/accountant/closings/"+cloMono.ID)
+	monoBytes := writeFixture("closing_detail_mono.json", "/v1/closings/"+cloMono.ID)
 	if err := os.WriteFile(filepath.Join(outDir, "closing_detail.json"), monoBytes, 0o644); err != nil {
 		t.Fatalf("write closing_detail.json: %v", err)
 	}
 
 	// 2. Monotributo con exclusión (cli_demo_02 - Ignacio Sosa)
 	cloExcl := getClosing("cli_demo_02", p)
-	writeFixture("closing_detail_mono_excluded.json", "/api/v1/accountant/closings/"+cloExcl.ID)
+	writeFixture("closing_detail_mono_excluded.json", "/v1/closings/"+cloExcl.ID)
 
 	// 3. Responsable Inscripto (cli_demo_09 - Camila Torres)
 	cloRI := getClosing("cli_demo_09", p)
-	writeFixture("closing_detail_ri.json", "/api/v1/accountant/closings/"+cloRI.ID)
+	writeFixture("closing_detail_ri.json", "/v1/closings/"+cloRI.ID)
 
 	// 4. Pendiente de confirmación del cliente (cli_demo_15 - Paula Rojas)
 	cloPending := getClosing("cli_demo_15", p)
-	writeFixture("closing_detail_pending_input.json", "/api/v1/accountant/closings/"+cloPending.ID)
+	writeFixture("closing_detail_pending_input.json", "/v1/closings/"+cloPending.ID)
 
 	// 5. Cierre notificado de septiembre 2026 (cli_demo_01)
 	cloNotified := getClosing("cli_demo_01", pSep)
-	writeFixture("closing_detail_notified.json", "/api/v1/accountant/closings/"+cloNotified.ID)
+	writeFixture("closing_detail_notified.json", "/v1/closings/"+cloNotified.ID)
 
 	// 6. Cierre reabierto v2 con aprobaciones previas (cli_demo_05)
 	cloReopen := getClosing("cli_demo_05", p)
@@ -268,14 +268,14 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	if err := closingRepo.Save(ctx, cloReopen); err != nil {
 		t.Fatalf("save reopened closing: %v", err)
 	}
-	writeFixture("closing_detail_reopened.json", "/api/v1/accountant/closings/"+cloReopen.ID)
+	writeFixture("closing_detail_reopened.json", "/v1/closings/"+cloReopen.ID)
 
 	// 7. Endpoint de escritura: approve_response.json (cli_demo_04)
 	cloApprove := getClosing("cli_demo_04", p)
 	approveBody, _ := json.Marshal(map[string]any{
 		"version": cloApprove.Version,
 	})
-	writePostFixture("approve_response.json", "/api/v1/accountant/closings/"+cloApprove.ID+"/approve", "accountant", bytes.NewReader(approveBody), "application/json")
+	writePostFixture("approve_response.json", "/v1/closings/"+cloApprove.ID+"/approvals", "accountant", bytes.NewReader(approveBody), "application/json")
 
 	// 8. Endpoint de escritura: approve_batch_response.json (2 cierres verdes)
 	var green1, green2 closing.Closing
@@ -302,7 +302,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 			{"id": green2.ID, "version": green2.Version},
 		},
 	})
-	writePostFixture("approve_batch_response.json", "/api/v1/accountant/periods/2026-10/closings/approve-batch", "accountant", bytes.NewReader(batchReqBody), "application/json")
+	writePostFixture("approve_batch_response.json", "/v1/periods/2026-10/approvals", "accountant", bytes.NewReader(batchReqBody), "application/json")
 
 	// 9. Endpoint de escritura: regime_change_response.json (cli_demo_02 - Ignacio Sosa)
 	latestExcl, _ := closingRepo.LatestExclusionDate(ctx, "cli_demo_02")
@@ -316,7 +316,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		"force":         true,
 		"note":          "Pase a Responsable Inscripto por superar límite de facturación",
 	})
-	writePostFixture("regime_change_response.json", "/api/v1/accountant/clients/cli_demo_02/regime-change", "accountant", bytes.NewReader(regimeReqBody), "application/json")
+	writePostFixture("regime_change_response.json", "/v1/clients/cli_demo_02/regime-changes", "accountant", bytes.NewReader(regimeReqBody), "application/json")
 
 	// 10. Endpoint de escritura: invoices_import_client_response.json (cli_demo_03)
 	csvContent := "Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total\n12/10/2026,19 - Factura E,00001,00000099,00000099,74392819289901,80,DE329182391,Brightloop GmbH,1482.15,USD,850.00,0.00,0.00,0.00,850.00\n"
@@ -325,7 +325,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	part, _ := mpWriter.CreateFormFile("file", "mis_comprobantes.csv")
 	_, _ = part.Write([]byte(csvContent))
 	_ = mpWriter.Close()
-	writePostFixture("invoices_import_client_response.json", "/api/v1/me/invoices/import", "client:cli_demo_03", bodyBuf, mpWriter.FormDataContentType())
+	writePostFixture("invoices_import_client_response.json", "/v1/clients/cli_demo_03/invoice-imports", "client:cli_demo_03", bodyBuf, mpWriter.FormDataContentType())
 
 	// 11. Endpoint de escritura: invoices_import_accountant_response.json (cli_demo_03)
 	csvAccContent := "Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total\n14/10/2026,19 - Factura E,00001,00000098,00000098,74392819289902,80,DE329182392,NextGen AI Inc,1482.15,USD,1200.00,0.00,0.00,0.00,1200.00\n"
@@ -334,15 +334,15 @@ func TestWriteFrontendFixtures(t *testing.T) {
 	partAcc, _ := mpAccWriter.CreateFormFile("file", "mis_comprobantes_acc.csv")
 	_, _ = partAcc.Write([]byte(csvAccContent))
 	_ = mpAccWriter.Close()
-	writePostFixture("invoices_import_accountant_response.json", "/api/v1/accountant/clients/cli_demo_03/invoices/import", "accountant", bodyAccBuf, mpAccWriter.FormDataContentType())
+	writePostFixture("invoices_import_accountant_response.json", "/v1/clients/cli_demo_03/invoice-imports", "accountant", bodyAccBuf, mpAccWriter.FormDataContentType())
 
-	// 12. Client portal fixtures (/api/v1/me/**)
-	writeFixtureWithUser("me_profile.json", "/api/v1/me", "client:cli_demo_15")
-	writeFixtureWithUser("me_closings_action_required.json", "/api/v1/me/closings", "client:cli_demo_15")
-	writeFixtureWithUser("me_closings_in_review.json", "/api/v1/me/closings", "client:cli_demo_02")
-	writeFixtureWithUser("me_closings_ready_mono.json", "/api/v1/me/closings", "client:cli_demo_01")
-	writeFixtureWithUser("me_closings_ready_ri.json", "/api/v1/me/closings", "client:cli_demo_09")
-	writeFixtureWithUser("me_invoices.json", "/api/v1/me/invoices?period=2026-10", "client:cli_demo_01")
+	// 12. Client portal fixtures (/v1/clients/{clientId}/**)
+	writeFixtureWithUser("me_profile.json", "/v1/clients/cli_demo_15", "client:cli_demo_15")
+	writeFixtureWithUser("me_closings_action_required.json", "/v1/clients/cli_demo_15/closings", "client:cli_demo_15")
+	writeFixtureWithUser("me_closings_in_review.json", "/v1/clients/cli_demo_02/closings", "client:cli_demo_02")
+	writeFixtureWithUser("me_closings_ready_mono.json", "/v1/clients/cli_demo_01/closings", "client:cli_demo_01")
+	writeFixtureWithUser("me_closings_ready_ri.json", "/v1/clients/cli_demo_09/closings", "client:cli_demo_09")
+	writeFixtureWithUser("me_invoices.json", "/v1/clients/cli_demo_01/invoices?period=2026-10", "client:cli_demo_01")
 
 	invBody, _ := json.Marshal(map[string]any{
 		"type":         "E",
@@ -357,7 +357,7 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		"receiverName": "Global Corp LLC",
 		"receiverDoc":  "US12345678",
 	})
-	writePostFixture("me_invoices_post_response.json", "/api/v1/me/invoices", "client:cli_demo_15", bytes.NewReader(invBody), "application/json")
+	writePostFixture("me_invoices_post_response.json", "/v1/clients/cli_demo_15/invoices", "client:cli_demo_15", bytes.NewReader(invBody), "application/json")
 
 	extIncomeBody, _ := json.Marshal(map[string]any{
 		"items": []map[string]any{
@@ -368,9 +368,9 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		},
 		"none": false,
 	})
-	writePutFixture("me_external_income_response.json", "/api/v1/me/periods/2026-10/external-income", "client:cli_demo_15", bytes.NewReader(extIncomeBody), "application/json")
+	writePutFixture("me_external_income_response.json", "/v1/clients/cli_demo_15/periods/2026-10/external-income", "client:cli_demo_15", bytes.NewReader(extIncomeBody), "application/json")
 
-	writePostFixture("me_confirm_response.json", "/api/v1/me/periods/2026-10/confirm", "client:cli_demo_15", nil, "")
+	writePostFixture("me_confirm_response.json", "/v1/clients/cli_demo_15/periods/2026-10/confirmation", "client:cli_demo_15", nil, "")
 
 	// Reset Paula's input so accountant can confirm on behalf
 	inputPaula, _ := inputRepo.Get(ctx, "cli_demo_15", p)
@@ -384,9 +384,9 @@ func TestWriteFrontendFixtures(t *testing.T) {
 		},
 		"note": "Me lo confirmó por mail el 06/11",
 	})
-	writePostFixture("confirm_input_response.json", "/api/v1/accountant/clients/cli_demo_15/periods/2026-10/confirm-input", "accountant", bytes.NewReader(confirmBody), "application/json")
+	writePostFixture("confirm_input_response.json", "/v1/clients/cli_demo_15/periods/2026-10/confirmation", "accountant", bytes.NewReader(confirmBody), "application/json")
 
-	writePostFixture("me_paid_response.json", "/api/v1/me/closings/"+cloMono.ID+"/paid", "client:cli_demo_01", nil, "")
+	writePutFixture("me_paid_response.json", "/v1/closings/"+cloMono.ID+"/payment", "client:cli_demo_01", nil, "")
 
 	_ = closingsBytes
 }

@@ -15,7 +15,7 @@ Función de dominio pura que, a partir de la liquidación, la conciliación, las
    - Señales `MONO_*`, `DEPOSITS_EXCEED_K_CAP`, `HIGH_CARD_SPENDING` solo si `Regime == MONOTRIBUTO`; `POST_EXCLUSION_C_INVOICES` solo si RI.
 5. Sin señales ⇒ `GREEN` con descripción del template verde según régimen.
 6. Descripción = `Primary.Message`. Formatos es-AR exactos de `domain-context.md §8` (test con strings exactos, ej. `"2 cobros por US$ 4.200,00 sin factura asociada."`).
-7. `signal.Catalog()` expone códigos, severidad, prioridad y una etiqueta corta para filtros (ej. `MISSING_INVOICES → "Faltan facturas"`). Endpoint `GET /api/v1/accountant/signals/catalog` la devuelve (lo usa el front para filtros).
+7. `signal.Catalog()` expone códigos, severidad, prioridad y una etiqueta corta para filtros (ej. `MISSING_INVOICES → "Faltan facturas"`). Endpoint `GET /v1/signal-types` la devuelve (lo usa el front para filtros).
 
 ## Etiquetas cortas (filtros)
 | Code | Label |

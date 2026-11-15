@@ -134,7 +134,7 @@ func (uc *MarkClosingPaid) Execute(ctx context.Context, closingID, clientID stri
 	}
 
 	// 1. Verificación de propiedad (403)
-	if c.ClientID != clientID {
+	if clientID != "" && c.ClientID != clientID {
 		return closing.Closing{}, domain.ErrForbidden
 	}
 

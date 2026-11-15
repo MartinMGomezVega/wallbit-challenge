@@ -7,6 +7,6 @@
 - [x] **T003.5** `domain/clientinput` + tests.
 - [x] **T003.6** `domain/reconciliation` `Reconcile` + `KnownPayers`. Tests del criterio 16.
 - [x] **T003.7** Ports + repos en memoria (Invoice, PurchaseInvoice, ClientInput). Tests de concurrencia.
-- [x] **T003.8** Use cases + handlers (`/me/invoices`, `/me/invoices/import`, `/me/purchase-invoices`, `/me/periods/{period}/external-income`, `/me/periods/{period}/confirm`, `/accountant/clients/{id}/invoices`). Tests httptest: éxito, 403, 409, 422, idempotencia del import.
+- [x] **T003.8** Use cases + handlers (`/v1/clients/{clientId}/invoices`, `/v1/clients/{clientId}/invoice-imports`, `/v1/clients/{clientId}/purchase-invoices`, `/v1/clients/{clientId}/periods/{period}/external-income`, `/v1/clients/{clientId}/periods/{period}/confirmation`). Tests httptest: éxito, 403, 409, 422, idempotencia del import.
 - [x] **T003.9** Seed: facturas, facturas de compra e inputs (criterio 18) + facturas de los 15 demos.
 - [x] **T003.10** Copiar CSV de ejemplo a `frontend/public/samples/`. `make coverage` ≥ 90%.

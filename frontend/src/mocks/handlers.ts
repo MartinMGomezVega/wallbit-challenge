@@ -1,14 +1,14 @@
 import { http, HttpResponse } from 'msw';
 import { SignalCatalogItem } from '../features/closings-dashboard/schemas';
-import meProfileFixture from '../test/fixtures/api/me_profile.json';
-import meClosingsActionRequiredFixture from '../test/fixtures/api/me_closings_action_required.json';
-import meClosingsInReviewFixture from '../test/fixtures/api/me_closings_in_review.json';
-import meClosingsReadyMonoFixture from '../test/fixtures/api/me_closings_ready_mono.json';
-import meClosingsReadyRIFixture from '../test/fixtures/api/me_closings_ready_ri.json';
-import meInvoicesFixture from '../test/fixtures/api/me_invoices.json';
-import meInvoicesPostResponseFixture from '../test/fixtures/api/me_invoices_post_response.json';
-import meExternalIncomeResponseFixture from '../test/fixtures/api/me_external_income_response.json';
-import meConfirmResponseFixture from '../test/fixtures/api/me_confirm_response.json';
+import meProfileFixture from '../test/fixtures/v1/me_profile.json';
+import meClosingsActionRequiredFixture from '../test/fixtures/v1/me_closings_action_required.json';
+import meClosingsInReviewFixture from '../test/fixtures/v1/me_closings_in_review.json';
+import meClosingsReadyMonoFixture from '../test/fixtures/v1/me_closings_ready_mono.json';
+import meClosingsReadyRIFixture from '../test/fixtures/v1/me_closings_ready_ri.json';
+import meInvoicesFixture from '../test/fixtures/v1/me_invoices.json';
+import meInvoicesPostResponseFixture from '../test/fixtures/v1/me_invoices_post_response.json';
+import meExternalIncomeResponseFixture from '../test/fixtures/v1/me_external_income_response.json';
+import meConfirmResponseFixture from '../test/fixtures/v1/me_confirm_response.json';
 
 export interface MockClosingRow {
   closingId: string;
@@ -259,19 +259,19 @@ export const mockClosings: MockClosingRow[] = [
 const mockPaidClosings = new Set<string>();
 
 export const handlers = [
-  http.get('/api/v1/health', () =>
+  http.get('/health', () =>
     HttpResponse.json({ status: 'ok', now: '2026-11-05T09:00:00-03:00' })
   ),
 
-  http.get('/api/v1/accountant/periods', () =>
+  http.get('/v1/periods', () =>
     HttpResponse.json({ periods: ['2026-10', '2026-09'] })
   ),
 
-  http.get('/api/v1/accountant/signals/catalog', () =>
+  http.get('/v1/signal-types', () =>
     HttpResponse.json(mockCatalog)
   ),
 
-  http.get('/api/v1/accountant/periods/:period/closings/summary', ({ request }) => {
+  http.get('/v1/periods/:period/closings/summary', ({ request }) => {
     const url = new URL(request.url);
     const regime = url.searchParams.get('regime');
     const q = url.searchParams.get('q')?.toLowerCase();
@@ -311,7 +311,7 @@ export const handlers = [
     });
   }),
 
-  http.get('/api/v1/accountant/periods/:period/closings', ({ request }) => {
+  http.get('/v1/periods/:period/closings', ({ request }) => {
     const url = new URL(request.url);
     const severityParam = url.searchParams.get('severity');
     const signalParam = url.searchParams.get('signal');
@@ -405,13 +405,13 @@ export const handlers = [
     });
   }),
 
-  // GET /api/v1/accountant/parameters
-  http.get('/api/v1/accountant/parameters', () => {
+  // GET /v1/parameters
+  http.get('/v1/parameters', () => {
     return HttpResponse.json(mockParameters);
   }),
 
-  // PUT /api/v1/accountant/parameters
-  http.put('/api/v1/accountant/parameters', async ({ request }) => {
+  // PUT /v1/parameters
+  http.put('/v1/parameters', async ({ request }) => {
     const body = (await request.json()) as typeof mockParameters;
     if (body.atypicalWindowMonths <= 0) {
       return HttpResponse.json(
@@ -437,8 +437,8 @@ export const handlers = [
     });
   }),
 
-  // GET /api/v1/accountant/periods/:period/closings/ids
-  http.get('/api/v1/accountant/periods/:period/closings/ids', ({ request }) => {
+  // GET /v1/periods/:period/closings/ids
+  http.get('/v1/periods/:period/closings/ids', ({ request }) => {
     const url = new URL(request.url);
     const severityParam = url.searchParams.get('severity');
     const signalParam = url.searchParams.get('signal');
@@ -521,8 +521,8 @@ export const handlers = [
     });
   }),
 
-  // GET /api/v1/accountant/closings/:id
-  http.get('/api/v1/accountant/closings/:id', ({ params }) => {
+  // GET /v1/closings/:id
+  http.get('/v1/closings/:id', ({ params }) => {
     const id = params.id as string;
     const defaultRow = mockClosings[0]!;
     const row = mockClosings.find((c) => c.closingId === id) || defaultRow;
@@ -722,8 +722,8 @@ export const handlers = [
     });
   }),
 
-  // PATCH /api/v1/accountant/movements/:id/classification
-  http.patch('/api/v1/accountant/movements/:id/classification', async ({ params, request }) => {
+  // PUT /v1/movements/:id/classification
+  http.put('/v1/movements/:id/classification', async ({ params, request }) => {
     const id = params.id as string;
     const body = (await request.json()) as { nature: 'INCOME' | 'OTHER'; comment?: string };
 
@@ -739,8 +739,8 @@ export const handlers = [
     });
   }),
 
-  // POST /api/v1/accountant/clients/:id/regime-change
-  http.post('/api/v1/accountant/clients/:id/regime-change', async ({ params, request }) => {
+  // POST /v1/clients/:id/regime-changes
+  http.post('/v1/clients/:id/regime-changes', async ({ params, request }) => {
     const id = params.id as string;
     const body = (await request.json()) as { to: string; effectiveDate: string };
 
@@ -751,11 +751,11 @@ export const handlers = [
       regime: body.to,
       effectiveDate: body.effectiveDate,
       updatedAt: new Date().toISOString(),
-    });
+    }, { status: 201 });
   }),
 
-  // POST /api/v1/accountant/closings/:id/approve
-  http.post('/api/v1/accountant/closings/:id/approve', async ({ params, request }) => {
+  // POST /v1/closings/:id/approvals
+  http.post('/v1/closings/:id/approvals', async ({ params, request }) => {
     const id = params.id as string;
     const body = (await request.json()) as { version: number; clientNote?: string };
 
@@ -876,8 +876,8 @@ export const handlers = [
     });
   }),
 
-  // POST /api/v1/accountant/periods/:period/closings/approve-batch
-  http.post('/api/v1/accountant/periods/:period/closings/approve-batch', async ({ request }) => {
+  // POST /v1/periods/:period/approvals
+  http.post('/v1/periods/:period/approvals', async ({ request }) => {
     const body = (await request.json()) as { items: Array<{ id: string; version: number }> };
     const items = body.items || [];
 
@@ -901,8 +901,8 @@ export const handlers = [
     });
   }),
 
-  // GET /api/v1/accountant/periods/:period/stats
-  http.get('/api/v1/accountant/periods/:period/stats', ({ params }) => {
+  // GET /v1/periods/:period/stats
+  http.get('/v1/periods/:period/stats', ({ params }) => {
     const period = String(params.period ?? '2026-10');
     return HttpResponse.json({
       period,
@@ -966,8 +966,8 @@ export const handlers = [
     });
   }),
 
-  // Client Portal Demo (/api/v1/me/**)
-  http.get('/api/v1/me', ({ request }) => {
+  // Client Portal Demo (/v1/clients/{clientId}/**)
+  http.get('/v1/clients/:id', ({ request }) => {
     const user = request.headers.get('X-Demo-User') ?? '';
     if (user.includes('cli_demo_01')) {
       return HttpResponse.json({
@@ -1007,7 +1007,7 @@ export const handlers = [
     return HttpResponse.json(meProfileFixture);
   }),
 
-  http.get('/api/v1/me/closings', ({ request }) => {
+  http.get('/v1/clients/:id/closings', ({ request }) => {
     const user = request.headers.get('X-Demo-User') ?? '';
     const applyPaid = <T extends { closingId: string; paidAt?: string | null }>(items: T[]): T[] =>
       items.map(c =>
@@ -1028,27 +1028,27 @@ export const handlers = [
     return HttpResponse.json(applyPaid(meClosingsActionRequiredFixture));
   }),
 
-  http.get('/api/v1/me/invoices', () => {
+  http.get('/v1/clients/:id/invoices', () => {
     return HttpResponse.json(meInvoicesFixture);
   }),
 
-  http.post('/api/v1/me/invoices', () => {
+  http.post('/v1/clients/:id/invoices', () => {
     return HttpResponse.json(meInvoicesPostResponseFixture, { status: 201 });
   }),
 
-  http.post('/api/v1/me/invoices/import', () => {
-    return HttpResponse.json({ imported: 2, skippedDuplicates: 0 });
+  http.post('/v1/clients/:id/invoice-imports', () => {
+    return HttpResponse.json({ imported: 2, skippedDuplicates: 0 }, { status: 201 });
   }),
 
-  http.put('/api/v1/me/periods/:period/external-income', () => {
+  http.put('/v1/clients/:id/periods/:period/external-income', () => {
     return HttpResponse.json(meExternalIncomeResponseFixture);
   }),
 
-  http.post('/api/v1/me/periods/:period/confirm', () => {
-    return HttpResponse.json(meConfirmResponseFixture);
+  http.post('/v1/clients/:id/periods/:period/confirmation', () => {
+    return HttpResponse.json(meConfirmResponseFixture, { status: 201 });
   }),
 
-  http.post('/api/v1/me/closings/:id/paid', ({ params }) => {
+  http.put('/v1/closings/:id/payment', ({ params }) => {
     const id = params.id as string;
     if (id) mockPaidClosings.add(id);
     return HttpResponse.json({ closingId: id, paidAt: '2026-11-05T09:00:00-03:00' });

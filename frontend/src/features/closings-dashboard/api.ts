@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { apiFetch } from '../../shared/api/http';
+import { apiFetch } from '../../shared/http/http';
 import {
   ClosingsListResponse,
   ClosingsListResponseSchema,
@@ -21,7 +21,7 @@ export async function listClosings(
   ).toString();
 
   const qs = search ? `?${search}` : '';
-  return apiFetch(`/api/v1/accountant/periods/${period}/closings${qs}`, ClosingsListResponseSchema);
+  return apiFetch(`/v1/periods/${period}/closings${qs}`, ClosingsListResponseSchema);
 }
 
 export async function getClosingsSummary(
@@ -36,17 +36,17 @@ export async function getClosingsSummary(
 
   const qs = search ? `?${search}` : '';
   return apiFetch(
-    `/api/v1/accountant/periods/${period}/closings/summary${qs}`,
+    `/v1/periods/${period}/closings/summary${qs}`,
     ClosingsSummaryResponseSchema
   );
 }
 
 export async function getSignalsCatalog(): Promise<SignalCatalogItem[]> {
-  return apiFetch('/api/v1/accountant/signals/catalog', z.array(SignalCatalogItemSchema));
+  return apiFetch('/v1/signal-types', z.array(SignalCatalogItemSchema));
 }
 
 export async function getPeriods(): Promise<string[]> {
-  const res = await apiFetch('/api/v1/accountant/periods', PeriodsResponseSchema);
+  const res = await apiFetch('/v1/periods', PeriodsResponseSchema);
   return res.periods;
 }
 

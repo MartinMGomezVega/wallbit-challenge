@@ -210,7 +210,7 @@ describe('ReviewModal', () => {
 
   it('muestra banner de conflicto 409 VERSION_CONFLICT y botón Ver cambios', async () => {
     server.use(
-      http.post('/api/v1/accountant/closings/:id/approve', () => {
+      http.post('/v1/closings/:id/approvals', () => {
         return HttpResponse.json(
           { error: { code: 'VERSION_CONFLICT', message: 'El cierre cambió mientras lo revisabas' } },
           { status: 409 }
@@ -282,7 +282,7 @@ describe('ReviewModal', () => {
 
   it('muestra banner de error general si falla con 500 y permite descartarlo', async () => {
     server.use(
-      http.post('/api/v1/accountant/closings/:id/approve', () => {
+      http.post('/v1/closings/:id/approvals', () => {
         return HttpResponse.json(
           { error: { code: 'INTERNAL', message: 'Error interno del servidor' } },
           { status: 500 }

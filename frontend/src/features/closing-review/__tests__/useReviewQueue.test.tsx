@@ -25,13 +25,13 @@ function createWrapper(initialUrl = '/contador?period=2026-10', onCloseQueue = v
 describe('useReviewQueue', () => {
   beforeEach(() => {
     server.use(
-      http.get('/api/v1/accountant/periods/:period/closings/ids', () => {
+      http.get('/v1/periods/:period/closings/ids', () => {
         return HttpResponse.json({
           ids: ['clo_01', 'clo_02', 'clo_03'],
           total: 3,
         });
       }),
-      http.get('/api/v1/accountant/closings/:id', () => {
+      http.get('/v1/closings/:id', () => {
         return HttpResponse.json({
           closing: {
             id: 'clo_01',

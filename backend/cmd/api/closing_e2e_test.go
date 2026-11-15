@@ -465,7 +465,7 @@ func TestAllClosingsDetail200(t *testing.T) {
 		}
 
 		for _, c := range closings {
-			req := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/accountant/closings/%s", c.ID), nil)
+			req := httptest.NewRequest("GET", fmt.Sprintf("/v1/closings/%s", c.ID), nil)
 			req.Header.Set("X-Demo-User", "accountant")
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, req)
@@ -528,14 +528,14 @@ func TestRegimeChangeExcludedDemoClient(t *testing.T) {
 	effDateStr := c2.Mono.ExclusionDate.Format("2006-01-02")
 
 	body := []byte(fmt.Sprintf(`{"to": "RI", "effectiveDate": "%s"}`, effDateStr))
-	req := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_demo_02/regime-change", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/v1/clients/cli_demo_02/regime-changes", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Demo-User", "accountant")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("POST regime-change devolvió %d: %s", rec.Code, rec.Body.String())
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("POST /v1/clients/{clientId}/regime-changes devolvió %d: %s", rec.Code, rec.Body.String())
 	}
 
 	// Cliente actualizado a RI
@@ -580,13 +580,13 @@ func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
 	_, _ = part.Write([]byte(csvContent))
 	_ = mpWriter.Close()
 
-	reqImport := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_demo_15/invoices/import", bodyBuf)
+	reqImport := httptest.NewRequest("POST", "/v1/clients/cli_demo_15/invoice-imports", bodyBuf)
 	reqImport.Header.Set("Content-Type", mpWriter.FormDataContentType())
 	reqImport.Header.Set("X-Demo-User", "accountant")
 	recImport := httptest.NewRecorder()
 	handler.ServeHTTP(recImport, reqImport)
 
-	if recImport.Code != http.StatusOK {
+	if recImport.Code != http.StatusCreated {
 		t.Fatalf("POST import invoices devolvió %d: %s", recImport.Code, recImport.Body.String())
 	}
 
@@ -604,14 +604,14 @@ func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
 
 	// 3. Confirmar en nombre del cliente ("No tuvo cobros fuera de Wallbit", nota obligatoria)
 	confirmBody := []byte(`{"externalIncome": {"none": true}, "note": "Confirmó por WhatsApp el 05/11 que no tuvo otros ingresos"}`)
-	reqConfirm := httptest.NewRequest("POST", "/api/v1/accountant/clients/cli_demo_15/periods/2026-10/confirm-input", bytes.NewReader(confirmBody))
+	reqConfirm := httptest.NewRequest("POST", "/v1/clients/cli_demo_15/periods/2026-10/confirmation", bytes.NewReader(confirmBody))
 	reqConfirm.Header.Set("Content-Type", "application/json")
 	reqConfirm.Header.Set("X-Demo-User", "accountant")
 	recConfirm := httptest.NewRecorder()
 	handler.ServeHTTP(recConfirm, reqConfirm)
 
-	if recConfirm.Code != http.StatusOK {
-		t.Fatalf("POST confirm-input devolvió %d: %s", recConfirm.Code, recConfirm.Body.String())
+	if recConfirm.Code != http.StatusCreated {
+		t.Fatalf("POST /v1/clients/{clientId}/periods/{period}/confirmation devolvió %d: %s", recConfirm.Code, recConfirm.Body.String())
 	}
 
 	// Cierre pasa a READY_FOR_REVIEW
@@ -624,7 +624,7 @@ func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
 	}
 
 	// 4. Detalle del cierre expone datos auditados
-	reqDet := httptest.NewRequest("GET", fmt.Sprintf("/api/v1/accountant/closings/%s", cAfterConfirm.ID), nil)
+	reqDet := httptest.NewRequest("GET", fmt.Sprintf("/v1/closings/%s", cAfterConfirm.ID), nil)
 	reqDet.Header.Set("X-Demo-User", "accountant")
 	recDet := httptest.NewRecorder()
 	handler.ServeHTTP(recDet, reqDet)
@@ -663,13 +663,13 @@ func TestPaulaRojasCompleteFlowE2E(t *testing.T) {
 
 	// 5. Aprobar cierre
 	approveBody := []byte(fmt.Sprintf(`{"version": %d, "clientNote": "Aprobado por el contador"}`, cAfterConfirm.Version))
-	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/accountant/closings/%s/approve", cAfterConfirm.ID), bytes.NewReader(approveBody))
+	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/v1/closings/%s/approvals", cAfterConfirm.ID), bytes.NewReader(approveBody))
 	reqApprove.Header.Set("Content-Type", "application/json")
 	reqApprove.Header.Set("X-Demo-User", "accountant")
 	recApprove := httptest.NewRecorder()
 	handler.ServeHTTP(recApprove, reqApprove)
 
-	if recApprove.Code != http.StatusOK {
+	if recApprove.Code != http.StatusCreated {
 		t.Fatalf("POST approve devolvió %d: %s", recApprove.Code, recApprove.Body.String())
 	}
 
@@ -697,13 +697,13 @@ func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
 	pOct := period.MustParse("2026-10")
 
 	// Paso 1: Cliente (Paula) verifica que su cierre inicial está en ACTION_REQUIRED
-	reqClosingsInit := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsInit := httptest.NewRequest("GET", "/v1/clients/cli_demo_15/closings", nil)
 	reqClosingsInit.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recClosingsInit := httptest.NewRecorder()
 	handler.ServeHTTP(recClosingsInit, reqClosingsInit)
 
 	if recClosingsInit.Code != http.StatusOK {
-		t.Fatalf("GET /me/closings inicial devolvió %d: %s", recClosingsInit.Code, recClosingsInit.Body.String())
+		t.Fatalf("GET /v1/clients/{clientId}/closings inicial devolvió %d: %s", recClosingsInit.Code, recClosingsInit.Body.String())
 	}
 	var closingsInit []struct {
 		ClosingID string `json:"closingId"`
@@ -721,10 +721,10 @@ func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
 		}
 	}
 	if paulaOctInitState != "ACTION_REQUIRED" {
-		t.Fatalf("estado inicial de Paula en /me/closings = %s, esperado ACTION_REQUIRED", paulaOctInitState)
+		t.Fatalf("estado inicial de Paula en /v1/clients/{clientId}/closings = %s, esperado ACTION_REQUIRED", paulaOctInitState)
 	}
 
-	// 1a. Paula carga un comprobante con "Alta de comprobante" (POST /me/invoices)
+	// 1a. Paula carga un comprobante con "Alta de comprobante" (POST /v1/clients/{clientId}/invoices)
 	invBody, _ := json.Marshal(map[string]any{
 		"type":         "E",
 		"pointOfSale":  1,
@@ -738,43 +738,43 @@ func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
 		"receiverName": "Brightloop GmbH",
 		"receiverDoc":  "DE329182391",
 	})
-	reqInv := httptest.NewRequest("POST", "/api/v1/me/invoices", bytes.NewReader(invBody))
+	reqInv := httptest.NewRequest("POST", "/v1/clients/cli_demo_15/invoices", bytes.NewReader(invBody))
 	reqInv.Header.Set("Content-Type", "application/json")
 	reqInv.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recInv := httptest.NewRecorder()
 	handler.ServeHTTP(recInv, reqInv)
 
 	if recInv.Code != http.StatusCreated {
-		t.Fatalf("POST /me/invoices devolvió %d: %s", recInv.Code, recInv.Body.String())
+		t.Fatalf("POST /v1/clients/{clientId}/invoices devolvió %d: %s", recInv.Code, recInv.Body.String())
 	}
 
-	// 1b. Paula responde "No" a cobros fuera de Wallbit (PUT /me/periods/2026-10/external-income)
+	// 1b. Paula responde "No" a cobros fuera de Wallbit (PUT /v1/clients/{clientId}/periods/2026-10/external-income)
 	extBody, _ := json.Marshal(map[string]any{
 		"items": []any{},
 		"none":  true,
 	})
-	reqExt := httptest.NewRequest("PUT", "/api/v1/me/periods/2026-10/external-income", bytes.NewReader(extBody))
+	reqExt := httptest.NewRequest("PUT", "/v1/clients/cli_demo_15/periods/2026-10/external-income", bytes.NewReader(extBody))
 	reqExt.Header.Set("Content-Type", "application/json")
 	reqExt.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recExt := httptest.NewRecorder()
 	handler.ServeHTTP(recExt, reqExt)
 
 	if recExt.Code != http.StatusOK {
-		t.Fatalf("PUT /me/periods/2026-10/external-income devolvió %d: %s", recExt.Code, recExt.Body.String())
+		t.Fatalf("PUT /v1/clients/{clientId}/periods/2026-10/external-income devolvió %d: %s", recExt.Code, recExt.Body.String())
 	}
 
-	// 1c. Paula confirma la carga con "Listo, ya cargué todo" (POST /me/periods/2026-10/confirm)
-	reqConf := httptest.NewRequest("POST", "/api/v1/me/periods/2026-10/confirm", nil)
+	// 1c. Paula confirma la carga con "Listo, ya cargué todo" (POST /v1/clients/{clientId}/periods/2026-10/confirmation)
+	reqConf := httptest.NewRequest("POST", "/v1/clients/cli_demo_15/periods/2026-10/confirmation", nil)
 	reqConf.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recConf := httptest.NewRecorder()
 	handler.ServeHTTP(recConf, reqConf)
 
-	if recConf.Code != http.StatusOK {
-		t.Fatalf("POST /me/periods/2026-10/confirm devolvió %d: %s", recConf.Code, recConf.Body.String())
+	if recConf.Code != http.StatusCreated {
+		t.Fatalf("POST /v1/clients/{clientId}/periods/2026-10/confirmation devolvió %d: %s", recConf.Code, recConf.Body.String())
 	}
 
 	// Paula verifica que ahora su estado es "IN_REVIEW"
-	reqClosingsReview := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsReview := httptest.NewRequest("GET", "/v1/clients/cli_demo_15/closings", nil)
 	reqClosingsReview.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recClosingsReview := httptest.NewRecorder()
 	handler.ServeHTTP(recClosingsReview, reqClosingsReview)
@@ -804,24 +804,24 @@ func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
 
 	// Contador aprueba el cierre de Paula
 	approveBody := []byte(fmt.Sprintf(`{"version": %d, "clientNote": "Revisado y aprobado ok"}`, cAfterClientInput.Version))
-	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/accountant/closings/%s/approve", paulaClosingID), bytes.NewReader(approveBody))
+	reqApprove := httptest.NewRequest("POST", fmt.Sprintf("/v1/closings/%s/approvals", paulaClosingID), bytes.NewReader(approveBody))
 	reqApprove.Header.Set("Content-Type", "application/json")
 	reqApprove.Header.Set("X-Demo-User", "accountant")
 	recApprove := httptest.NewRecorder()
 	handler.ServeHTTP(recApprove, reqApprove)
 
-	if recApprove.Code != http.StatusOK {
-		t.Fatalf("POST /accountant/closings/{id}/approve devolvió %d: %s", recApprove.Code, recApprove.Body.String())
+	if recApprove.Code != http.StatusCreated {
+		t.Fatalf("POST /v1/closings/{id}/approvals devolvió %d: %s", recApprove.Code, recApprove.Body.String())
 	}
 
 	// Paso 3: Cliente (Paula) consulta su cierre: estado READY con tarjeta validada
-	reqClosingsReady := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	reqClosingsReady := httptest.NewRequest("GET", "/v1/clients/cli_demo_15/closings", nil)
 	reqClosingsReady.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recClosingsReady := httptest.NewRecorder()
 	handler.ServeHTTP(recClosingsReady, reqClosingsReady)
 
 	if recClosingsReady.Code != http.StatusOK {
-		t.Fatalf("GET /me/closings tras aprobación devolvió %d: %s", recClosingsReady.Code, recClosingsReady.Body.String())
+		t.Fatalf("GET /v1/clients/{clientId}/closings tras aprobación devolvió %d: %s", recClosingsReady.Code, recClosingsReady.Body.String())
 	}
 
 	var closingsReady []struct {
@@ -881,14 +881,14 @@ func TestPaulaCircuitE2E_ClientDemo(t *testing.T) {
 		t.Errorf("pctOfCategoryCapBp debería estar poblado")
 	}
 
-	// 3b. Paula marca su cierre como pagado (POST /me/closings/{id}/paid)
-	reqPaid := httptest.NewRequest("POST", fmt.Sprintf("/api/v1/me/closings/%s/paid", paulaClosingID), nil)
+	// 3b. Paula marca su cierre como pagado (PUT /v1/closings/{id}/payment)
+	reqPaid := httptest.NewRequest("PUT", fmt.Sprintf("/v1/closings/%s/payment", paulaClosingID), nil)
 	reqPaid.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recPaid := httptest.NewRecorder()
 	handler.ServeHTTP(recPaid, reqPaid)
 
 	if recPaid.Code != http.StatusOK {
-		t.Fatalf("POST /me/closings/{id}/paid devolvió %d: %s", recPaid.Code, recPaid.Body.String())
+		t.Fatalf("PUT /v1/closings/{id}/payment devolvió %d: %s", recPaid.Code, recPaid.Body.String())
 	}
 
 	var paidResp struct {

@@ -138,13 +138,10 @@ type invoicesHandler struct {
 	confirmInputOnBehalfUC *usecase.ConfirmInputOnBehalf
 }
 
-// importCSV maneja POST /api/v1/me/invoices/import (multipart, max 2MB)
+// importCSV maneja POST /v1/clients/{clientId}/invoice-imports (multipart, max 2MB)
 func (h *invoicesHandler) importCSV(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	if id.ClientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no identificado", nil)
-		return
-	}
+	clientID := r.PathValue("clientId")
+	ident, _ := FromContext(r.Context())
 
 	// Limitar a 2 MB
 	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
@@ -160,13 +157,19 @@ func (h *invoicesHandler) importCSV(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = file.Close() }()
 
-	res, err := h.importUC.Execute(r.Context(), id.ClientID, file, invoice.UploadedByClient)
+	uploader := invoice.UploadedByClient
+	if ident.Role == RoleAccountant {
+		uploader = invoice.UploadedByAccountant
+	}
+
+	res, err := h.importUC.Execute(r.Context(), clientID, file, uploader)
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, res)
+	w.Header().Set("Location", "/v1/clients/"+clientID+"/invoices")
+	writeJSON(w, http.StatusCreated, res)
 }
 
 type createInvoiceRequest struct {
@@ -183,13 +186,9 @@ type createInvoiceRequest struct {
 	ReceiverDoc  string   `json:"receiverDoc,omitempty"`
 }
 
-// createInvoice maneja POST /api/v1/me/invoices
+// createInvoice maneja POST /v1/clients/{clientId}/invoices
 func (h *invoicesHandler) createInvoice(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	if id.ClientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no identificado", nil)
-		return
-	}
+	clientID := r.PathValue("clientId")
 
 	var req createInvoiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -216,7 +215,7 @@ func (h *invoicesHandler) createInvoice(w http.ResponseWriter, r *http.Request) 
 	}
 
 	inv := invoice.Invoice{
-		ClientID:     id.ClientID,
+		ClientID:     clientID,
 		Type:         invoice.InvoiceType(req.Type),
 		PointOfSale:  req.PointOfSale,
 		Number:       req.Number,
@@ -236,22 +235,13 @@ func (h *invoicesHandler) createInvoice(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w.Header().Set("Location", "/v1/clients/"+clientID+"/invoices/"+created.ID)
 	writeJSON(w, http.StatusCreated, toInvoiceDTO(created))
 }
 
-// listMeInvoices maneja GET /api/v1/me/invoices?period=2026-10
-func (h *invoicesHandler) listMeInvoices(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	h.listInvoicesForClient(w, r, id.ClientID)
-}
-
-// listClientInvoicesAccountant maneja GET /api/v1/accountant/clients/{id}/invoices?period=2026-10
-func (h *invoicesHandler) listClientInvoicesAccountant(w http.ResponseWriter, r *http.Request) {
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ID de cliente requerido", nil)
-		return
-	}
+// listClientInvoices maneja GET /v1/clients/{clientId}/invoices?period=2026-10
+func (h *invoicesHandler) listClientInvoices(w http.ResponseWriter, r *http.Request) {
+	clientID := r.PathValue("clientId")
 	h.listInvoicesForClient(w, r, clientID)
 }
 
@@ -289,13 +279,9 @@ type createPurchaseInvoiceRequest struct {
 	VatAmount    MoneyDTO `json:"vatAmount"`
 }
 
-// createPurchaseInvoice maneja POST /api/v1/me/purchase-invoices
+// createPurchaseInvoice maneja POST /v1/clients/{clientId}/purchase-invoices
 func (h *invoicesHandler) createPurchaseInvoice(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	if id.ClientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no identificado", nil)
-		return
-	}
+	clientID := r.PathValue("clientId")
 
 	var req createPurchaseInvoiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -312,7 +298,7 @@ func (h *invoicesHandler) createPurchaseInvoice(w http.ResponseWriter, r *http.R
 	vat, _ := money.ParseDecimal(req.VatAmount.Amount, money.ARS)
 
 	pi, err := h.addPurchaseUC.Execute(r.Context(), usecase.AddPurchaseInvoiceInput{
-		ClientID:     id.ClientID,
+		ClientID:     clientID,
 		IssueDate:    issueDate,
 		SupplierName: req.SupplierName,
 		SupplierCUIT: req.SupplierCUIT,
@@ -324,6 +310,7 @@ func (h *invoicesHandler) createPurchaseInvoice(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	w.Header().Set("Location", "/v1/clients/"+clientID+"/purchase-invoices/"+pi.ID)
 	writeJSON(w, http.StatusCreated, toPurchaseInvoiceDTO(pi))
 }
 
@@ -335,9 +322,10 @@ type setExternalIncomeRequest struct {
 	None bool `json:"none"`
 }
 
-// setExternalIncome maneja PUT /api/v1/me/periods/{period}/external-income
+// setExternalIncome maneja PUT /v1/clients/{clientId}/periods/{period}/external-income
 func (h *invoicesHandler) setExternalIncome(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
+	clientID := r.PathValue("clientId")
+
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
 	if err != nil {
@@ -361,7 +349,7 @@ func (h *invoicesHandler) setExternalIncome(w http.ResponseWriter, r *http.Reque
 	}
 
 	updated, err := h.setExternalIncomeUC.Execute(r.Context(), usecase.SetExternalIncomeInput{
-		ClientID: id.ClientID,
+		ClientID: clientID,
 		Period:   p,
 		Items:    items,
 		None:     req.None,
@@ -372,56 +360,6 @@ func (h *invoicesHandler) setExternalIncome(w http.ResponseWriter, r *http.Reque
 	}
 
 	writeJSON(w, http.StatusOK, toClientPeriodInputDTO(updated))
-}
-
-// confirmPeriod maneja POST /api/v1/me/periods/{period}/confirm
-func (h *invoicesHandler) confirmPeriod(w http.ResponseWriter, r *http.Request) {
-	id, _ := FromContext(r.Context())
-	pStr := r.PathValue("period")
-	p, err := period.Parse(pStr)
-	if err != nil {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Período inválido (YYYY-MM)", nil)
-		return
-	}
-
-	confirmed, err := h.confirmPeriodUC.Execute(r.Context(), id.ClientID, p)
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusOK, toClientPeriodInputDTO(confirmed))
-}
-
-// importCSVAccountant maneja POST /api/v1/accountant/clients/{id}/invoices/import (spec 016 criterio 1)
-func (h *invoicesHandler) importCSVAccountant(w http.ResponseWriter, r *http.Request) {
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no provisto", nil)
-		return
-	}
-
-	// Limitar a 2 MB
-	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
-	if err := r.ParseMultipartForm(2 << 20); err != nil {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Archivo supera el límite de 2 MB o formato multipart inválido", nil)
-		return
-	}
-
-	file, _, err := r.FormFile("file")
-	if err != nil {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "Falta el campo 'file' en el formulario multipart", nil)
-		return
-	}
-	defer func() { _ = file.Close() }()
-
-	res, err := h.importUC.Execute(r.Context(), clientID, file, invoice.UploadedByAccountant)
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusOK, res)
 }
 
 type confirmOnBehalfRequest struct {
@@ -438,13 +376,10 @@ type confirmOnBehalfRequest struct {
 	Note string `json:"note"`
 }
 
-// confirmInputAccountant maneja POST /api/v1/accountant/clients/{id}/periods/{period}/confirm-input (spec 016 criterio 3)
-func (h *invoicesHandler) confirmInputAccountant(w http.ResponseWriter, r *http.Request) {
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "ClientID no provisto", nil)
-		return
-	}
+// confirmPeriodInput maneja POST /v1/clients/{clientId}/periods/{period}/confirmation (unificado)
+func (h *invoicesHandler) confirmPeriodInput(w http.ResponseWriter, r *http.Request) {
+	clientID := r.PathValue("clientId")
+	ident, _ := FromContext(r.Context())
 
 	pStr := r.PathValue("period")
 	p, err := period.Parse(pStr)
@@ -453,45 +388,63 @@ func (h *invoicesHandler) confirmInputAccountant(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var req confirmOnBehalfRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "JSON inválido", nil)
+	if ident.Role == RoleAccountant {
+		var req confirmOnBehalfRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "JSON inválido", nil)
+			return
+		}
+		if req.Note == "" {
+			writeErrorCode(w, http.StatusBadRequest, "BAD_REQUEST", "La nota es obligatoria cuando confirma el contador", nil)
+			return
+		}
+
+		items := make([]clientinput.ExternalIncomeItem, len(req.ExternalIncome.Items))
+		for i, it := range req.ExternalIncome.Items {
+			curr := money.USD
+			if it.Amount.Currency != "" {
+				curr = money.Currency(it.Amount.Currency)
+			}
+			var amt money.Money
+			switch v := it.Amount.Amount.(type) {
+			case float64:
+				amt = money.New(int64(v), curr)
+			case string:
+				parsed, err := money.ParseDecimal(v, curr)
+				if err == nil {
+					amt = parsed
+				}
+			}
+			items[i] = clientinput.ExternalIncomeItem{
+				Amount:      amt,
+				Description: it.Description,
+			}
+		}
+
+		res, err := h.confirmInputOnBehalfUC.Execute(r.Context(), usecase.ConfirmInputOnBehalfInput{
+			ClientID:       clientID,
+			Period:         p,
+			None:           req.ExternalIncome.None,
+			ExternalIncome: items,
+			Note:           req.Note,
+		})
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+
+		w.Header().Set("Location", "/v1/clients/"+clientID+"/closings")
+		writeJSON(w, http.StatusCreated, toClientPeriodInputDTO(res))
 		return
 	}
 
-	items := make([]clientinput.ExternalIncomeItem, len(req.ExternalIncome.Items))
-	for i, it := range req.ExternalIncome.Items {
-		curr := money.USD
-		if it.Amount.Currency != "" {
-			curr = money.Currency(it.Amount.Currency)
-		}
-		var amt money.Money
-		switch v := it.Amount.Amount.(type) {
-		case float64:
-			amt = money.New(int64(v), curr)
-		case string:
-			parsed, err := money.ParseDecimal(v, curr)
-			if err == nil {
-				amt = parsed
-			}
-		}
-		items[i] = clientinput.ExternalIncomeItem{
-			Amount:      amt,
-			Description: it.Description,
-		}
-	}
-
-	res, err := h.confirmInputOnBehalfUC.Execute(r.Context(), usecase.ConfirmInputOnBehalfInput{
-		ClientID:       clientID,
-		Period:         p,
-		None:           req.ExternalIncome.None,
-		ExternalIncome: items,
-		Note:           req.Note,
-	})
+	// Cliente confirmando su propio período
+	confirmed, err := h.confirmPeriodUC.Execute(r.Context(), clientID, p)
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, toClientPeriodInputDTO(res))
+	w.Header().Set("Location", "/v1/clients/"+clientID+"/closings")
+	writeJSON(w, http.StatusCreated, toClientPeriodInputDTO(confirmed))
 }

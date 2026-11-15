@@ -14,7 +14,7 @@ Nota: la fila no responde a click general, permitiendo seleccionar y copiar text
 
 ## Criterios de aceptación
 ### Backend
-1. `GET /api/v1/accountant/periods/{period}/closings/ids` con **los mismos** query params que el listado (sin `page/pageSize`) → `{ "ids": ["clo_..."], "total": N }`. Usa `closing.Apply` (misma función que el listado). Test: para 5 combinaciones de filtro/orden, `ids` == concatenación de los `closingId` de todas las páginas del listado.
+1. `GET /v1/periods/{period}/closings/ids` con **los mismos** query params que el listado (sin `page/pageSize`) → `{ "ids": ["clo_..."], "total": N }`. Usa `closing.Apply` (misma función que el listado). Test: para 5 combinaciones de filtro/orden, `ids` == concatenación de los `closingId` de todas las páginas del listado.
 
 ### Cola
 2. La cola es una **foto** tomada al abrir el modal (IDs congelados). Si un cierre cambia de color o deja de cumplir el filtro, **sigue en la cola**; se muestra con un aviso "Ahora 🟢 Verde" (o el color nuevo).

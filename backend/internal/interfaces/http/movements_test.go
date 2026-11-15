@@ -45,7 +45,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("200: Successful override by accountant", func(t *testing.T) {
 		body := `{"kind":"INCOME","note":"Honorarios confirmados"}`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_test_01/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_test_01/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "accountant")
 
@@ -70,7 +70,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("404: Movement not found", func(t *testing.T) {
 		body := `{"kind":"INCOME"}`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_non_existent/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_non_existent/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "accountant")
 
@@ -84,7 +84,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("422: UNCLASSIFIED is rejected", func(t *testing.T) {
 		body := `{"kind":"UNCLASSIFIED"}`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_test_01/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_test_01/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "accountant")
 
@@ -98,7 +98,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("403: Forbidden for client role", func(t *testing.T) {
 		body := `{"kind":"INCOME"}`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_test_01/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_test_01/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "client:cli_demo_01")
 
@@ -112,7 +112,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("401: Unauthorized without identity header", func(t *testing.T) {
 		body := `{"kind":"INCOME"}`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_test_01/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_test_01/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -125,7 +125,7 @@ func TestMovementClassificationHTTP(t *testing.T) {
 
 	t.Run("400: Malformed JSON", func(t *testing.T) {
 		body := `{bad json`
-		req := httptest.NewRequest(http.MethodPatch, "/api/v1/accountant/movements/mov_test_01/classification", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPut, "/v1/movements/mov_test_01/classification", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "accountant")
 

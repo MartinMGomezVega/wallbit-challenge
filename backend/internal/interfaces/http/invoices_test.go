@@ -50,7 +50,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		IDGen:               idGen,
 	})
 
-	t.Run("POST /me/invoices/import: Success, Idempotency & 422", func(t *testing.T) {
+	t.Run("POST /v1/clients/{clientId}/invoice-imports: Success, Idempotency & 422", func(t *testing.T) {
 		csvContent := `Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total
 12/10/2026,19 - Factura E,00001,00000001,00000001,74392819289901,80,DE329182391,Brightloop GmbH,1482.15,USD,850.00,0.00,0.00,0.00,850.00
 `
@@ -62,7 +62,7 @@ func TestInvoicesHTTP(t *testing.T) {
 			_, _ = part.Write([]byte(content))
 			_ = writer.Close()
 
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/me/invoices/import", body)
+			req := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoice-imports", body)
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			req.Header.Set("X-Demo-User", "client:cli_mono")
 			return req
@@ -71,8 +71,8 @@ func TestInvoicesHTTP(t *testing.T) {
 		// 1. Primera importación: imported = 1
 		rec1 := httptest.NewRecorder()
 		handler.ServeHTTP(rec1, makeMultipart(csvContent))
-		if rec1.Code != http.StatusOK {
-			t.Fatalf("first import status = %d, want 200. Body: %s", rec1.Code, rec1.Body.String())
+		if rec1.Code != http.StatusCreated {
+			t.Fatalf("first import status = %d, want 201. Body: %s", rec1.Code, rec1.Body.String())
 		}
 		var res1 map[string]any
 		_ = json.NewDecoder(rec1.Body).Decode(&res1)
@@ -83,8 +83,8 @@ func TestInvoicesHTTP(t *testing.T) {
 		// 2. Segunda importación (idempotente): imported = 0, skippedDuplicates = 1
 		rec2 := httptest.NewRecorder()
 		handler.ServeHTTP(rec2, makeMultipart(csvContent))
-		if rec2.Code != http.StatusOK {
-			t.Fatalf("second import status = %d, want 200", rec2.Code)
+		if rec2.Code != http.StatusCreated {
+			t.Fatalf("second import status = %d, want 201", rec2.Code)
 		}
 		var res2 map[string]any
 		_ = json.NewDecoder(rec2.Body).Decode(&res2)
@@ -99,17 +99,17 @@ func TestInvoicesHTTP(t *testing.T) {
 			t.Fatalf("bad headers status = %d, want 422", recBad.Code)
 		}
 
-		// 4. Role accountant trying to call /me/invoices/import -> 403
-		reqAcc := makeMultipart(csvContent)
-		reqAcc.Header.Set("X-Demo-User", "accountant")
-		recAcc := httptest.NewRecorder()
-		handler.ServeHTTP(recAcc, reqAcc)
-		if recAcc.Code != http.StatusForbidden {
-			t.Fatalf("accountant role status = %d, want 403", recAcc.Code)
+		// 4. Role other client trying to call -> 403
+		reqOther := makeMultipart(csvContent)
+		reqOther.Header.Set("X-Demo-User", "client:cli_ri")
+		recOther := httptest.NewRecorder()
+		handler.ServeHTTP(recOther, reqOther)
+		if recOther.Code != http.StatusForbidden {
+			t.Fatalf("other client status = %d, want 403", recOther.Code)
 		}
 	})
 
-	t.Run("POST /me/invoices: Manual, Validation, Conflict", func(t *testing.T) {
+	t.Run("POST /v1/clients/{clientId}/invoices: Manual, Validation, Conflict", func(t *testing.T) {
 		body := `{
 			"type": "E",
 			"pointOfSale": 1,
@@ -121,18 +121,18 @@ func TestInvoicesHTTP(t *testing.T) {
 			"vatAmount": { "amount": "0.00", "currency": "USD" },
 			"receiverName": "Kiwi Studio Ltd"
 		}`
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/me/invoices", bytes.NewBufferString(body))
+		req := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoices", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Demo-User", "client:cli_mono")
 
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
 		if rec.Code != http.StatusCreated {
-			t.Fatalf("POST /me/invoices status = %d, want 201. Body: %s", rec.Code, rec.Body.String())
+			t.Fatalf("POST /v1/clients/{clientId}/invoices status = %d, want 201. Body: %s", rec.Code, rec.Body.String())
 		}
 
 		// Duplicado -> 409
-		reqDup := httptest.NewRequest(http.MethodPost, "/api/v1/me/invoices", bytes.NewBufferString(body))
+		reqDup := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoices", bytes.NewBufferString(body))
 		reqDup.Header.Set("Content-Type", "application/json")
 		reqDup.Header.Set("X-Demo-User", "client:cli_mono")
 		recDup := httptest.NewRecorder()
@@ -153,7 +153,7 @@ func TestInvoicesHTTP(t *testing.T) {
 			"vatAmount": { "amount": "0.00", "currency": "ARS" },
 			"receiverName": "Local SRL"
 		}`
-		reqInv := httptest.NewRequest(http.MethodPost, "/api/v1/me/invoices", bytes.NewBufferString(bodyInvalid))
+		reqInv := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoices", bytes.NewBufferString(bodyInvalid))
 		reqInv.Header.Set("Content-Type", "application/json")
 		reqInv.Header.Set("X-Demo-User", "client:cli_mono")
 		recInv := httptest.NewRecorder()
@@ -163,28 +163,28 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /me/invoices & GET /accountant/clients/{id}/invoices", func(t *testing.T) {
+	t.Run("GET /v1/clients/{clientId}/invoices (client & accountant)", func(t *testing.T) {
 		// Client list
-		reqClient := httptest.NewRequest(http.MethodGet, "/api/v1/me/invoices?period=2026-10", nil)
+		reqClient := httptest.NewRequest(http.MethodGet, "/v1/clients/cli_mono/invoices?period=2026-10", nil)
 		reqClient.Header.Set("X-Demo-User", "client:cli_mono")
 		recClient := httptest.NewRecorder()
 		handler.ServeHTTP(recClient, reqClient)
 		if recClient.Code != http.StatusOK {
-			t.Fatalf("GET /me/invoices status = %d, want 200", recClient.Code)
+			t.Fatalf("GET /v1/clients/{clientId}/invoices status = %d, want 200", recClient.Code)
 		}
 		var listClient []InvoiceDTO
 		_ = json.NewDecoder(recClient.Body).Decode(&listClient)
 		if len(listClient) == 0 {
-			t.Fatal("expected invoices in /me/invoices")
+			t.Fatal("expected invoices in /v1/clients/{clientId}/invoices")
 		}
 
 		// Accountant list
-		reqAcc := httptest.NewRequest(http.MethodGet, "/api/v1/accountant/clients/cli_mono/invoices?period=2026-10", nil)
+		reqAcc := httptest.NewRequest(http.MethodGet, "/v1/clients/cli_mono/invoices?period=2026-10", nil)
 		reqAcc.Header.Set("X-Demo-User", "accountant")
 		recAcc := httptest.NewRecorder()
 		handler.ServeHTTP(recAcc, reqAcc)
 		if recAcc.Code != http.StatusOK {
-			t.Fatalf("GET /accountant/clients/{id}/invoices status = %d, want 200", recAcc.Code)
+			t.Fatalf("GET /v1/clients/{clientId}/invoices (accountant) status = %d, want 200", recAcc.Code)
 		}
 		var listAcc []InvoiceDTO
 		_ = json.NewDecoder(recAcc.Body).Decode(&listAcc)
@@ -193,7 +193,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /me/purchase-invoices: RI only", func(t *testing.T) {
+	t.Run("POST /v1/clients/{clientId}/purchase-invoices: RI only", func(t *testing.T) {
 		body := `{
 			"issueDate": "2026-10-18",
 			"supplierName": "Proveedor Servicios SRL",
@@ -203,7 +203,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		}`
 
 		// 1. Monotributo -> 403 NOT_ALLOWED_FOR_REGIME
-		reqMono := httptest.NewRequest(http.MethodPost, "/api/v1/me/purchase-invoices", bytes.NewBufferString(body))
+		reqMono := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/purchase-invoices", bytes.NewBufferString(body))
 		reqMono.Header.Set("Content-Type", "application/json")
 		reqMono.Header.Set("X-Demo-User", "client:cli_mono")
 		recMono := httptest.NewRecorder()
@@ -213,7 +213,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 
 		// 2. RI -> 201 Created
-		reqRI := httptest.NewRequest(http.MethodPost, "/api/v1/me/purchase-invoices", bytes.NewBufferString(body))
+		reqRI := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_ri/purchase-invoices", bytes.NewBufferString(body))
 		reqRI.Header.Set("Content-Type", "application/json")
 		reqRI.Header.Set("X-Demo-User", "client:cli_ri")
 		recRI := httptest.NewRecorder()
@@ -225,7 +225,7 @@ func TestInvoicesHTTP(t *testing.T) {
 
 	t.Run("External income & Confirm", func(t *testing.T) {
 		// 1. Confirm before answer -> 422
-		reqConfirmEarly := httptest.NewRequest(http.MethodPost, "/api/v1/me/periods/2026-10/confirm", nil)
+		reqConfirmEarly := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-10/confirmation", nil)
 		reqConfirmEarly.Header.Set("X-Demo-User", "client:cli_mono")
 		recConfirmEarly := httptest.NewRecorder()
 		handler.ServeHTTP(recConfirmEarly, reqConfirmEarly)
@@ -235,7 +235,7 @@ func TestInvoicesHTTP(t *testing.T) {
 
 		// 2. Set external income (none: true) -> 200
 		bodyNone := `{"none": true}`
-		reqIncome := httptest.NewRequest(http.MethodPut, "/api/v1/me/periods/2026-10/external-income", bytes.NewBufferString(bodyNone))
+		reqIncome := httptest.NewRequest(http.MethodPut, "/v1/clients/cli_mono/periods/2026-10/external-income", bytes.NewBufferString(bodyNone))
 		reqIncome.Header.Set("Content-Type", "application/json")
 		reqIncome.Header.Set("X-Demo-User", "client:cli_mono")
 		recIncome := httptest.NewRecorder()
@@ -244,17 +244,17 @@ func TestInvoicesHTTP(t *testing.T) {
 			t.Fatalf("set external income status = %d, want 200", recIncome.Code)
 		}
 
-		// 3. Confirm now -> 200
-		reqConfirm := httptest.NewRequest(http.MethodPost, "/api/v1/me/periods/2026-10/confirm", nil)
+		// 3. Confirm now -> 201
+		reqConfirm := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-10/confirmation", nil)
 		reqConfirm.Header.Set("X-Demo-User", "client:cli_mono")
 		recConfirm := httptest.NewRecorder()
 		handler.ServeHTTP(recConfirm, reqConfirm)
-		if recConfirm.Code != http.StatusOK {
-			t.Fatalf("confirm status = %d, want 200", recConfirm.Code)
+		if recConfirm.Code != http.StatusCreated {
+			t.Fatalf("confirm status = %d, want 201", recConfirm.Code)
 		}
 	})
 
-	t.Run("POST /accountant/clients/{id}/invoices/import", func(t *testing.T) {
+	t.Run("POST /v1/clients/{clientId}/invoice-imports accountant", func(t *testing.T) {
 		csvContent := `Fecha,Tipo,Punto de Venta,Número Desde,Número Hasta,Cód. Autorización,Tipo Doc. Receptor,Nro. Doc. Receptor,Denominación Receptor,Tipo Cambio,Moneda,Imp. Neto Gravado,Imp. Neto No Gravado,Imp. Op. Exentas,IVA,Imp. Total
 15/10/2026,19 - Factura E,00001,00000077,00000077,74392819289901,80,DE329182391,Brightloop GmbH,1482.15,USD,500.00,0.00,0.00,0.00,500.00
 `
@@ -265,14 +265,14 @@ func TestInvoicesHTTP(t *testing.T) {
 			_, _ = part.Write([]byte(content))
 			_ = writer.Close()
 
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/invoices/import", body)
+			req := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoice-imports", body)
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			req.Header.Set("X-Demo-User", user)
 			return req
 		}
 
-		// 1. Rol cliente intentando acceder al endpoint de contador -> 403 Forbidden
-		reqForbidden := makeMultipart(csvContent, "client:cli_mono")
+		// 1. Rol cliente ajeno intentando acceder -> 403 Forbidden
+		reqForbidden := makeMultipart(csvContent, "client:cli_ri")
 		recForbidden := httptest.NewRecorder()
 		handler.ServeHTTP(recForbidden, reqForbidden)
 		if recForbidden.Code != http.StatusForbidden {
@@ -285,7 +285,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		p404, _ := w404.CreateFormFile("file", "test.csv")
 		_, _ = p404.Write([]byte(csvContent))
 		_ = w404.Close()
-		req404 := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_inexistente/invoices/import", body404)
+		req404 := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_inexistente/invoice-imports", body404)
 		req404.Header.Set("Content-Type", w404.FormDataContentType())
 		req404.Header.Set("X-Demo-User", "accountant")
 		rec404 := httptest.NewRecorder()
@@ -294,12 +294,12 @@ func TestInvoicesHTTP(t *testing.T) {
 			t.Fatalf("expected 404 for non-existent client, got %d: %s", rec404.Code, rec404.Body.String())
 		}
 
-		// 3. Rol contador éxito -> 200
+		// 3. Rol contador éxito -> 201
 		reqOK := makeMultipart(csvContent, "accountant")
 		recOK := httptest.NewRecorder()
 		handler.ServeHTTP(recOK, reqOK)
-		if recOK.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d: %s", recOK.Code, recOK.Body.String())
+		if recOK.Code != http.StatusCreated {
+			t.Fatalf("expected 201, got %d: %s", recOK.Code, recOK.Body.String())
 		}
 		var res map[string]any
 		_ = json.Unmarshal(recOK.Body.Bytes(), &res)
@@ -316,12 +316,12 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /accountant/clients/{id}/periods/{period}/confirm-input", func(t *testing.T) {
-		// 1. Rol cliente -> 403 Forbidden
+	t.Run("POST /v1/clients/{clientId}/periods/{period}/confirmation accountant", func(t *testing.T) {
+		// 1. Rol cliente ajeno -> 403 Forbidden
 		bodyValid := `{"externalIncome": {"none": true}, "note": "Confirmado por llamada"}`
-		reqForbidden := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-11/confirm-input", bytes.NewBufferString(bodyValid))
+		reqForbidden := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-11/confirmation", bytes.NewBufferString(bodyValid))
 		reqForbidden.Header.Set("Content-Type", "application/json")
-		reqForbidden.Header.Set("X-Demo-User", "client:cli_mono")
+		reqForbidden.Header.Set("X-Demo-User", "client:cli_ri")
 		recForbidden := httptest.NewRecorder()
 		handler.ServeHTTP(recForbidden, reqForbidden)
 		if recForbidden.Code != http.StatusForbidden {
@@ -330,7 +330,7 @@ func TestInvoicesHTTP(t *testing.T) {
 
 		// 2. Nota vacía -> 422 NOTE_REQUIRED
 		bodyNoNote := `{"externalIncome": {"none": true}, "note": "   "}`
-		reqNoNote := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-11/confirm-input", bytes.NewBufferString(bodyNoNote))
+		reqNoNote := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-11/confirmation", bytes.NewBufferString(bodyNoNote))
 		reqNoNote.Header.Set("Content-Type", "application/json")
 		reqNoNote.Header.Set("X-Demo-User", "accountant")
 		recNoNote := httptest.NewRecorder()
@@ -339,14 +339,14 @@ func TestInvoicesHTTP(t *testing.T) {
 			t.Fatalf("expected 422 for missing note, got %d", recNoNote.Code)
 		}
 
-		// 3. Confirmación exitosa por contador -> 200
-		reqOK := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-11/confirm-input", bytes.NewBufferString(bodyValid))
+		// 3. Confirmación exitosa por contador -> 201
+		reqOK := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-11/confirmation", bytes.NewBufferString(bodyValid))
 		reqOK.Header.Set("Content-Type", "application/json")
 		reqOK.Header.Set("X-Demo-User", "accountant")
 		recOK := httptest.NewRecorder()
 		handler.ServeHTTP(recOK, reqOK)
-		if recOK.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d: %s", recOK.Code, recOK.Body.String())
+		if recOK.Code != http.StatusCreated {
+			t.Fatalf("expected 201, got %d: %s", recOK.Code, recOK.Body.String())
 		}
 		var inputRes map[string]any
 		_ = json.Unmarshal(recOK.Body.Bytes(), &inputRes)
@@ -359,7 +359,7 @@ func TestInvoicesHTTP(t *testing.T) {
 
 		// 4. Reintento sobre período ya confirmado -> 409 ALREADY_CONFIRMED
 		recConflict := httptest.NewRecorder()
-		reqConflict := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-11/confirm-input", bytes.NewBufferString(bodyValid))
+		reqConflict := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-11/confirmation", bytes.NewBufferString(bodyValid))
 		reqConflict.Header.Set("Content-Type", "application/json")
 		reqConflict.Header.Set("X-Demo-User", "accountant")
 		handler.ServeHTTP(recConflict, reqConflict)
@@ -368,7 +368,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 
 		// 5. Período inválido -> 400
-		reqBadP := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/bad-period/confirm-input", bytes.NewBufferString(bodyValid))
+		reqBadP := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/bad-period/confirmation", bytes.NewBufferString(bodyValid))
 		reqBadP.Header.Set("Content-Type", "application/json")
 		reqBadP.Header.Set("X-Demo-User", "accountant")
 		recBadP := httptest.NewRecorder()
@@ -378,7 +378,7 @@ func TestInvoicesHTTP(t *testing.T) {
 		}
 
 		// 6. JSON inválido -> 400
-		reqBadJSON := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-12/confirm-input", bytes.NewBufferString("{not-json"))
+		reqBadJSON := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-12/confirmation", bytes.NewBufferString("{not-json"))
 		reqBadJSON.Header.Set("Content-Type", "application/json")
 		reqBadJSON.Header.Set("X-Demo-User", "accountant")
 		recBadJSON := httptest.NewRecorder()
@@ -389,23 +389,23 @@ func TestInvoicesHTTP(t *testing.T) {
 
 		// 7. Confirmación con items de ingreso externo (con montos float y string)
 		bodyItems := `{"externalIncome": {"items": [{"amount": {"amount": 15000, "currency": "USD"}, "description": "Consultoría"}, {"amount": {"amount": "250.50", "currency": "USD"}, "description": "Soporte"}]}, "note": "Nota válida con items"}`
-		reqItems := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/periods/2026-12/confirm-input", bytes.NewBufferString(bodyItems))
+		reqItems := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/periods/2026-12/confirmation", bytes.NewBufferString(bodyItems))
 		reqItems.Header.Set("Content-Type", "application/json")
 		reqItems.Header.Set("X-Demo-User", "accountant")
 		recItems := httptest.NewRecorder()
 		handler.ServeHTTP(recItems, reqItems)
-		if recItems.Code != http.StatusOK {
-			t.Fatalf("expected 200 for confirm with items, got %d: %s", recItems.Code, recItems.Body.String())
+		if recItems.Code != http.StatusCreated {
+			t.Fatalf("expected 201 for confirm with items, got %d: %s", recItems.Code, recItems.Body.String())
 		}
 	})
 
-	t.Run("POST /accountant/clients/{id}/invoices/import edge cases", func(t *testing.T) {
+	t.Run("POST /v1/clients/{clientId}/invoice-imports edge cases", func(t *testing.T) {
 		// Falta campo file -> 400
 		var buf bytes.Buffer
 		mp := multipart.NewWriter(&buf)
 		_ = mp.WriteField("other", "value")
 		_ = mp.Close()
-		reqNoFile := httptest.NewRequest(http.MethodPost, "/api/v1/accountant/clients/cli_mono/invoices/import", &buf)
+		reqNoFile := httptest.NewRequest(http.MethodPost, "/v1/clients/cli_mono/invoice-imports", &buf)
 		reqNoFile.Header.Set("Content-Type", mp.FormDataContentType())
 		reqNoFile.Header.Set("X-Demo-User", "accountant")
 		recNoFile := httptest.NewRecorder()

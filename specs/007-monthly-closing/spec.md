@@ -25,23 +25,23 @@ Orquestar todo lo anterior: el día 1 (o al arrancar el prototipo) se genera el 
 ### Job
 5. `usecase.RunMonthlyClosing.Execute(ctx, period)` procesa todos los clientes con un worker pool (`CLOSING_WORKERS`), devuelve `{processed, created, updated, unchanged, failed[]{clientId, error}}`. Un error en un cliente no frena al resto.
 6. Idempotente: correrlo dos veces seguidas → la segunda `created=0, updated=0`.
-7. Se ejecuta al arrancar: para los datos semilla se procesan 2026-09 (cerrado, aprobado y notificado para habilitar métricas históricas) y 2026-10 (mes en curso para revisión). También `POST /api/v1/accountant/periods/{period}/run` (devuelve el resumen).
+7. Se ejecuta al arrancar: para los datos semilla se procesan 2026-09 (cerrado, aprobado y notificado para habilitar métricas históricas) y 2026-10 (mes en curso para revisión). También `POST /v1/periods/{period}/closing-runs` (devuelve 201 + Location con el resumen).
 8. Scheduler: goroutine que, cada minuto, si `clock.Now()` es día 1 y no corrió ese período, lo corre (con clock fijo nunca dispara de nuevo; test con fake clock).
 9. Test de carrera: `go test -race` corriendo el job mientras se hacen overrides concurrentes.
 10. Performance: 300 clientes en < 2 s en la máquina de dev (test con `testing.Short()` skip para CI lento).
 
 ### Recálculo por cambios
 11. `ChangeNotifier` real: al recibir `ClosingInputsChanged{ClientID, Period}` recalcula **sincrónicamente** ese cierre (y el del período siguiente si existe). Los handlers que escriben devuelven ya con el cierre actualizado.
-12. `PUT /parameters` recalcula todos los cierres **no aprobados** del último período cerrado y responde `{ "parameters": {...}, "recalculated": N }`.
-13. Confirmar input del cliente (`/me/periods/{p}/confirm`) mueve `PENDING_CLIENT_INPUT → READY_FOR_REVIEW`.
+12. `PUT /v1/parameters` recalcula todos los cierres **no aprobados** del último período cerrado y responde `{ "parameters": {...}, "recalculated": N }`.
+13. Confirmar input del cliente (`/v1/clients/{clientId}/periods/{period}/confirmation`) mueve `PENDING_CLIENT_INPUT → READY_FOR_REVIEW`.
 
 ### API de consulta (contador)
-14. `GET /api/v1/accountant/periods/{period}/closings` con query:
+14. `GET /v1/periods/{period}/closings` con query:
     - `severity` (CSV de `RED,YELLOW,GREEN`), `signal` (CSV de códigos; match si el cierre tiene **alguno**), `regime` (`MONOTRIBUTO|RI`), `status` (CSV), `q` (nombre o CUIT, normalizado, substring);
     - `sort` ∈ `severity` (default), `name`, `billed`, `toPay`, `pctKCap`; `dir` ∈ `asc|desc`;
     - `page`, `pageSize` (default 50, máx 500).
     - Orden `severity` = severidad desc, prioridad de la señal principal asc, nombre asc. **Siempre** desempatar por `clientId` para orden total estable.
     - Fila: `{closingId, clientId, clientName, cuit, regime, category, severity, primarySignal{code,label}?, description, otherSignals[{code,label,severity}], billedInPeriod{usd, ars}, accumulated12m{ars, pctOfKCapBp}, toPay{amount, dueDate}, status, version, paidAt}`. `toPay` MONO = fee; RI = `TotalToPay` con el vencimiento más cercano.
-15. `GET /api/v1/accountant/periods/{period}/closings/summary` con los mismos filtros **excepto** `severity` → `{total, bySeverity{RED,YELLOW,GREEN}, bySignal{code: n}, byStatus{...}}` (para los chips con contador).
-16. `GET /api/v1/accountant/closings/{id}` → detalle: cliente, assessment, señales con `data`, movimientos del período con clasificación (regla, confianza, override), facturas del período con ARS y TC usado, pares conciliados, cobros/facturas sin conciliar, input del cliente, historial de versiones y aprobaciones. (El borrador del aviso lo agrega 010.)
+15. `GET /v1/periods/{period}/closings/summary` con los mismos filtros **excepto** `severity` → `{total, bySeverity{RED,YELLOW,GREEN}, bySignal{code: n}, byStatus{...}}` (para los chips con contador).
+16. `GET /v1/closings/{closingId}` → detalle: cliente, assessment, señales con `data`, movimientos del período con clasificación (regla, confianza, override), facturas del período con ARS y TC usado, pares conciliados, cobros/facturas sin conciliar, input del cliente, historial de versiones y aprobaciones. (El borrador del aviso lo agrega 010.)
 17. Test end-to-end con el seed: para cada `cli_demo_XX` la señal principal y el estado coinciden con la tabla de `002/plan.md`. Y la distribución global de semáforos queda aprox. en 70–80% verde, 15–22% amarillo, 5–10% rojo (si no, ajustar el seed, no las reglas).

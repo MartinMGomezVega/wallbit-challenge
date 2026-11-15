@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -68,24 +69,33 @@ func TestHTTP_GetMe(t *testing.T) {
 	h, _, _, _, _, _ := setupClientTestHandler(t)
 
 	// 1. Sin autenticación -> 401
-	reqAnon := httptest.NewRequest("GET", "/api/v1/me", nil)
+	reqAnon := httptest.NewRequest("GET", "/v1/clients/cli_demo_15", nil)
 	recAnon := httptest.NewRecorder()
 	h.ServeHTTP(recAnon, reqAnon)
 	if recAnon.Code != 401 {
 		t.Fatalf("status = %d, want 401", recAnon.Code)
 	}
 
-	// 2. Con rol contador -> 403
-	reqAcc := httptest.NewRequest("GET", "/api/v1/me", nil)
+	// 2. Con cliente ajeno -> 403
+	reqOther := httptest.NewRequest("GET", "/v1/clients/cli_demo_15", nil)
+	reqOther.Header.Set("X-Demo-User", "client:cli_demo_01")
+	recOther := httptest.NewRecorder()
+	h.ServeHTTP(recOther, reqOther)
+	if recOther.Code != 403 {
+		t.Fatalf("status = %d, want 403", recOther.Code)
+	}
+
+	// 3. Con rol contador -> 200
+	reqAcc := httptest.NewRequest("GET", "/v1/clients/cli_demo_15", nil)
 	reqAcc.Header.Set("X-Demo-User", "accountant")
 	recAcc := httptest.NewRecorder()
 	h.ServeHTTP(recAcc, reqAcc)
-	if recAcc.Code != 403 {
-		t.Fatalf("status = %d, want 403", recAcc.Code)
+	if recAcc.Code != 200 {
+		t.Fatalf("status = %d, want 200", recAcc.Code)
 	}
 
-	// 3. Con rol cliente Paula Rojas -> 200 OK con CUIT enmascarado
-	reqPaula := httptest.NewRequest("GET", "/api/v1/me", nil)
+	// 4. Con rol cliente Paula Rojas -> 200 OK con CUIT enmascarado
+	reqPaula := httptest.NewRequest("GET", "/v1/clients/cli_demo_15", nil)
 	reqPaula.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recPaula := httptest.NewRecorder()
 	h.ServeHTTP(recPaula, reqPaula)
@@ -126,8 +136,8 @@ func TestHTTP_ClosingsAndPaid_OwnershipAndValidation(t *testing.T) {
 	_ = cLucia.Publish(closing.Published{Version: 1, Title: "Lucia listo"})
 	_ = closingRepo.Save(ctx, cLucia)
 
-	// 1. GET /api/v1/me/closings para Paula: sólo devuelve los de Paula
-	reqList := httptest.NewRequest("GET", "/api/v1/me/closings", nil)
+	// 1. GET /v1/clients/{clientId}/closings para Paula: sólo devuelve los de Paula
+	reqList := httptest.NewRequest("GET", "/v1/clients/cli_demo_15/closings", nil)
 	reqList.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recList := httptest.NewRecorder()
 	h.ServeHTTP(recList, reqList)
@@ -147,7 +157,7 @@ func TestHTTP_ClosingsAndPaid_OwnershipAndValidation(t *testing.T) {
 	}
 
 	// 2. Paula intenta pagar el cierre de Lucía -> 403 Forbidden!
-	reqCross := httptest.NewRequest("POST", "/api/v1/me/closings/clo_lucia_sep/paid", nil)
+	reqCross := httptest.NewRequest("PUT", "/v1/closings/clo_lucia_sep/payment", nil)
 	reqCross.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recCross := httptest.NewRecorder()
 	h.ServeHTTP(recCross, reqCross)
@@ -156,7 +166,7 @@ func TestHTTP_ClosingsAndPaid_OwnershipAndValidation(t *testing.T) {
 	}
 
 	// 3. Paula intenta pagar su propio cierre de Octubre que está en ACTION_REQUIRED -> 409 Conflict!
-	reqNotReady := httptest.NewRequest("POST", "/api/v1/me/closings/clo_paula_oct/paid", nil)
+	reqNotReady := httptest.NewRequest("PUT", "/v1/closings/clo_paula_oct/payment", nil)
 	reqNotReady.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recNotReady := httptest.NewRecorder()
 	h.ServeHTTP(recNotReady, reqNotReady)
@@ -165,7 +175,7 @@ func TestHTTP_ClosingsAndPaid_OwnershipAndValidation(t *testing.T) {
 	}
 
 	// 4. Paula paga su cierre de Septiembre (READY) -> 200 OK
-	reqPaid := httptest.NewRequest("POST", "/api/v1/me/closings/clo_paula_sep/paid", nil)
+	reqPaid := httptest.NewRequest("PUT", "/v1/closings/clo_paula_sep/payment", nil)
 	reqPaid.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recPaid := httptest.NewRecorder()
 	h.ServeHTTP(recPaid, reqPaid)
@@ -208,8 +218,8 @@ func TestHTTP_Notifications_Ownership(t *testing.T) {
 	_ = notifRepo.Save(ctx, nPaula)
 	_ = notifRepo.Save(ctx, nLucia)
 
-	// 1. GET /api/v1/me/notifications como Paula: sólo ve su notificación
-	reqList := httptest.NewRequest("GET", "/api/v1/me/notifications", nil)
+	// 1. GET /v1/clients/{clientId}/notifications como Paula: sólo ve su notificación
+	reqList := httptest.NewRequest("GET", "/v1/clients/cli_demo_15/notifications", nil)
 	reqList.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recList := httptest.NewRecorder()
 	h.ServeHTTP(recList, reqList)
@@ -223,7 +233,7 @@ func TestHTTP_Notifications_Ownership(t *testing.T) {
 	}
 
 	// 2. Paula intenta marcar como leída la notificación de Lucía -> 403 Forbidden!
-	reqCross := httptest.NewRequest("POST", "/api/v1/me/notifications/notif_lucia/read", nil)
+	reqCross := httptest.NewRequest("PATCH", "/v1/clients/cli_demo_15/notifications/notif_lucia", bytes.NewBufferString(`{"read":true}`))
 	reqCross.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recCross := httptest.NewRecorder()
 	h.ServeHTTP(recCross, reqCross)
@@ -232,7 +242,7 @@ func TestHTTP_Notifications_Ownership(t *testing.T) {
 	}
 
 	// 3. Notificación inexistente -> 404
-	req404 := httptest.NewRequest("POST", "/api/v1/me/notifications/notif_inexistente/read", nil)
+	req404 := httptest.NewRequest("PATCH", "/v1/clients/cli_demo_15/notifications/notif_inexistente", bytes.NewBufferString(`{"read":true}`))
 	req404.Header.Set("X-Demo-User", "client:cli_demo_15")
 	rec404 := httptest.NewRecorder()
 	h.ServeHTTP(rec404, req404)
@@ -241,7 +251,7 @@ func TestHTTP_Notifications_Ownership(t *testing.T) {
 	}
 
 	// 4. Paula marca como leída su notificación -> 200 OK
-	reqOwn := httptest.NewRequest("POST", "/api/v1/me/notifications/notif_paula/read", nil)
+	reqOwn := httptest.NewRequest("PATCH", "/v1/clients/cli_demo_15/notifications/notif_paula", bytes.NewBufferString(`{"read":true}`))
 	reqOwn.Header.Set("X-Demo-User", "client:cli_demo_15")
 	recOwn := httptest.NewRecorder()
 	h.ServeHTTP(recOwn, reqOwn)

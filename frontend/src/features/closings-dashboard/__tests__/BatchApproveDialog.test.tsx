@@ -66,7 +66,7 @@ describe('BatchApproveDialog', () => {
 
   it('muestra ítems fallidos con descripciones claras', async () => {
     server.use(
-      http.post('/api/v1/accountant/periods/:period/closings/approve-batch', () => {
+      http.post('/v1/periods/:period/approvals', () => {
         return HttpResponse.json({
           approved: 1,
           failed: 1,
@@ -100,7 +100,7 @@ describe('BatchApproveDialog', () => {
 
   it('muestra mensaje de error si falla la llamada de red', async () => {
     server.use(
-      http.post('/api/v1/accountant/periods/:period/closings/approve-batch', () => {
+      http.post('/v1/periods/:period/approvals', () => {
         return HttpResponse.error();
       })
     );
@@ -143,7 +143,7 @@ describe('BatchApproveDialog', () => {
 
   it('soporta un solo cliente (singular) y errores no mapeados o sin nombre', async () => {
     server.use(
-      http.post('/api/v1/accountant/periods/:period/closings/approve-batch', () => {
+      http.post('/v1/periods/:period/approvals', () => {
         return HttpResponse.json({
           approved: 1,
           failed: 2,

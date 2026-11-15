@@ -55,9 +55,9 @@ func fullTestDeps() Deps {
 func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	h := NewRouter(testDeps())
 
-	rec := do(t, h, "GET", "/api/openapi.yaml", "", nil)
+	rec := do(t, h, "GET", "/v1/openapi.yaml", "", nil)
 	if rec.Code != 200 {
-		t.Fatalf("GET /api/openapi.yaml status %d", rec.Code)
+		t.Fatalf("GET /v1/openapi.yaml status %d", rec.Code)
 	}
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "application/yaml") {
 		t.Fatalf("unexpected Content-Type for openapi.yaml: %s", ct)
@@ -76,8 +76,8 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 	if !strings.Contains(recDocs.Body.String(), "swagger-ui") {
 		t.Fatalf("/docs body missing swagger-ui")
 	}
-	if !strings.Contains(recDocs.Body.String(), "/api/openapi.yaml") {
-		t.Fatalf("/docs body missing /api/openapi.yaml")
+	if !strings.Contains(recDocs.Body.String(), "/v1/openapi.yaml") {
+		t.Fatalf("/docs body missing /v1/openapi.yaml")
 	}
 
 	recFavicon := do(t, h, "GET", "/favicon.svg", "", nil)
@@ -90,12 +90,12 @@ func TestOpenAPIAndDocsEndpoints(t *testing.T) {
 
 	rootDocs, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "docs", "index.html"))
 	if err == nil && string(rootDocs) != string(api.DocsHTML) {
-		t.Fatalf("backend/api/docs.html está desincronizado con docs/index.html")
+		t.Fatalf("docs.html embedded está desincronizado con docs/index.html")
 	}
 }
 
 func TestRouterMatchesOpenAPI(t *testing.T) {
-	pathRe := regexp.MustCompile(`^  (/api/v1/[^:]+):$`)
+	pathRe := regexp.MustCompile(`^  (/(health|v1/[^:]+)):$`)
 	methodRe := regexp.MustCompile(`^    (get|post|put|patch|delete):$`)
 
 	specRoutes := map[string]bool{}

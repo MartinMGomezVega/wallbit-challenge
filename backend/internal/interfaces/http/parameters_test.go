@@ -20,20 +20,20 @@ func TestParametersEndpoints(t *testing.T) {
 	}
 	router := NewRouter(deps)
 
-	// 1. GET /api/v1/accountant/parameters sin auth -> 401
-	rec := do(t, router, "GET", "/api/v1/accountant/parameters", "", nil)
+	// 1. GET /v1/parameters sin auth -> 401
+	rec := do(t, router, "GET", "/v1/parameters", "", nil)
 	if rec.Code != 401 {
 		t.Fatalf("esperaba 401, got %d", rec.Code)
 	}
 
 	// 2. GET con rol cliente -> 403
-	rec = do(t, router, "GET", "/api/v1/accountant/parameters", "client:cli_1", nil)
+	rec = do(t, router, "GET", "/v1/parameters", "client:cli_1", nil)
 	if rec.Code != 403 {
 		t.Fatalf("esperaba 403, got %d", rec.Code)
 	}
 
 	// 3. GET con rol accountant -> 200 defaults
-	rec = do(t, router, "GET", "/api/v1/accountant/parameters", "accountant", nil)
+	rec = do(t, router, "GET", "/v1/parameters", "accountant", nil)
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -50,7 +50,7 @@ func TestParametersEndpoints(t *testing.T) {
 	getDTO.FXRule = "BNA_SELL_PREV_BUSINESS_DAY"
 	payload, _ := json.Marshal(getDTO)
 
-	rec = do(t, router, "PUT", "/api/v1/accountant/parameters", "accountant", bytes.NewReader(payload))
+	rec = do(t, router, "PUT", "/v1/parameters", "accountant", bytes.NewReader(payload))
 	if rec.Code != 200 {
 		t.Fatalf("esperaba 200, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -71,7 +71,7 @@ func TestParametersEndpoints(t *testing.T) {
 	// 5. PUT con validación errónea (bp > 100000) -> 422
 	getDTO.CategoryCapWarningBp = 120000
 	badPayload, _ := json.Marshal(getDTO)
-	rec = do(t, router, "PUT", "/api/v1/accountant/parameters", "accountant", bytes.NewReader(badPayload))
+	rec = do(t, router, "PUT", "/v1/parameters", "accountant", bytes.NewReader(badPayload))
 	if rec.Code != 422 {
 		t.Fatalf("esperaba 422, got %d (%s)", rec.Code, rec.Body.String())
 	}
@@ -81,7 +81,7 @@ func TestParametersEndpoints(t *testing.T) {
 	}
 
 	// 6. PUT con JSON malformado -> 400
-	rec = do(t, router, "PUT", "/api/v1/accountant/parameters", "accountant", bytes.NewReader([]byte("{invalid-json")))
+	rec = do(t, router, "PUT", "/v1/parameters", "accountant", bytes.NewReader([]byte("{invalid-json")))
 	if rec.Code != 400 {
 		t.Fatalf("esperaba 400, got %d", rec.Code)
 	}

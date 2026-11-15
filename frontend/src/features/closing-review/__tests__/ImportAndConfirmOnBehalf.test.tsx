@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { axe } from 'vitest-axe';
 import { ImportResultView } from '../import/ImportResultView';
 import { ImportInvoicesDialog } from '../import/ImportInvoicesDialog';
-import { ConfirmOnBehalfForm } from '../confirm/ConfirmOnBehalfForm';
+import { ConfirmOnBehalfForm } from '../confirmation/ConfirmOnBehalfForm';
 import { InvoicesSection } from '../sections/InvoicesSection';
 import { HistorySection } from '../sections/HistorySection';
 import { ClosingDetailDTO } from '../schemas';

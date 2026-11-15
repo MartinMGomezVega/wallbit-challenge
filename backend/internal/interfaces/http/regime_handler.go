@@ -37,11 +37,7 @@ type incomeTaxAdvanceDTO struct {
 }
 
 func (h *regimeHandler) changeRegime(w http.ResponseWriter, r *http.Request) {
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		writeErrorCode(w, http.StatusNotFound, "NOT_FOUND", "ID de cliente no provisto", nil)
-		return
-	}
+	clientID := r.PathValue("clientId")
 
 	var req regimeChangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -72,15 +68,12 @@ func (h *regimeHandler) changeRegime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, c)
+	w.Header().Set("Location", "/v1/clients/"+clientID)
+	writeJSON(w, http.StatusCreated, c)
 }
 
 func (h *regimeHandler) updateRIProfile(w http.ResponseWriter, r *http.Request) {
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		writeErrorCode(w, http.StatusNotFound, "NOT_FOUND", "ID de cliente no provisto", nil)
-		return
-	}
+	clientID := r.PathValue("clientId")
 
 	var req riProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
