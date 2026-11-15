@@ -54,7 +54,7 @@ En el primer arranque se crea el esquema en **PostgreSQL**, se generan **300 cli
 <details>
 <summary><b>Sin Docker para la app, tests y variables</b></summary>
 
-Con Go ≥ 1.23 y Node ≥ 20:
+Con Go ≥ 1.25 y Node ≥ 20:
 
 ```bash
 make install      # dependencias del frontend

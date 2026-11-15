@@ -18,7 +18,7 @@ wallbit-challenge/
 ## 2. Backend (Go)
 
 ### 2.1 Stack
-- Go ≥ 1.23. **Solo stdlib** salvo excepciones listadas: `net/http` con routing por patrones (`mux.HandleFunc("GET /v1/closings/{closingId}", ...)`), `log/slog`, `encoding/json`, `embed`, `math/big`, `testing`.
+- Go ≥ 1.25. **Solo stdlib** salvo excepciones listadas: `net/http` con routing por patrones (`mux.HandleFunc("GET /v1/closings/{closingId}", ...)`), `log/slog`, `encoding/json`, `embed`, `math/big`, `testing`.
 - Sin framework web, sin ORM. Sin dependencias externas en `domain` ni `application`.
 - Dependencias permitidas: `github.com/jackc/pgx/v5` (solo en `infrastructure/postgres`, desde 013). Cualquier otra se justifica en el `plan.md` de la feature.
 - Persistencia: **PostgreSQL 17** por defecto (013); repositorios en memoria para tests unitarios y `STORAGE=memory`.
